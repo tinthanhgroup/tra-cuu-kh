@@ -336,6 +336,7 @@ function capBD(x, km, kmNhap) {
   if (cuoi && cuoi.moc >= mocGan(km) && km - cuoi.km < 2500) {
     const sau = cuoi.moc < 5000 ? 5000 : cuoi.moc + 5000, con = sau - km, c = Math.max(capMoc(sau), no.cap);
     if (no.cap) ghi.push((no.ly === 'thap' ? thap() + 'l' : 'L') + 'ần bảo dưỡng tới nên làm bù cấp ' + tenCap(no.cap) + '.');
+    if (!no.cap && con > 1000) return { chuaToi: true, moc: sau, cap: c, con, daMoc: cuoi.moc, ngay: cuoi.ngay };
     if (con <= 1000) ghi.push('Còn ' + tien(Math.max(0, con)) + ' km tới mốc ' + tien(sau) + ' km: nếu khách vào sửa chữa, có thể làm luôn bảo dưỡng.');
     return { daLam: true, moc: cuoi.moc, ngay: cuoi.ngay, sau, con, cap: c, ghi };
   }
@@ -348,11 +349,14 @@ function capBD(x, km, kmNhap) {
   }
   if (truoc != null) boQua(truoc, moc);
   const cap = Math.max(capMoc(moc), no.cap);
+  // Còn hơn 1.000 km tới mốc, mốc trước đã làm và không nợ cấp: chỉ một dòng "Chưa tới kỳ" (người dùng chốt 30/10/2026).
+  // Chưa có lịch sử hoặc mốc trước chưa làm thì xe có thể đã tới kỳ: hiện đủ.
+  if (moc - km > 1000 && cap === capMoc(moc) && cuoi && cuoi.moc >= moc - 5000) return { chuaToi: true, moc, cap, con: moc - km };
   if (no.cap > capMoc(moc) && no.ly === 'bo') ghi.push((no.moc > cuoi.moc ? 'Lần bảo dưỡng cuối ở ' + tien(cuoi.km) + ' km, chưa' : 'Đã bỏ qua, chưa') + ' làm mốc ' + tien(no.moc) + ' km (cấp ' + tenCap(no.cap)
     + ') nên làm cấp ' + tenCap(no.cap) + ' thay cho cấp ' + tenCap(capMoc(moc)) + '. Nếu khách đã bảo dưỡng nơi khác, hỏi cấp đã làm.');
   else if (no.cap > capMoc(moc)) ghi.push(thap() + 'nên làm bù cấp ' + tenCap(no.cap) + ' thay cho cấp ' + tenCap(capMoc(moc)) + '.');
   if (moc === 1000) ghi.push('Mốc 1.000 km miễn phí cho khách (P. Bán hàng trả).');
-  if (km < moc && cap === capMoc(moc)) ghi.push('Còn ' + tien(moc - km) + ' km tới mốc.');
+  if (km < moc && cap === capMoc(moc)) ghi.push('Còn ' + tien(moc - km) + ' km tới mốc: nếu khách vào sửa chữa, có thể làm luôn bảo dưỡng.');
   else if (km - moc > 1500) ghi.push('Đã quá mốc ' + tien(km - moc) + ' km.');
   if (!cuoi) ghi.push('Chưa có lịch sử bảo dưỡng từ 01/2025: hỏi khách đã bảo dưỡng ở đâu, cấp nào.');
   else if ((Date.now() - new Date(cuoi.ngay)) / 864e5 > 183) ghi.push('Đã ' + Math.floor((Date.now() - new Date(cuoi.ngay)) / (30.44 * 864e5)) + ' tháng từ lần bảo dưỡng trước.');
@@ -363,6 +367,9 @@ function veCap(c, d, g) {
   if (!c) return '';
   const dau = '<div class="card"><div class="dau-card"><h2 class="card-title">Bảo dưỡng hôm nay</h2>';
   if (c.canh) return dau + '</div><div class="ds-hm t-cam">' + c.canh + '</div></div>';
+  if (c.chuaToi) return '<div class="card"><div class="dau-card"><h2 class="card-title">Bảo dưỡng</h2><span class="mo">Chưa tới kỳ</span></div>'
+    + '<div class="ds-hm mo">' + (c.daMoc ? 'Đã làm mốc ' + tien(c.daMoc) + ' km ngày ' + ngayVN(c.ngay) + '. ' : '')
+    + 'Mốc sau ' + tien(c.moc) + ' km, cấp ' + tenCap(c.cap) + ', còn khoảng ' + tien(c.con) + ' km' + (d.uoc ? ' (km ước tính)' : '') + '.</div></div>';
   const ghi = c.ghi.slice();
   if (g.nhom === 'tkh' && !c.daLam) ghi.push('Tính chung với bảo dưỡng bù theo chính sách tái kích hoạt bảo hành.');
   if (d.uoc) ghi.push('Km ước tính, nhập km đồng hồ để chọn đúng mốc.');
