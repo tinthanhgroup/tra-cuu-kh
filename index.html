@@ -64,7 +64,7 @@
   /* Ô tra cứu: giữ trên đầu khi cuộn */
   .thanh-tra { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-top: 16px; }
   .thanh-tra .card { padding: 12px 16px; }
-  .hang-nhap { display: grid; grid-template-columns: minmax(0, 360px) 130px auto; gap: 8px; justify-content: start; }
+  .hang-nhap { display: grid; grid-template-columns: minmax(0, 360px) 150px auto; gap: 8px; justify-content: start; }
   .cap-nhat { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
   /* Khách */
@@ -106,6 +106,16 @@
   .hai-muc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; margin-top: 8px; }
   .hai-muc .muc + .muc { border-left: 1px solid var(--line); padding-left: 24px; }
   .muc .chinh { font-size: 24px; font-weight: 500; line-height: 1.3; margin: 2px 0 6px; }
+  .muc-bd { background: var(--accent-soft); border-radius: var(--radius); padding: 12px 16px; }
+  .muc .nhan-muc { display: flex; align-items: center; gap: 8px; }
+  .muc-bd .bt { width: 28px; height: 28px; border-radius: 50%; background: var(--card); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+  .muc .hm .d2 { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .hai-muc .muc + .muc { border-left: 0; padding-left: 0; }
+  .dong-bh { display: flex; white-space: nowrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; }
+  .dong-bh .cham { color: var(--hint); }
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; }
+  .ls.dau-bang { color: var(--muted); font-size: 12px; background: var(--head); border-top: 0; padding: 6px 8px; border-radius: var(--radius-sm); margin-top: 8px; }
+  .ds-ls .ls { padding-left: 8px; padding-right: 8px; }
   .muc .phu-chinh { font-size: 14px; font-weight: 400; }
   .muc .than { font-size: 13px; margin-top: 6px; }
   .ba-dong { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -197,8 +207,8 @@
     <div class="thanh-tra"><div class="card">
       <div class="hang-nhap">
         <input id="bien" placeholder="Biển số" autocapitalize="characters">
-        <input id="km" type="number" inputmode="numeric" placeholder="Km" title="Km trên đồng hồ xe">
-        <button class="btn btn-primary" id="nut-tra">Tra cứu</button>
+        <input id="km" type="number" inputmode="numeric" placeholder="Km (tùy chọn)" title="Km trên đồng hồ xe; không nhập thì trang ước tính">
+        <button class="btn btn-primary" id="nut-tra"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Tra cứu</button>
       </div>
       <div class="loi" id="loi-tra"></div>
       <div class="cap-nhat" id="cap-nhat"></div>
@@ -224,6 +234,18 @@ const MODEL = {
   'creta': ['Creta', 'creta'], 'elantra': ['Elantra', 'elantra'], 'stargazer': ['Stargazer', 'stargazer'], 'i10': ['Grand i10', 'i10'],
   'custin': ['Custin', 'custin'], 'venue': ['Venue', 'venue'], 'palisade': ['Palisade', 'palisade'], 'ioniq5': ['Ioniq 5', 'ioniq5'],
   'solati': ['Solati', 'solati'], 'n250': ['Mighty N250', 'mighty'], 'hd72': ['Mighty HD72', 'mighty'],
+};
+// Câu lợi ích từng hạng mục GTGT để CVDV nói với khách (mã như HANG_MUC trong tao_du_lieu.py; người dùng duyệt nội dung)
+const LOI_ICH = {
+  pg: 'Làm sạch, bảo vệ động cơ giữa hai lần thay dầu',
+  ccgl: 'Xe chạy thẳng, lốp mòn đều, đánh lái nhẹ',
+  bd: 'Giảm muội than, máy êm, đỡ hao nhiên liệu',
+  kdc: 'Sạch bụi, dầu bám; dễ phát hiện rò rỉ sớm',
+  gl: 'Điều hòa mát sâu, hết mùi hôi trong xe',
+  kmu: 'Diệt khuẩn nội thất, không khí trong xe sạch hơn',
+  kp: 'Phun nhiên liệu đều, máy bốc, tiết kiệm nhiên liệu',
+  bl: 'Thông bầu lọc khí thải, cảm biến oxy đo chuẩn, tránh báo lỗi',
+  hg: 'Không tải êm, chân ga nhạy, dễ nổ máy',
 };
 // Đường dẫn tuyệt đối để cả bản mở qua link Apps Script cũng thấy ảnh
 const ANH_XE = 'https://tinthanhgroup.github.io/tra-cuu-kh/xe/';
@@ -408,7 +430,8 @@ function capBD(x, km, kmNhap) {
 /** Nửa trái khung "Tư vấn hôm nay": cấp bảo dưỡng (dòng chính cỡ lớn để nhìn lướt), lý do ở dưới. */
 function veCap(c, d, g) {
   // Lý do tối đa 3 dòng, đủ khi rê chuột
-  const khoi = (chinh, than, cuoi = '') => '<div class="muc"><div class="nhan-muc">Bảo dưỡng</div><div class="chinh so-lieu">' + chinh + '</div>'
+  // Khối bảo dưỡng có nền xanh nhạt và biểu tượng cờ lê để nổi khi nhìn lướt
+  const khoi = (chinh, than, cuoi = '') => '<div class="muc muc-bd"><div class="nhan-muc"><span class="bt">' + BIEU_TUONG.lan + '</span>Bảo dưỡng</div><div class="chinh so-lieu">' + chinh + '</div>'
     + (than ? '<div class="than ba-dong" title="' + esc(than) + '">' + than + '</div>' : '') + cuoi + '</div>';
   if (!c) return khoi('<span class="mo">Không áp dụng</span>', 'Xe hãng khác, không theo cấp bảo dưỡng Hyundai.');
   if (c.canh) return khoi('<span class="t-cam">Kiểm tra lại km</span>', c.canh);
@@ -427,6 +450,15 @@ function veCap(c, d, g) {
 }
 
 /** Khung Khách hàng: xe, khách, 3 số chính và chân dung 6 nhóm (mỗi nhóm 1 dòng, tô nổi nhóm của khách kèm gợi ý). */
+/** Năm sản xuất (ký tự 10 số khung) và bảo hành mặc định 5 năm/100.000 km, điều kiện nào tới trước (README "Tái kích hoạt"). */
+function veBaoHanh(x, d) {
+  const N = META.nhom, nam = new Date().getFullYear();
+  const hetKm = d.km > N.han_bh_km, hetNam = x.nsx && nam - x.nsx > N.han_bh_nam;
+  const bh = hetKm || hetNam ? tag('Hết hạn', '') + ' <span class="mo">' + (hetKm ? 'quá ' + tien(N.han_bh_km) + ' km' : 'quá ' + N.han_bh_nam + ' năm') + '</span>'
+    : tag('Còn hạn', 'xanh') + ' <span class="mo">' + (x.nsx ? (x.nsx + N.han_bh_nam) + ' / ' : 'tới ') + tien(N.han_bh_km) + ' km' + (x.nsx ? '' : ', chưa rõ năm sản xuất') + '</span>';
+  return '<div class="dong-bh">' + (x.nsx ? '<span>Sản xuất ' + x.nsx + '</span><span class="cham">·</span>' : '') + '<span>Bảo hành ' + bh + '</span></div>';
+}
+
 function veKhach(x, d, g, phu) {
   const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
   const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
@@ -441,11 +473,12 @@ function veKhach(x, d, g, phu) {
     + (mo ? '<img class="anh-xe" src="' + ANH_XE + mo[1] + '.webp" alt="' + esc(mo[0]) + '" onerror="this.parentNode.classList.add(\'khong-anh\'); this.remove()">' : '')
     + '<div class="ds-so">' + o('km', d.uoc ? 'Km ước tính' : 'Km hôm nay', tien(d.km), kpd) + o('lan', 'Vào xưởng', x.sl + ' lần', 'tổng ' + trieu(x.tong))
     + o('tien', 'GTGT / BD', tyLe, trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd)) + '</div></div>'
+    + veBaoHanh(x, d)
     + '<div class="nhan-muc tach">Chân dung khách hàng</div><div class="ds-nhom">'
     + Object.entries(NHOM).map(([ma, n], i) => {
       const la = ma === g.nhom, sao = '<span class="sao" title="Mức khai thác GTGT"><span class="day">' + '★'.repeat(n[3]) + '</span><span class="rong">' + '☆'.repeat(5 - n[3]) + '</span></span>';
       return '<div class="dong-nhom' + (la ? ' la ' + n[4] : '') + '" title="' + esc(n[1]) + '"><div class="d1"><span class="stt">' + (i + 1) + '</span><span class="ten">' + n[0] + '</span>' + sao + '</div>'
-        + (la ? '<div class="chi-tiet"><div class="dn">' + n[1] + '</div><div>' + n[2] + '</div>' + phu.map(p => '<div class="dn">' + p + '</div>').join('') + '</div>' : '') + '</div>';
+        + (la ? '<div class="chi-tiet"><div class="dn">' + n[1] + '</div><div><span class="mo">Gợi ý tư vấn:</span> ' + n[2] + '</div>' + phu.map(p => '<div class="dn">' + p + '</div>').join('') + '</div>' : '') + '</div>';
     }).join('') + '</div></div>';
 }
 
@@ -461,9 +494,9 @@ function dongHm(h) {
   const ck = tien(h.ck) + ' km' + (h.thang ? ' hoặc ' + h.thang + ' tháng' : '') + (h.thang && h.ma === 'gl' ? ', nếu xe có mùi' : '');
   const d2 = h.cuoi ? 'Lần cuối ' + ngayVN(h.cuoi[0]) + ' ở ' + tien(h.cuoi[1]) + ' km, chu kỳ ' + ck
     : 'Chu kỳ ' + ck;
-  // Một dòng mỗi hạng mục; lần cuối, chu kỳ hiện khi rê chuột
+  // Dòng 1: tên, nhãn quá hạn, giá; dòng 2: câu lợi ích để CVDV nói với khách. Lần cuối, chu kỳ hiện khi rê chuột
   return '<div class="hm" title="' + esc(d2) + '"><div class="d1"><span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
-    + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div></div>';
+    + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>' + (LOI_ICH[h.ma] ? '<div class="d2">' + LOI_ICH[h.ma] + '</div>' : '') + '</div>';
 }
 
 // "BD 58.000 Km" khi nhãn đã ghi BD → "58.000 Km"
@@ -536,12 +569,13 @@ function veLs(x, chiBD) {
   const ds = chiBD ? bd : x.ls;
   const nut = (loc, ten, so) => '<button data-loc="' + loc + '" class="' + ((loc === 'bd') === chiBD ? 'on' : '') + '">' + ten + ' ' + so + '</button>';
   let h = '<div class="dau-card dau-ls"><h2 class="card-title">Lịch sử vào xưởng</h2><div class="loc">' + nut('tat', 'Tất cả', x.ls.length) + nut('bd', '<span class="dai">Bảo dưỡng</span><span class="ngan">BD</span>', bd.length) + '</div></div>';
-  if (chiBD && bd.length) {
-    h += '<div class="dong-phu">Tổng ' + trieu(bd.reduce((s, l) => s + l[4], 0)) + ', gồm GTGT trong lệnh</div>';
-  }
   if (!ds.length) return h + '<p class="mo">Chưa có lần bảo dưỡng nào từ 01/2025.</p>';
+  // Dòng tổng theo bộ lọc đang chọn (tiền gồm cả GTGT trong lệnh)
+  const tong = ds.reduce((s, l) => s + l[4], 0);
+  h += '<div class="dong-phu so-lieu">' + ds.length + ' lệnh · tổng ' + trieu(tong) + ' · bình quân ' + trieu(tong / ds.length) + '/lệnh</div>';
   const dau = chiBD ? ds : ds.slice(0, SO_LS_HIEN), con = chiBD ? [] : ds.slice(SO_LS_HIEN);
-  return h + '<div class="ds-ls">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
+  return h + '<div class="ls dau-bang"><span>Ngày</span><span class="r">Km</span><span>Loại</span><span>Ghi chú</span><span class="r">Chi phí</span></div>'
+    + '<div class="ds-ls">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
     + (con.length ? '<details><summary><span class="lien">Xem thêm ' + con.length + ' lần</span></summary>'
       + '<div class="ds-ls">' + con.map(l => dongLs(l, hienCn)).join('') + '</div></details>' : '');
 }
