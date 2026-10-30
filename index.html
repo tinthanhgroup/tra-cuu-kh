@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tra cứu tư vấn GTGT</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap">
+<style>
+  /* Phong cách "Giao diện 1 – tinh tế": Kien truc agent/giao-dien-1-tinh-te/QUY_CHUAN.md */
+  :root {
+    --bg: #f4f5f8; --card: #ffffff; --border: #e6e8ee; --line: #eef0f4; --head: #f7f8fa;
+    --text: #1f2329; --muted: #6b7280; --hint: #9aa1ad;
+    --accent: #3b5bdb; --accent-hover: #324fc4; --accent-soft: #eef2ff;
+    --red: #c62828; --red-bg: #fdecec; --amber: #a35f00; --amber-bg: #fff4e0; --green: #2e7d32; --green-bg: #e8f5e9;
+    --radius: 8px; --radius-sm: 6px; --shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 400 14px/1.5 Inter, system-ui, sans-serif; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+  button, input { font-family: inherit; }
+  .so-lieu { font-variant-numeric: tabular-nums; }
+  .mo { color: var(--muted); }
+  [hidden] { display: none !important; }
+
+  /* Thanh trên cùng */
+  .topbar { background: var(--accent); color: #fff; }
+  .topbar-in { max-width: 1280px; margin: 0 auto; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
+  .topbar h1 { margin: 0; font-size: 17px; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar .cn { font-size: 12px; font-weight: 400; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,.18); margin-left: 8px; vertical-align: 2px; }
+  .topbar .ai { font-size: 13px; opacity: .85; }
+  .topbar button { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; font-size: 13px; font-weight: 400; cursor: pointer; }
+
+  main { max-width: 1280px; margin: 0 auto; padding: 0 16px 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; margin-bottom: 16px; }
+  .card-title { margin: 0; font-size: 16px; font-weight: 500; }
+  .sub-title { font-size: 13px; color: var(--muted); margin: 16px 0 0; }
+  .chu-thich { color: var(--muted); font-size: 12px; margin-top: 12px; }
+  .dong-phu { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 400; white-space: nowrap; background: #f2f3f5; color: #4b5563; }
+  .tag.do { background: var(--red-bg); color: var(--red); }
+  .tag.cam { background: var(--amber-bg); color: var(--amber); }
+  .tag.xanh { background: var(--green-bg); color: var(--green); }
+  .t-cam { color: var(--amber); }
+  .t-xanh { color: var(--green); }
+
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; font-weight: 400; cursor: pointer; white-space: nowrap; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  input { height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); background: var(--card); width: 100%; min-width: 0; }
+  input::placeholder { color: var(--hint); }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .loi { color: var(--red); font-size: 13px; }
+  .loi:empty { display: none; }
+
+  /* Đăng nhập */
+  .dang-nhap { max-width: 360px; margin: 48px auto; }
+  .dang-nhap .card-title { margin-bottom: 16px; }
+  .dang-nhap input { margin-bottom: 12px; }
+  .dang-nhap .btn { width: 100%; }
+
+  /* Ô tra cứu: giữ trên đầu khi cuộn */
+  .thanh-tra { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-top: 16px; }
+  .thanh-tra .card { padding: 12px 16px; }
+  .hang-nhap { display: grid; grid-template-columns: minmax(0, 360px) 130px auto; gap: 8px; justify-content: start; }
+  .cap-nhat { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* Khách */
+  .xe { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .bien { font-size: 22px; font-weight: 500; }
+  .khach { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .the-phu { font-size: 13px; color: var(--muted); }
+  .nhom { margin-top: 12px; padding: 12px; background: var(--head); border-radius: var(--radius-sm); }
+  .nhom.cam { background: var(--amber-bg); }
+  .nhom.xanh { background: var(--green-bg); }
+  .nhom .ten-nhom { font-size: 15px; display: flex; align-items: baseline; gap: 12px; }
+  .sao { font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+  .nhom-phu { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .nhom .goi-y-nhom { font-size: 13px; margin-top: 4px; }
+  .o-so { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .o-so > div { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 12px; min-width: 0; }
+  .o-so .nhan { font-size: 13px; color: var(--muted); }
+  .o-so .so { font-size: 24px; font-weight: 500; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .o-so .phu { font-size: 12px; color: var(--muted); }
+
+  /* Hạng mục */
+  .dau-card { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .dau-card .tong { font-weight: 500; font-size: 15px; }
+  .hm { padding: 8px 0; border-top: 1px solid var(--line); }
+  .hm:first-child { border-top: 0; }
+  .hm .d1 { display: flex; align-items: center; gap: 8px; }
+  .hm .ten { font-size: 14px; }
+  .hm .gia { margin-left: auto; white-space: nowrap; }
+  .hm .d2 { font-size: 12px; color: var(--muted); }
+  .ds-hm { margin-top: 8px; }
+
+  /* Lịch sử */
+  .loc { display: flex; gap: 8px; margin-left: auto; }
+  .loc button { height: 32px; padding: 0 12px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap; }
+  .loc .ngan { display: none; }
+  @media (max-width: 640px) { .loc .ngan { display: inline; } }
+  .loc button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .ls { padding: 8px 0; border-top: 1px solid var(--line); }
+  .ls:first-child { border-top: 0; }
+  .ls .d1 { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .ls .tien { margin-left: auto; }
+  .ls .nd { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ls .nd .tag { margin-right: 8px; }
+  .dash { color: var(--hint); }
+  .cn-nd { display: none; }
+  details summary { list-style: none; margin-top: 8px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary .btn { display: flex; align-items: center; justify-content: center; width: 100%; pointer-events: none; }
+  details[open] summary { display: none; }
+  .goi-y button { margin: 12px 8px 0 0; }
+  a { color: var(--accent); text-decoration: none; }
+  .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  .bang th { background: var(--head); font-size: 13px; font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .bang td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .bang .r { text-align: right; white-space: nowrap; }
+  @media (max-width: 640px) { .bang th, .bang td { padding: 8px 6px; font-size: 13px; } }
+
+  @media (min-width: 700px) {
+    .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+    .thanh-tra .cap-nhat { margin: 0 0 0 auto; }
+    .thanh-tra .loi { flex-basis: 100%; }
+  }
+  @media (min-width: 1100px) {
+    .ket-qua { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .ket-qua > div:last-child { position: sticky; top: 92px; }
+  }
+  @media (max-width: 640px) {
+    .card { padding: 16px; }
+    input { height: 40px; font-size: 16px; }
+    .btn, .loc button, .topbar button { min-height: 40px; }
+    .hang-nhap { grid-template-columns: 1fr 88px auto; }
+    .o-so > div { padding: 8px; }
+    .o-so .nhan { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .o-so .nhan { font-size: 12px; }
+    .o-so .so { font-size: 20px; }
+    .topbar h1 { font-size: 16px; }
+    .topbar .ai { display: none; }
+    .ls .d1 { font-size: 13px; }
+    .ls .nd { font-size: 13px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .loc button { padding: 0 10px; }
+    .cn-tag { display: none; }
+    .cn-nd { display: inline; }
+    .dau-ls { flex-wrap: nowrap; align-items: center; }
+    .dau-ls .card-title { white-space: nowrap; }
+    .loc .dai { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-in">
+  <h1>Tra cứu tư vấn GTGT<span class="cn" id="cn"></span></h1>
+  <span class="ai" id="ai"></span>
+  <button id="thoat" hidden>Thoát</button>
+</div></div>
+<main>
+  <section id="man-dn" class="card dang-nhap" hidden>
+    <h2 class="card-title">Đăng nhập</h2>
+    <input id="ma" placeholder="Mã CVDV" autocomplete="username" autocapitalize="characters">
+    <input id="mk" type="password" placeholder="Mật khẩu" autocomplete="current-password">
+    <button class="btn btn-primary" id="nut-dn">Đăng nhập</button>
+    <div class="loi" id="loi-dn"></div>
+  </section>
+
+  <section id="man-tra" hidden>
+    <div class="thanh-tra"><div class="card">
+      <div class="hang-nhap">
+        <input id="bien" placeholder="Biển số" autocapitalize="characters">
+        <input id="km" type="number" inputmode="numeric" placeholder="Km" title="Km trên đồng hồ xe">
+        <button class="btn btn-primary" id="nut-tra">Tra cứu</button>
+      </div>
+      <div class="loi" id="loi-tra"></div>
+      <div class="cap-nhat" id="cap-nhat"></div>
+    </div></div>
+    <div id="ket-qua"></div>
+  </section>
+</main>
+
+<script>
+// 6 nhóm theo thứ tự ưu tiên (README "Phân nhóm khách"): [tên, nhận diện (hiện khi rê chuột), câu gợi ý, số sao khai thác GTGT, màu nền]
+const NHOM = {
+  tkh:  ['Tái kích hoạt bảo hành', 'Còn trong 5 năm/100.000 km, thiếu bảo dưỡng theo km, ma trận HTV cần bù', 'Giới thiệu chính sách tái kích hoạt, ưu tiên bảo dưỡng bù hoặc bảo dưỡng cấp lớn.', 2, 'cam'],
+  giu:  ['Cần giữ chân', 'Lần này cách lần trước từ 9 tháng', 'Hỏi tình trạng xe, kiểm tra miễn phí, ưu đãi; không đẩy GTGT.', 1, 'cam'],
+  moi:  ['Khách mới', 'Chưa bảo dưỡng tại xưởng từ 01/2025', 'Giới thiệu lịch bảo dưỡng và 1 hạng mục giá thấp để khách trải nghiệm.', 2, ''],
+  dv:   ['Xe chạy dịch vụ', 'Từ 100 km/ngày', 'Hạng mục giữ xe bền, tiết kiệm nhiên liệu, làm gọn trong lúc bảo dưỡng.', 4, ''],
+  cham: ['Khách chăm xe', 'GTGT từ 30% giá trị bảo dưỡng', 'Tư vấn đủ hạng mục tới kỳ trong trần, giới thiệu gói cao cấp.', 5, 'xanh'],
+  tk:   ['Khách tiết kiệm', 'GTGT dưới 30% giá trị bảo dưỡng', 'Chốt 1 hạng mục đầu danh sách, hẹn phần còn lại kỳ sau.', 3, ''],
+};
+const SO_LS_HIEN = 5;
+let PHIEN = null, META = null, XE = null;
+const $ = id => document.getElementById(id);
+const tien = n => Math.round(n).toLocaleString('vi-VN');
+const trieu = n => (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+const ngayVN = s => s ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) : '';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// "HUỲNH ĐỨC TRUNG" → "Huỳnh Đức Trung"; giữ nguyên tên công ty và tên đã viết thường/hoa lẫn
+const chuanTen = s => s && s === s.toUpperCase() && !/^(CTY|CÔNG TY|DNTN|HTX|CN )/.test(s) ? s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()) : (s || '');
+const chuanModel = s => (s || '').replace(/(^|\s)([a-z])(?![0-9])/g, (m, a, b) => a + b.toUpperCase());
+const tag = (chu, mau) => '<span class="tag' + (mau ? ' ' + mau : '') + '">' + chu + '</span>';
+
+// Link Web App (Deploy) để trang trên GitHub Pages gọi; mở trong Apps Script thì dùng google.script.run
+const API_URL = 'https://script.google.com/macros/s/AKfycbykY3TAPZ80qskUcl-5Zj1KR-b-anVDcpRX6_eHH1PGi_2Jl90ICTKFLn2g4ya1nmHYgA/exec';
+
+function goi(ham, ...thamSo) {
+  if (window.google && google.script) {
+    return new Promise((ok, loi) => google.script.run.withSuccessHandler(ok).withFailureHandler(loi)[ham](...thamSo));
+  }
+  // Không đặt Content-Type để là yêu cầu đơn giản (không bị chặn CORS), giống cách trang BH gọi TinThanh_Auth
+  const ctrl = new AbortController(), hen = setTimeout(() => ctrl.abort(), 30000);
+  return fetch(API_URL, { method: 'POST', body: JSON.stringify({ ham, thamSo }), signal: ctrl.signal })
+    .then(r => r.json())
+    .then(r => { if (!r.ok) throw new Error(r.loi); return r.kq; })
+    .catch(e => { throw new Error(e.name === 'AbortError' ? 'Máy chủ phản hồi chậm, thử lại.' : e.message); })
+    .finally(() => clearTimeout(hen));
+}
+
+function luuPhien(p) { PHIEN = p; try { sessionStorage.setItem('gtgt', JSON.stringify(p)); } catch (e) {} }
+function hien(man) {
+  $('man-dn').hidden = man !== 'dn'; $('man-tra').hidden = man !== 'tra'; $('thoat').hidden = man !== 'tra';
+  $('ai').textContent = man === 'tra' ? PHIEN.ma : '';
+  $('cn').hidden = man !== 'tra';
+  if (man === 'tra') {
+    $('cn').textContent = META.chi_nhanh;
+    $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>';
+    $('xem-dm').onclick = e => { e.preventDefault(); XE = null; $('ket-qua').innerHTML = veDanhMuc(); };
+    $('bien').focus();
+  } else $('ma').focus();
+}
+
+async function dangNhap() {
+  $('loi-dn').textContent = ''; $('nut-dn').disabled = true;
+  try {
+    const r = await goi('dangNhap', $('ma').value, $('mk').value);
+    META = r.meta; luuPhien({ token: r.token, ma: r.ma }); $('mk').value = ''; hien('tra');
+  } catch (e) { $('loi-dn').textContent = e.message; }
+  $('nut-dn').disabled = false;
+}
+
+function thoat() { PHIEN = null; try { sessionStorage.removeItem('gtgt'); } catch (e) {} $('ket-qua').innerHTML = ''; hien('dn'); }
+
+async function traCuu(bien) {
+  bien = bien || $('bien').value;
+  $('loi-tra').textContent = ''; $('nut-tra').disabled = true; $('ket-qua').innerHTML = '<p class="mo">Đang tra…</p>';
+  try {
+    const x = await goi('traCuu', PHIEN.token, bien);
+    if (x.goiY) {
+      $('ket-qua').innerHTML = x.goiY.length
+        ? '<div class="card goi-y"><h2 class="card-title">Có nhiều xe khớp, chọn biển số</h2>' + x.goiY.map(b => '<button class="btn" data-b="' + esc(b) + '">' + esc(b) + '</button>').join('') + '</div>'
+        : '<div class="card"><div class="ten-nhom">Khách mới</div><div class="dong-phu">Không có lịch sử từ 01/2025. ' + NHOM.moi[2] + '</div></div>';
+      document.querySelectorAll('.goi-y button').forEach(b => b.onclick = () => { $('bien').value = b.dataset.b; traCuu(b.dataset.b); });
+    } else $('ket-qua').innerHTML = veXe(x, Number($('km').value) || 0);
+  } catch (e) {
+    $('ket-qua').innerHTML = '';
+    if (e.message.includes('HET_PHIEN')) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; }
+    else $('loi-tra').textContent = e.message;
+  }
+  $('nut-tra').disabled = false;
+}
+
+/** Xếp nhóm lúc tra (thứ tự ưu tiên trong NHOM). Số lần thiếu bảo dưỡng chỉ tính theo km: các khoảng đã có (x.th)
+ *  cộng khoảng từ lần BD cuối tới km hôm nay; tra ma trận HTV ra số lần bảo dưỡng bù. */
+function xepNhom(x, km) {
+  const N = META.nhom, nay = new Date();
+  const thieu = x.th + (x.bdk != null ? Math.max(0, Math.floor((km - x.bdk - N.dung_sai) / N.chu_ky_bd)) : 0);
+  const conBH = km <= N.han_bh_km && (!x.nsx || nay.getFullYear() - x.nsx <= N.han_bh_nam);
+  const soBu = thieu && conBH ? META.ma_tran[Math.min(thieu, 10) - 1][Math.min(4, Math.max(0, Math.ceil(km / 20000) - 1))] : null;
+  const vang = (nay - new Date(x.cuoi)) / 864e5;
+  const nhom = soBu ? 'tkh' : vang >= N.vang ? 'giu' : !x.cobd ? 'moi' : x.kpd >= N.dich_vu ? 'dv'
+    : x.bd > 0 && x.gt / x.bd >= META.ky_vong ? 'cham' : 'tk';
+  return { nhom, thieu, soBu, muc: !soBu ? 0 : soBu === 1 ? 1 : soBu <= 3 ? 2 : 3 };
+}
+
+/** Hạng mục tới kỳ: hạng mục có lần làm trước, quá hạn nhiều nhất đứng đầu; sau đó tới hạng mục chưa ghi nhận
+ *  (có thể đã làm trước 01/2025). Xe đi ít: hạng mục có số tháng (phụ gia, giàn lạnh, khử mùi) tới kỳ cả khi đủ tháng.
+ *  Chọn lần lượt cho tới khi chạm trần, còn lại để kỳ sau. */
+function deXuat(x, kmNhap) {
+  const kpd = x.kpd ?? META.kpd_md;
+  const soNgay = Math.max(0, (Date.now() - new Date(x.ngkm)) / 864e5);
+  const km = kmNhap || Math.round(x.km + kpd * soNgay);
+  const diIt = x.kpd != null && x.kpd < META.nhom.di_it;
+  const ds = META.hang_muc.filter(h => h.ma !== 'bl' || x.bl).map(h => {
+    const cuoi = x.hm[h.ma];
+    const ke = cuoi ? cuoi[1] + h.ck : h.ck * Math.max(1, Math.floor(km / h.ck));
+    const thang = diIt && h.thang ? h.thang : null;
+    const thangQua = thang && cuoi ? Math.floor((Date.now() - new Date(cuoi[0])) / (30.44 * 864e5)) : null;
+    return Object.assign({}, h, { cuoi, ke, con: ke - km, thang, thangQua, denThang: !!thang && (!cuoi || thangQua >= thang) });
+  });
+  const toi = ds.filter(h => h.con <= 1000 || h.denThang).sort((a, b) => (!a.cuoi - !b.cuoi) || a.con - b.con);
+  const nay = [], sau = []; let tong = 0;
+  toi.forEach(h => { if (tong + h.gia <= META.tran) { nay.push(h); tong += h.gia; } else sau.push(h); });
+  const sap = ds.filter(h => h.con > 1000 && h.con <= 5000 && !h.denThang).sort((a, b) => a.con - b.con);
+  return { km, uoc: !kmNhap, kpd, nay, sau, sap, tong, diIt };
+}
+
+function nhanHm(h) {
+  if (!h.cuoi && (h.con <= 1000 || h.denThang)) return '';
+  if (h.con < -1000) return tag('Quá ' + tien(-h.con) + ' km', 'do');
+  if (h.con <= 1000) return tag('Tới kỳ', 'cam');
+  if (h.denThang) return tag('Đã ' + h.thangQua + ' tháng', 'cam');
+  return tag('Còn ' + tien(h.con) + ' km');
+}
+
+function dongHm(h, coDong2 = true) {
+  const ck = tien(h.ck) + ' km' + (h.thang ? ' hoặc ' + h.thang + ' tháng' : '') + (h.thang && h.ma === 'gl' ? ', nếu xe có mùi' : '');
+  const d2 = h.cuoi ? 'Lần cuối ' + ngayVN(h.cuoi[0]) + ' ở ' + tien(h.cuoi[1]) + ' km, chu kỳ ' + ck
+    : 'Chu kỳ ' + ck;
+  return '<div class="hm"><div class="d1"><span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
+    + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>' + (coDong2 ? '<div class="d2">' + d2 + '</div>' : '') + '</div>';
+}
+
+// "BD 58.000 Km" khi nhãn đã ghi BD → "58.000 Km"
+const TIEN_TO = { 'BD': 'BD', 'SCC': 'SCC', 'Bảo hiểm': 'BH', 'Bảo hành': 'BH' };
+const hoaDau = s => s.charAt(0).toUpperCase() + s.slice(1);
+const boKmDau = nd => hoaDau(nd.replace(/^\d{1,3}(\.\d{3})+\s*km\b/i, '').replace(/^[\s,;:.+\-–]+/, '').replace(/^\(\s*([^()]*?)\s*\)$/, '$1')).replace(/\bKm\b/g, 'km');
+const boTienTo = (nd, pl) => TIEN_TO[pl] ? hoaDau(nd.replace(new RegExp('^' + TIEN_TO[pl] + '\\s*[-–:;]?\\s*', 'i'), '')) || nd : nd;
+
+function dongLs(l, hienCn) {
+  const khacCn = hienCn && l[1] !== META.chi_nhanh;
+  // Nhãn loại lệnh trung tính; chỉ GTGT (xanh) và Chờ sửa (cam) có màu. GTGT ở đầu dòng nội dung để dòng 1 không xuống hàng.
+  return '<div class="ls"><div class="d1 so-lieu"><span>' + ngayVN(l[0]) + '</span>'
+    + (khacCn ? '<span class="tag cn-tag">' + esc(l[1]) + '</span>' : '')
+    + '<span class="mo">' + tien(l[2]) + ' km</span>' + tag(esc(l[3] === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : l[3]))
+    + (l[7] === 'Chờ sửa' ? tag('Chờ sửa', 'cam') : '')
+    + '<span class="tien">' + (l[4] ? tien(l[4]) + ' đ' : '<span class="dash">–</span>') + '</span></div>'
+    + '<div class="nd" title="' + esc(l[6]) + '"><span>' + (l[5] ? tag(esc(l[5])) : '') + (khacCn ? '<span class="cn-nd">Tại ' + esc(l[1]) + '. </span>' : '') + esc(boKmDau(boTienTo(l[6], l[3]))) + '</span></div></div>';
+}
+
+function veXe(x, kmNhap) {
+  const d = deXuat(x, kmNhap), g = xepNhom(x, d.km), n = NHOM[g.nhom];
+  const sao = '★'.repeat(n[3]) + '☆'.repeat(5 - n[3]);
+  const phu = [];
+  if (d.diIt) phu.push('Xe đi ít: xét thêm phụ gia, giàn lạnh, khử mùi theo tháng.');
+  if (g.thieu && g.soBu === 0) phu.push('Có thể thiếu ' + g.thieu + ' lần bảo dưỡng, ma trận không cần bù (Mức 0): khách ký cam kết là tái kích hoạt được.');
+  const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
+  const kyVong = Math.round(x.bdu * META.ky_vong / 1e4) * 1e4;
+  const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
+
+  let trai = '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(chuanModel(x.m)) + '</span></div>'
+    + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '') + '</div>'
+    + (x.the.length ? '<div class="the-phu">' + esc(hoaDau(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', '))) + '</div>' : '')
+    + '<div class="nhom ' + n[4] + '" title="' + esc(n[1]) + '"><div class="ten-nhom">' + n[0] + '<span class="sao" title="Mức khai thác GTGT">' + sao + '</span></div>'
+    + '<div class="goi-y-nhom">' + n[2] + '</div>' + phu.map(p => '<div class="nhom-phu">' + p + '</div>').join('') + '</div>'
+    + '<div class="o-so">'
+    + '<div><div class="nhan">' + (d.uoc ? 'Km ước tính' : 'Km hôm nay') + '</div><div class="so">' + tien(d.km) + '</div><div class="phu">' + kpd + '</div></div>'
+    + '<div><div class="nhan">Vào xưởng</div><div class="so">' + x.sl + ' lần</div><div class="phu">tổng ' + trieu(x.tong) + '</div></div>'
+    + '<div><div class="nhan">GTGT / BD</div><div class="so">' + tyLe + '</div><div class="phu">' + trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd) + '</div></div>'
+    + '</div></div>';
+
+  if (g.nhom === 'tkh') {
+    const ngoaiLe = g.muc === 2 ? ', hoặc 1 lần bảo dưỡng cấp lớn để có hiệu lực ngay' : g.muc === 3 ? ', hoặc bảo dưỡng cấp lớn và thêm 1 lần bảo dưỡng tiêu chuẩn' : '';
+    trai += '<div class="card"><h2 class="card-title">Tái kích hoạt bảo hành</h2>'
+      + '<div class="ds-hm">Ước tính thiếu ' + g.thieu + ' lần bảo dưỡng, km ' + tien(d.km) + (d.uoc ? ' (km ước tính, nhập km đồng hồ để tính đúng)' : '') + ': Mức ' + g.muc + ', bảo dưỡng bù ' + g.soBu + ' lần' + ngoaiLe + '.</div>'
+      + '<div class="chu-thich">Tra DMS để chốt số lần thiếu, quét lỗi GDS Mobile, lập biên bản giám định kỹ thuật cho khách ký.</div></div>';
+  }
+
+  trai += '<div class="card"><div class="dau-card"><h2 class="card-title">Đề xuất hôm nay</h2>'
+    + '<span class="so-lieu"><span class="tong">' + tien(d.tong) + ' đ</span> <span class="mo">· kỳ vọng ≈ ' + tien(kyVong) + ' đ</span></span></div>'
+    + (d.nay.length ? '<div class="ds-hm">' + d.nay.map(h => dongHm(h)).join('') + '</div>' : '<p class="mo">Chưa có hạng mục tới kỳ.</p>')
+    + '<div class="chu-thich" title="Kỳ vọng bằng ' + Math.round(META.ky_vong * 100) + '% giá trị bảo dưỡng ước tính ' + trieu(x.bdu)
+    + '. Giá tham khảo có VAT, trung vị tại ' + META.chi_nhanh + '.">Trần ' + tien(META.tran) + ' đ mỗi lần. Hạng mục không ghi lần cuối là chưa thấy trong lịch sử từ 01/2025.</div></div>';
+
+  if (d.sau.length || d.sap.length) {
+    trai += '<div class="card"><h2 class="card-title">Để kỳ sau</h2>'
+      + (d.sau.length ? '<div class="sub-title">Tới kỳ, vượt trần</div><div class="ds-hm">' + d.sau.map(h => dongHm(h)).join('') + '</div>' : '')
+      + (d.sap.length ? '<div class="sub-title">Sắp tới (≤ 5.000 km)</div><div class="ds-hm">' + d.sap.map(h => dongHm(h, false)).join('') + '</div>' : '')
+      + '</div>';
+  }
+
+  XE = x;
+  return '<div class="ket-qua"><div>' + trai + '</div><div><div class="card" id="lich-su">' + veLs(x, false) + '</div></div></div>';
+}
+
+/** Danh mục để kiểm tra: hạng mục GTGT (chu kỳ, giá tham khảo) và 6 nhóm khách. */
+function veDanhMuc() {
+  const den = META.gia_den ? ngayVN(META.gia_den) : '';
+  const hm = META.hang_muc.map(h => '<tr><td>' + esc(h.ten) + (h.ma === 'bl' ? '<div class="mo">Santa Fe, Tucson, Palisade</div>' : '')
+    + (h.ma === 'gl' ? '<div class="mo">Xe đi ít: khi xe có mùi</div>' : '') + '</td><td class="r">' + tien(h.ck) + ' km</td>'
+    + '<td class="r">' + (h.thang ? h.thang + ' tháng' : '–') + '</td><td class="r">' + tien(h.gia) + ' đ</td></tr>').join('');
+  const nh = Object.values(NHOM).map((n, i) => '<tr><td>' + (i + 1) + '</td><td>' + n[0] + '<div class="mo">' + n[1] + '</div></td>'
+    + '<td class="r sao">' + '★'.repeat(n[3]) + '☆'.repeat(5 - n[3]) + '</td></tr>').join('');
+  return '<div class="ket-qua"><div><div class="card"><h2 class="card-title">Danh mục GTGT</h2>'
+    + '<table class="bang"><thead><tr><th>Hạng mục</th><th class="r">Chu kỳ</th><th class="r">Xe đi ít</th><th class="r">Giá tham khảo</th></tr></thead><tbody>' + hm + '</tbody></table>'
+    + '<div class="chu-thich">Trần ' + tien(META.tran) + ' đ mỗi lần; kỳ vọng ' + Math.round(META.ky_vong * 100) + '% giá trị bảo dưỡng. Giá có VAT, trung vị tại '
+    + META.chi_nhanh + (den ? ' đến ' + den : '') + '. Xe đi ít là dưới ' + META.nhom.di_it + ' km/ngày.</div></div></div>'
+    + '<div><div class="card"><h2 class="card-title">Nhóm khách</h2>'
+    + '<table class="bang"><thead><tr><th>#</th><th>Nhóm</th><th class="r">GTGT</th></tr></thead><tbody>' + nh + '</tbody></table>'
+    + '<div class="chu-thich">Một xe khớp nhiều nhóm thì lấy nhóm đứng trước.</div></div></div></div>';
+}
+
+/** Lịch sử: mặc định 5 lần gần nhất + "Xem thêm"; lọc Bảo dưỡng thì hiện đủ mọi lần BD. */
+function veLs(x, chiBD) {
+  const hienCn = new Set(x.ls.map(l => l[1])).size > 1;
+  const bd = x.ls.filter(l => l[3] === 'BD');
+  const ds = chiBD ? bd : x.ls;
+  const nut = (loc, ten, so) => '<button data-loc="' + loc + '" class="' + ((loc === 'bd') === chiBD ? 'on' : '') + '">' + ten + ' ' + so + '</button>';
+  let h = '<div class="dau-card dau-ls"><h2 class="card-title">Lịch sử vào xưởng</h2><div class="loc">' + nut('tat', 'Tất cả', x.ls.length) + nut('bd', '<span class="dai">Bảo dưỡng</span><span class="ngan">BD</span>', bd.length) + '</div></div>';
+  if (chiBD && bd.length) {
+    h += '<div class="dong-phu">Tổng ' + trieu(bd.reduce((s, l) => s + l[4], 0)) + ', gồm GTGT trong lệnh</div>';
+  }
+  if (!ds.length) return h + '<p class="mo">Chưa có lần bảo dưỡng nào từ 01/2025.</p>';
+  const dau = chiBD ? ds : ds.slice(0, SO_LS_HIEN), con = chiBD ? [] : ds.slice(SO_LS_HIEN);
+  return h + '<div class="ds-hm">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
+    + (con.length ? '<details><summary><span class="btn" role="button">Xem thêm ' + con.length + ' lần</span></summary>'
+      + con.map(l => dongLs(l, hienCn)).join('') + '</details>' : '');
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-loc]');
+  if (b && XE) $('lich-su').innerHTML = veLs(XE, b.dataset.loc === 'bd');
+});
+
+$('nut-dn').onclick = dangNhap;
+$('mk').onkeydown = e => { if (e.key === 'Enter') dangNhap(); };
+$('nut-tra').onclick = () => traCuu();
+$('bien').onkeydown = $('km').onkeydown = e => { if (e.key === 'Enter') traCuu(); };
+$('thoat').onclick = thoat;
+
+(async () => {
+  try { PHIEN = JSON.parse(sessionStorage.getItem('gtgt')); } catch (e) {}
+  if (PHIEN) {
+    try { META = await goi('layMeta', PHIEN.token); return hien('tra'); } catch (e) { PHIEN = null; }
+  }
+  hien('dn');
+})();
+</script>
+</body>
+</html>
