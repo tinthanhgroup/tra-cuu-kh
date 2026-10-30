@@ -85,7 +85,7 @@
   /* Khung Khách hàng: ảnh xe bên trái, 3 số chính xếp dọc bên phải; chân dung 6 nhóm mỗi nhóm một dòng */
   /* Ảnh xe rộng hết khung, 3 số chính xếp ngang bên dưới */
   .anh-so { margin-top: 8px; }
-  .anh-xe { display: block; width: 90%; height: 135px; margin: 0 auto; object-fit: contain; }
+  .anh-xe { display: block; width: 81%; height: 122px; margin: 0 auto; object-fit: contain; }
   .ds-so { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
   .o-nho { display: flex; gap: 8px; align-items: flex-start; white-space: nowrap; min-width: 0; }
   .o-nho .nhan, .o-nho .phu { font-size: var(--fs-1); color: var(--muted); }
@@ -112,7 +112,9 @@
   .muc-bd { background: var(--accent-soft); border-radius: var(--radius); padding: 12px 16px; }
   .muc .nhan-muc { display: flex; align-items: center; gap: 8px; }
   .muc-bd .bt { width: 28px; height: 28px; border-radius: 50%; background: var(--card); color: var(--accent); display: flex; align-items: center; justify-content: center; }
-  .muc .hm .d2 { font-size: var(--fs-1); color: var(--muted); margin-top: 1px; }
+  .muc .hm .d2 { font-size: var(--fs-1); color: var(--muted); margin-top: 1px; padding-left: 28px; }
+  /* Số thứ tự hạng mục GTGT khuyến nghị */
+  .stt-hm { width: 20px; height: 20px; flex: none; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: var(--fs-1); display: inline-flex; align-items: center; justify-content: center; }
   .hai-muc .muc + .muc { border-left: 0; padding-left: 0; }
   .dong-bh { display: flex; white-space: nowrap; align-items: center; gap: 6px; margin-top: 10px; font-size: var(--fs-2); }
   .dong-bh .cham { color: var(--hint); }
@@ -493,12 +495,12 @@ function nhanHm(h) {
   return tag('Còn ' + tien(h.con) + ' km');
 }
 
-function dongHm(h) {
+function dongHm(h, i) {
   const ck = tien(h.ck) + ' km' + (h.thang ? ' hoặc ' + h.thang + ' tháng' : '') + (h.thang && h.ma === 'gl' ? ', nếu xe có mùi' : '');
   const d2 = h.cuoi ? 'Lần cuối ' + ngayVN(h.cuoi[0]) + ' ở ' + tien(h.cuoi[1]) + ' km, chu kỳ ' + ck
     : 'Chu kỳ ' + ck;
   // Dòng 1: tên, nhãn quá hạn, giá; dòng 2: câu lợi ích để CVDV nói với khách. Lần cuối, chu kỳ hiện khi rê chuột
-  return '<div class="hm" title="' + esc(d2) + '"><div class="d1"><span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
+  return '<div class="hm" title="' + esc(d2) + '"><div class="d1">' + (i != null ? '<span class="stt-hm">' + (i + 1) + '</span>' : '') + '<span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
     + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>' + (LOI_ICH[h.ma] ? '<div class="d2">' + LOI_ICH[h.ma] + '</div>' : '') + '</div>';
 }
 
