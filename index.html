@@ -82,30 +82,46 @@
   .o-so .nhan { font-size: 13px; color: var(--muted); }
   .o-so .so { font-size: 24px; font-weight: 500; line-height: 1.3; font-variant-numeric: tabular-nums; }
   .o-so .phu { font-size: 12px; color: var(--muted); }
-  /* Dòng đầu: thông tin xe bên trái, 3 ô số bên phải */
-  .dau-xe { display: flex; align-items: center; gap: 24px; }
-  .dau-xe .ttxe { flex: 1; min-width: 0; }
-  .dau-xe .o-so { margin-top: 0; flex: 0 0 480px; }
-  /* Hai việc cần tư vấn: viền trên màu nhấn, dòng chính cỡ lớn để nhìn lướt */
-  .tu-van { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; align-items: stretch; }
-  .tu-van .card { margin-bottom: 0; }
-  .noi-bat { border-top: 3px solid var(--accent); }
-  .noi-bat .card-title { font-size: 14px; color: var(--muted); font-weight: 400; }
-  .noi-bat .chinh { font-size: 26px; font-weight: 500; line-height: 1.3; margin: 4px 0 8px; }
-  .noi-bat .phu-chinh { font-size: 15px; font-weight: 400; }
-  .noi-bat .than { font-size: 14px; }
-  /* Chân dung khách: 6 nhóm, tô nổi nhóm của khách */
-  .ds-nhom { margin-top: 8px; }
-  .dong-nhom { display: flex; gap: 12px; align-items: baseline; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--hint); }
-  .dong-nhom .stt { width: 16px; font-variant-numeric: tabular-nums; }
-  .dong-nhom .giua { flex: 1; min-width: 0; }
-  .dong-nhom .dn { font-size: 12px; }
-  .dong-nhom .sao { color: inherit; }
-  .dong-nhom.la { background: var(--accent-soft); color: var(--text); margin: 4px 0; padding: 12px; }
+  /* Bố cục máy tính (README "Bố cục trang"): trái khung Khách hàng, phải Tư vấn hôm nay + Lịch sử */
+  .ket-qua { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .ket-qua > div:first-child { position: sticky; top: 92px; }
+  .nhan-muc { font-size: 13px; color: var(--muted); }
+  .nhan-muc.tach { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+  /* Khung Khách hàng: 3 số chính, chân dung 6 nhóm mỗi nhóm một dòng */
+  .so-nho { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  .so-nho .nhan, .so-nho .phu { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .so-nho .so { font-size: 20px; font-weight: 500; line-height: 1.3; }
+  .ds-nhom { margin-top: 4px; }
+  .dong-nhom { padding: 4px 10px; border-radius: var(--radius-sm); color: var(--hint); }
+  .dong-nhom .d1 { display: flex; gap: 10px; align-items: baseline; }
+  .dong-nhom .stt { width: 14px; font-variant-numeric: tabular-nums; }
+  .dong-nhom .ten { flex: 1; }
+  .dong-nhom .sao { color: inherit; font-size: 12px; }
+  .dong-nhom.la { background: var(--accent-soft); color: var(--text); margin: 4px 0; padding: 8px 10px; }
   .dong-nhom.la.cam { background: var(--amber-bg); }
   .dong-nhom.la.xanh { background: var(--green-bg); }
-  .dong-nhom.la .ten { font-size: 16px; font-weight: 500; }
-  .dong-nhom.la .dn, .dong-nhom.la .sao { color: var(--muted); }
+  .dong-nhom.la .ten { font-size: 15px; font-weight: 500; }
+  .dong-nhom.la .sao { color: var(--muted); }
+  .chi-tiet { margin: 4px 0 0 24px; font-size: 13px; }
+  .chi-tiet .dn { color: var(--muted); font-size: 12px; }
+  /* Tư vấn hôm nay: viền trên màu nhấn, hai nửa bảo dưỡng | GTGT, dòng chính cỡ lớn để nhìn lướt */
+  .noi-bat { border-top: 3px solid var(--accent); }
+  .hai-muc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; margin-top: 8px; }
+  .hai-muc .muc + .muc { border-left: 1px solid var(--line); padding-left: 24px; }
+  .muc .chinh { font-size: 24px; font-weight: 500; line-height: 1.3; margin: 2px 0 6px; }
+  .muc .phu-chinh { font-size: 14px; font-weight: 400; }
+  .muc .than { font-size: 13px; margin-top: 6px; }
+  .muc .ds-hm { margin-top: 0; }
+  .muc .hm { padding: 4px 0; border-top: 0; }
+  .muc .chu-thich { margin-top: 6px; }
+  /* Lịch sử: một dòng mỗi lần vào xưởng */
+  .ls { display: grid; grid-template-columns: 80px 84px 108px minmax(0, 1fr) 100px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+  .ds-ls { margin-top: 8px; }
+  .ds-ls .ls:first-child { border-top: 0; }
+  .ls .r { text-align: right; }
+  .ls .nd { overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+  .lien { color: var(--accent); cursor: pointer; font-size: 13px; }
+  details summary { margin-top: 6px; }
 
   /* Hạng mục */
   .dau-card { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -148,10 +164,6 @@
     .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
     .thanh-tra .cap-nhat { margin: 0 0 0 auto; }
     .thanh-tra .loi { flex-basis: 100%; }
-  }
-  @media (min-width: 1100px) {
-    .ket-qua { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-    .ket-qua > div:last-child { position: sticky; top: 92px; }
   }
   @media (max-width: 640px) {
     .card { padding: 16px; }
@@ -387,9 +399,9 @@ function capBD(x, km, kmNhap) {
   return { moc, cap, ghi };
 }
 
-/** Khối nổi bật "Bảo dưỡng hôm nay": dòng chính cỡ lớn để CVDV nhìn lướt, lý do ở dưới. */
+/** Nửa trái khung "Tư vấn hôm nay": cấp bảo dưỡng (dòng chính cỡ lớn để nhìn lướt), lý do ở dưới. */
 function veCap(c, d, g) {
-  const khoi = (chinh, than) => '<div class="card noi-bat"><h2 class="card-title">Bảo dưỡng hôm nay</h2><div class="chinh so-lieu">' + chinh + '</div>'
+  const khoi = (chinh, than) => '<div class="muc"><div class="nhan-muc">Bảo dưỡng</div><div class="chinh so-lieu">' + chinh + '</div>'
     + (than ? '<div class="than">' + than + '</div>' : '') + '</div>';
   if (!c) return khoi('<span class="mo">Không áp dụng</span>', 'Xe hãng khác, không theo cấp bảo dưỡng Hyundai.');
   if (c.canh) return khoi('<span class="t-cam">Kiểm tra lại km</span>', c.canh);
@@ -401,18 +413,24 @@ function veCap(c, d, g) {
   if (c.daLam) return khoi('<span class="mo">Đã làm mốc ' + tien(c.moc) + ' km</span>',
     ['Ngày ' + ngayVN(c.ngay) + '. Kỳ sau: mốc ' + tien(c.sau) + ' km, cấp ' + tenCap(c.cap) + '.'].concat(ghi).join(' '));
   return khoi('Cấp ' + tenCap(c.cap) + ' <span class="mo phu-chinh">· mốc ' + tien(c.moc) + ' km</span>', ghi.join(' ')
-    + '<div class="chu-thich">Lập lệnh đúng model, phiên bản và cấp theo bảng giá bảo dưỡng định kỳ HTV (CV141/2026).</div>');
+    + '<div class="chu-thich" title="Bảng giá bảo dưỡng định kỳ HTV, CV141/2026">Lập lệnh đúng model, phiên bản và cấp theo bảng HTV.</div>');
 }
 
-/** Chân dung khách: đủ 6 nhóm theo thứ tự ưu tiên, tô nổi nhóm của khách kèm câu gợi ý. */
-function veChanDung(g, phu) {
-  return '<div class="card"><h2 class="card-title">Chân dung khách hàng</h2><div class="ds-nhom">'
+/** Khung Khách hàng: xe, khách, 3 số chính và chân dung 6 nhóm (mỗi nhóm 1 dòng, tô nổi nhóm của khách kèm gợi ý). */
+function veKhach(x, d, g, phu) {
+  const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
+  const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
+  const o = (nhan, so, phu) => '<div><div class="nhan">' + nhan + '</div><div class="so">' + so + '</div><div class="phu">' + phu + '</div></div>';
+  return '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(chuanModel(x.m)) + '</span></div>'
+    + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '')
+    + (x.the.length ? ' · ' + esc(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', ')) : '') + '</div>'
+    + '<div class="so-nho so-lieu">' + o(d.uoc ? 'Km ước tính' : 'Km hôm nay', tien(d.km), kpd) + o('Vào xưởng', x.sl + ' lần', 'tổng ' + trieu(x.tong))
+    + o('GTGT / BD', tyLe, trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd)) + '</div>'
+    + '<div class="nhan-muc tach">Chân dung khách hàng</div><div class="ds-nhom">'
     + Object.entries(NHOM).map(([ma, n], i) => {
-      const la = ma === g.nhom;
-      return '<div class="dong-nhom' + (la ? ' la ' + n[4] : '') + '"><span class="stt">' + (i + 1) + '</span>'
-        + '<div class="giua"><div class="ten">' + n[0] + '</div><div class="dn">' + n[1] + '</div>'
-        + (la ? '<div class="goi-y-nhom">' + n[2] + '</div>' + phu.map(p => '<div class="nhom-phu">' + p + '</div>').join('') : '') + '</div>'
-        + '<span class="sao" title="Mức khai thác GTGT">' + '★'.repeat(n[3]) + '☆'.repeat(5 - n[3]) + '</span></div>';
+      const la = ma === g.nhom, sao = '<span class="sao" title="Mức khai thác GTGT">' + '★'.repeat(n[3]) + '☆'.repeat(5 - n[3]) + '</span>';
+      return '<div class="dong-nhom' + (la ? ' la ' + n[4] : '') + '" title="' + esc(n[1]) + '"><div class="d1"><span class="stt">' + (i + 1) + '</span><span class="ten">' + n[0] + '</span>' + sao + '</div>'
+        + (la ? '<div class="chi-tiet"><div class="dn">' + n[1] + '</div><div>' + n[2] + '</div>' + phu.map(p => '<div class="dn">' + p + '</div>').join('') + '</div>' : '') + '</div>';
     }).join('') + '</div></div>';
 }
 
@@ -424,12 +442,13 @@ function nhanHm(h) {
   return tag('Còn ' + tien(h.con) + ' km');
 }
 
-function dongHm(h, coDong2 = true) {
+function dongHm(h) {
   const ck = tien(h.ck) + ' km' + (h.thang ? ' hoặc ' + h.thang + ' tháng' : '') + (h.thang && h.ma === 'gl' ? ', nếu xe có mùi' : '');
   const d2 = h.cuoi ? 'Lần cuối ' + ngayVN(h.cuoi[0]) + ' ở ' + tien(h.cuoi[1]) + ' km, chu kỳ ' + ck
     : 'Chu kỳ ' + ck;
-  return '<div class="hm"><div class="d1"><span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
-    + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>' + (coDong2 ? '<div class="d2">' + d2 + '</div>' : '') + '</div>';
+  // Một dòng mỗi hạng mục; lần cuối, chu kỳ hiện khi rê chuột
+  return '<div class="hm" title="' + esc(d2) + '"><div class="d1"><span class="ten">' + esc(h.ten) + '</span>' + nhanHm(h)
+    + '<span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div></div>';
 }
 
 // "BD 58.000 Km" khi nhãn đã ghi BD → "58.000 Km"
@@ -438,15 +457,15 @@ const hoaDau = s => s.charAt(0).toUpperCase() + s.slice(1);
 const boKmDau = nd => hoaDau(nd.replace(/^\d{1,3}(\.\d{3})+\s*km\b/i, '').replace(/^[\s,;:.+\-–]+/, '').replace(/^\(\s*([^()]*?)\s*\)$/, '$1')).replace(/\bKm\b/g, 'km');
 const boTienTo = (nd, pl) => TIEN_TO[pl] ? hoaDau(nd.replace(new RegExp('^' + TIEN_TO[pl] + '\\s*[-–:;]?\\s*', 'i'), '')) || nd : nd;
 
+/** Một lần vào xưởng = một dòng: ngày, km, loại lệnh, nội dung (GTGT đứng đầu, cắt bớt, đủ khi rê chuột), tiền. */
 function dongLs(l, hienCn) {
   const khacCn = hienCn && l[1] !== META.chi_nhanh;
-  // Nhãn loại lệnh trung tính; chỉ GTGT (xanh) và Chờ sửa (cam) có màu. GTGT ở đầu dòng nội dung để dòng 1 không xuống hàng.
-  return '<div class="ls"><div class="d1 so-lieu"><span>' + ngayVN(l[0]) + '</span>'
-    + (khacCn ? '<span class="tag cn-tag">' + esc(l[1]) + '</span>' : '')
-    + '<span class="mo">' + tien(l[2]) + ' km</span>' + tag(esc(l[3] === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : l[3] === 'BD' && l[8] ? 'BD cấp ' + tenCap(l[8]) : l[3]))
-    + (l[7] === 'Chờ sửa' ? tag('Chờ sửa', 'cam') : '')
-    + '<span class="tien">' + (l[4] ? tien(l[4]) + ' đ' : '<span class="dash">–</span>') + '</span></div>'
-    + '<div class="nd" title="' + esc(l[6]) + '"><span>' + (l[5] ? tag(esc(l[5])) : '') + (khacCn ? '<span class="cn-nd">Tại ' + esc(l[1]) + '. </span>' : '') + esc(boKmDau(boTienTo(l[6], l[3]))) + '</span></div></div>';
+  const loai = l[3] === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : l[3] === 'BD' && l[8] ? 'BD cấp ' + tenCap(l[8]) : l[3];
+  const nd = (khacCn ? 'Tại ' + l[1] + '. ' : '') + boKmDau(boTienTo(l[6], l[3]));
+  return '<div class="ls so-lieu" title="' + esc(nd) + '"><span>' + ngayVN(l[0]) + '</span><span class="mo r">' + tien(l[2]) + ' km</span>'
+    + '<span>' + tag(esc(loai)) + (l[7] === 'Chờ sửa' ? ' ' + tag('Chờ sửa', 'cam') : '') + '</span>'
+    + '<span class="nd">' + (l[5] ? '<span class="t-xanh">' + esc(l[5]) + '</span>' + (nd ? ' · ' : '') : '') + '<span class="mo">' + esc(nd) + '</span></span>'
+    + '<span class="r">' + (l[4] ? tien(l[4]) + ' đ' : '<span class="dash">–</span>') + '</span></div>';
 }
 
 function veXe(x, kmNhap) {
@@ -454,46 +473,26 @@ function veXe(x, kmNhap) {
   const phu = [];
   if (d.diIt) phu.push('Xe đi ít: xét thêm phụ gia, giàn lạnh, khử mùi theo tháng.');
   if (g.thieu && g.soBu === 0) phu.push('Có thể thiếu ' + g.thieu + ' lần bảo dưỡng, ma trận không cần bù (Mức 0): khách ký cam kết là tái kích hoạt được.');
-  const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
   const kyVong = Math.round(x.bdu * META.ky_vong / 1e4) * 1e4;
-  const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
-
-  // Dòng đầu: xe, khách và 3 ô số
-  const dau = '<div class="card dau-xe"><div class="ttxe"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(chuanModel(x.m)) + '</span></div>'
-    + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '') + '</div>'
-    + (x.the.length ? '<div class="the-phu">' + esc(hoaDau(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', '))) + '</div>' : '') + '</div>'
-    + '<div class="o-so">'
-    + '<div><div class="nhan">' + (d.uoc ? 'Km ước tính' : 'Km hôm nay') + '</div><div class="so">' + tien(d.km) + '</div><div class="phu">' + kpd + '</div></div>'
-    + '<div><div class="nhan">Vào xưởng</div><div class="so">' + x.sl + ' lần</div><div class="phu">tổng ' + trieu(x.tong) + '</div></div>'
-    + '<div><div class="nhan">GTGT / BD</div><div class="so">' + tyLe + '</div><div class="phu">' + trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd) + '</div></div>'
-    + '</div></div>';
-
-  // Hai việc cần tư vấn, đặt cạnh nhau và nổi bật
-  const gtgt = '<div class="card noi-bat"><h2 class="card-title">GTGT khuyến nghị</h2>'
-    + '<div class="chinh so-lieu">' + (d.nay.length ? tien(d.tong) + ' đ <span class="mo phu-chinh">· ' + d.nay.length + ' hạng mục</span>' : '<span class="mo">Chưa có hạng mục tới kỳ</span>') + '</div>'
-    + (d.nay.length ? '<div class="ds-hm">' + d.nay.map(h => dongHm(h)).join('') + '</div>' : '')
-    + '<div class="chu-thich" title="Kỳ vọng bằng ' + Math.round(META.ky_vong * 100) + '% giá trị bảo dưỡng ước tính ' + trieu(x.bdu)
-    + '. Giá tham khảo có VAT, trung vị tại ' + META.chi_nhanh + '.">Kỳ vọng ≈ ' + tien(kyVong) + ' đ, trần ' + tien(META.tran) + ' đ mỗi lần. Hạng mục không ghi lần cuối là chưa thấy trong lịch sử từ 01/2025.</div></div>';
-  const tuVan = '<div class="tu-van">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>';
-
-  let trai = veChanDung(g, phu);
-
+  // Tái kích hoạt bảo hành: ghi trong dòng nhóm của khách
   if (g.nhom === 'tkh') {
     const ngoaiLe = g.muc === 2 ? ', hoặc 1 lần bảo dưỡng cấp lớn để có hiệu lực ngay' : g.muc === 3 ? ', hoặc bảo dưỡng cấp lớn và thêm 1 lần bảo dưỡng tiêu chuẩn' : '';
-    trai += '<div class="card"><h2 class="card-title">Tái kích hoạt bảo hành</h2>'
-      + '<div class="ds-hm">Ước tính thiếu ' + g.thieu + ' lần bảo dưỡng, km ' + tien(d.km) + (d.uoc ? ' (km ước tính, nhập km đồng hồ để tính đúng)' : '') + ': Mức ' + g.muc + ', bảo dưỡng bù ' + g.soBu + ' lần' + ngoaiLe + '.</div>'
-      + '<div class="chu-thich">Tra DMS để chốt số lần thiếu, quét lỗi GDS Mobile, lập biên bản giám định kỹ thuật cho khách ký.</div></div>';
+    phu.unshift('Ước tính thiếu ' + g.thieu + ' lần bảo dưỡng' + (d.uoc ? ' (km ước tính)' : '') + ': Mức ' + g.muc + ', bảo dưỡng bù ' + g.soBu + ' lần' + ngoaiLe
+      + '. Tra DMS để chốt, quét lỗi GDS Mobile, lập biên bản giám định cho khách ký.');
   }
 
-  if (d.sau.length || d.sap.length) {
-    trai += '<div class="card"><h2 class="card-title">Để kỳ sau</h2>'
-      + (d.sau.length ? '<div class="sub-title">Tới kỳ, vượt trần</div><div class="ds-hm">' + d.sau.map(h => dongHm(h)).join('') + '</div>' : '')
-      + (d.sap.length ? '<div class="sub-title">Sắp tới (≤ 5.000 km)</div><div class="ds-hm">' + d.sap.map(h => dongHm(h, false)).join('') + '</div>' : '')
-      + '</div>';
-  }
+  // Khung "Tư vấn hôm nay": bảo dưỡng | GTGT, mỗi hạng mục một dòng; để kỳ sau gộp một dòng
+  const ten = ds => ds.map(h => h.ten).join(', ');
+  const gtgt = '<div class="muc"><div class="nhan-muc">GTGT khuyến nghị</div>'
+    + '<div class="chinh so-lieu">' + (d.nay.length ? tien(d.tong) + ' đ <span class="mo phu-chinh">· ' + d.nay.length + ' hạng mục</span>' : '<span class="mo">Chưa có hạng mục tới kỳ</span>') + '</div>'
+    + (d.nay.length ? '<div class="ds-hm">' + d.nay.map(dongHm).join('') + '</div>' : '')
+    + (d.sau.length || d.sap.length ? '<div class="than mo">Để kỳ sau: ' + [d.sau.length ? ten(d.sau) + ' (vượt trần)' : '', d.sap.length ? 'sắp tới ' + ten(d.sap).toLowerCase() : ''].filter(Boolean).join('; ') + '.</div>' : '')
+    + '<div class="chu-thich" title="Kỳ vọng bằng ' + Math.round(META.ky_vong * 100) + '% giá trị bảo dưỡng ước tính ' + trieu(x.bdu)
+    + '. Giá tham khảo có VAT, trung vị tại ' + META.chi_nhanh + '. Rê chuột lên hạng mục để xem lần cuối và chu kỳ.">Kỳ vọng ≈ ' + tien(kyVong) + ' đ, trần ' + tien(META.tran) + ' đ mỗi lần.</div></div>';
+  const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div></div>';
 
   XE = x;
-  return dau + tuVan + '<div class="ket-qua"><div>' + trai + '</div><div><div class="card" id="lich-su">' + veLs(x, false) + '</div></div></div>';
+  return '<div class="ket-qua"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + '<div class="card" id="lich-su">' + veLs(x, false) + '</div></div></div>';
 }
 
 /** Danh mục để kiểm tra: hạng mục GTGT (chu kỳ, giá tham khảo) và 6 nhóm khách. */
@@ -525,9 +524,9 @@ function veLs(x, chiBD) {
   }
   if (!ds.length) return h + '<p class="mo">Chưa có lần bảo dưỡng nào từ 01/2025.</p>';
   const dau = chiBD ? ds : ds.slice(0, SO_LS_HIEN), con = chiBD ? [] : ds.slice(SO_LS_HIEN);
-  return h + '<div class="ds-hm">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
-    + (con.length ? '<details><summary><span class="btn" role="button">Xem thêm ' + con.length + ' lần</span></summary>'
-      + con.map(l => dongLs(l, hienCn)).join('') + '</details>' : '');
+  return h + '<div class="ds-ls">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
+    + (con.length ? '<details><summary><span class="lien">Xem thêm ' + con.length + ' lần</span></summary>'
+      + '<div class="ds-ls">' + con.map(l => dongLs(l, hienCn)).join('') + '</div></details>' : '');
 }
 
 document.addEventListener('click', e => {
