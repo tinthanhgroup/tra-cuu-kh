@@ -296,6 +296,84 @@ function deXuat(x, kmNhap) {
   return { km, uoc: !kmNhap, kpd, nay, sau, sap, tong, diIt };
 }
 
+/** Cấp bảo dưỡng theo mốc (bảng giá BDĐK HTV): cấp 4(2) ghi là 5. README "Khuyến nghị cấp bảo dưỡng". */
+const capMoc = m => m <= 1000 ? 1 : m % 80000 === 0 ? 5 : m % 40000 === 0 ? 4 : m % 20000 === 0 ? 3 : m % 10000 === 0 ? 2 : 1;
+const tenCap = c => c === 5 ? '4(2)' : String(c);
+const mocGan = k => k < 3000 ? 1000 : Math.round(k / 5000) * 5000;
+const mocGiua = (a, b) => { const r = []; for (let m = a < 5000 ? 5000 : a + 5000; m < b; m += 5000) r.push(m); return r; };
+
+/** Các lần BD đã làm (cũ → mới): mốc lấy từ nội dung "BD 40.000 km" nếu khớp km, không thì mốc gần km; cấp từ dòng công
+ *  (0 = chưa biết, coi như làm đúng cấp của mốc). */
+function lanBD(x) {
+  return x.ls.filter(l => l[3] === 'BD' && l[7] !== 'Chờ sửa' && l[2] > 0).reverse().map(l => {
+    const g = /BD\s*(\d{1,3}(?:[.,]\d{3})+|\d{3,6})\s*k?m/i.exec(l[6]);
+    const so = g ? Number(g[1].replace(/[.,]/g, '')) : 0;
+    const moc = so && Math.abs(so - l[2]) <= 3000 ? mocGan(so) : mocGan(l[2]);
+    return { ngay: l[0], km: l[2], moc, lam: l[8] || capMoc(moc) };
+  });
+}
+
+/** Khuyến nghị cấp BD hôm nay. Nợ cấp: mốc bị bỏ qua hoặc lần làm thấp hơn cấp của mốc, xóa khi đã làm cấp bằng/lớn hơn. */
+function capBD(x, km, kmNhap) {
+  if (!x.hd) return null;
+  if (kmNhap) {
+    const ngay = Math.max(1, (Date.now() - new Date(x.ngkm)) / 864e5);
+    if (kmNhap < x.km - 100) return { canh: 'Km nhập thấp hơn lần trước (' + tien(x.km) + ' km). Kiểm tra lại km đồng hồ.' };
+    if (kmNhap - x.km > 10000 && (kmNhap - x.km) / ngay > 300) return { canh: 'Km tăng ' + tien(kmNhap - x.km) + ' km trong ' + Math.round(ngay) + ' ngày, bất thường. Kiểm tra lại km đồng hồ.' };
+  }
+  const ds = lanBD(x), cuoi = ds[ds.length - 1];
+  let no = { cap: 0 }, truoc = null;
+  const boQua = (a, b) => mocGiua(a, b).forEach(m => { if (capMoc(m) > no.cap) no = { cap: capMoc(m), moc: m, ly: 'bo' }; });
+  ds.forEach(e => {
+    if (truoc != null) boQua(truoc, e.moc);
+    if (e.lam >= no.cap) no = { cap: 0 };
+    if (e.lam < capMoc(e.moc) && capMoc(e.moc) > no.cap) no = { cap: capMoc(e.moc), moc: e.moc, ly: 'thap', lam: e.lam };
+    truoc = Math.max(truoc ?? 0, e.moc);
+  });
+  const ghi = [], thap = () => 'Ở mốc ' + tien(no.moc) + ' km chỉ làm cấp ' + tenCap(no.lam) + ', ';
+
+  // Mốc đã làm (khách quay lại vì sửa chữa): chỉ hiện mốc sau
+  if (cuoi && cuoi.moc >= mocGan(km) && km - cuoi.km < 2500) {
+    const sau = cuoi.moc < 5000 ? 5000 : cuoi.moc + 5000, con = sau - km, c = Math.max(capMoc(sau), no.cap);
+    if (no.cap) ghi.push((no.ly === 'thap' ? thap() + 'l' : 'L') + 'ần bảo dưỡng tới nên làm bù cấp ' + tenCap(no.cap) + '.');
+    if (con <= 1000) ghi.push('Còn ' + tien(Math.max(0, con)) + ' km tới mốc ' + tien(sau) + ' km: nếu khách vào sửa chữa, có thể làm luôn bảo dưỡng.');
+    return { daLam: true, moc: cuoi.moc, ngay: cuoi.ngay, sau, con, cap: c, ghi };
+  }
+
+  let moc = mocGan(km);
+  const lech = km - moc;
+  if (Math.abs(lech) > 1500) {
+    const ben = lech > 0 ? moc + 5000 : moc - 5000;
+    if (ben >= 1000 && capMoc(ben) >= 3 && capMoc(ben) > capMoc(moc) && !ds.some(e => e.moc === ben)) moc = ben;
+  }
+  if (truoc != null) boQua(truoc, moc);
+  const cap = Math.max(capMoc(moc), no.cap);
+  if (no.cap > capMoc(moc) && no.ly === 'bo') ghi.push((no.moc > cuoi.moc ? 'Lần bảo dưỡng cuối ở ' + tien(cuoi.km) + ' km, chưa' : 'Đã bỏ qua, chưa') + ' làm mốc ' + tien(no.moc) + ' km (cấp ' + tenCap(no.cap)
+    + ') nên làm cấp ' + tenCap(no.cap) + ' thay cho cấp ' + tenCap(capMoc(moc)) + '. Nếu khách đã bảo dưỡng nơi khác, hỏi cấp đã làm.');
+  else if (no.cap > capMoc(moc)) ghi.push(thap() + 'nên làm bù cấp ' + tenCap(no.cap) + ' thay cho cấp ' + tenCap(capMoc(moc)) + '.');
+  if (moc === 1000) ghi.push('Mốc 1.000 km miễn phí cho khách (P. Bán hàng trả).');
+  if (km < moc && cap === capMoc(moc)) ghi.push('Còn ' + tien(moc - km) + ' km tới mốc.');
+  else if (km - moc > 1500) ghi.push('Đã quá mốc ' + tien(km - moc) + ' km.');
+  if (!cuoi) ghi.push('Chưa có lịch sử bảo dưỡng từ 01/2025: hỏi khách đã bảo dưỡng ở đâu, cấp nào.');
+  else if ((Date.now() - new Date(cuoi.ngay)) / 864e5 > 183) ghi.push('Đã ' + Math.floor((Date.now() - new Date(cuoi.ngay)) / (30.44 * 864e5)) + ' tháng từ lần bảo dưỡng trước.');
+  return { moc, cap, ghi };
+}
+
+function veCap(c, d, g) {
+  if (!c) return '';
+  const dau = '<div class="card"><div class="dau-card"><h2 class="card-title">Bảo dưỡng hôm nay</h2>';
+  if (c.canh) return dau + '</div><div class="ds-hm t-cam">' + c.canh + '</div></div>';
+  const ghi = c.ghi.slice();
+  if (g.nhom === 'tkh' && !c.daLam) ghi.push('Tính chung với bảo dưỡng bù theo chính sách tái kích hoạt bảo hành.');
+  if (d.uoc) ghi.push('Km ước tính, nhập km đồng hồ để chọn đúng mốc.');
+  const tom = c.daLam ? '<span class="mo">Đã làm mốc ' + tien(c.moc) + ' km</span>'
+    : '<span class="tong">Cấp ' + tenCap(c.cap) + '</span> <span class="mo">· mốc ' + tien(c.moc) + ' km</span>';
+  const chinh = c.daLam ? 'Đã bảo dưỡng mốc ' + tien(c.moc) + ' km ngày ' + ngayVN(c.ngay) + '. Kỳ sau: mốc ' + tien(c.sau) + ' km, cấp ' + tenCap(c.cap) + '.' : '';
+  return dau + '<span class="so-lieu">' + tom + '</span></div>'
+    + '<div class="ds-hm">' + [chinh].concat(ghi).filter(Boolean).join(' ') + '</div>'
+    + '<div class="chu-thich">Cấp theo bảng giá bảo dưỡng định kỳ HTV: lập lệnh đúng model, phiên bản và cấp (CV141/2026).</div></div>';
+}
+
 function nhanHm(h) {
   if (!h.cuoi && (h.con <= 1000 || h.denThang)) return '';
   if (h.con < -1000) return tag('Quá ' + tien(-h.con) + ' km', 'do');
@@ -323,7 +401,7 @@ function dongLs(l, hienCn) {
   // Nhãn loại lệnh trung tính; chỉ GTGT (xanh) và Chờ sửa (cam) có màu. GTGT ở đầu dòng nội dung để dòng 1 không xuống hàng.
   return '<div class="ls"><div class="d1 so-lieu"><span>' + ngayVN(l[0]) + '</span>'
     + (khacCn ? '<span class="tag cn-tag">' + esc(l[1]) + '</span>' : '')
-    + '<span class="mo">' + tien(l[2]) + ' km</span>' + tag(esc(l[3] === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : l[3]))
+    + '<span class="mo">' + tien(l[2]) + ' km</span>' + tag(esc(l[3] === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : l[3] === 'BD' && l[8] ? 'BD cấp ' + tenCap(l[8]) : l[3]))
     + (l[7] === 'Chờ sửa' ? tag('Chờ sửa', 'cam') : '')
     + '<span class="tien">' + (l[4] ? tien(l[4]) + ' đ' : '<span class="dash">–</span>') + '</span></div>'
     + '<div class="nd" title="' + esc(l[6]) + '"><span>' + (l[5] ? tag(esc(l[5])) : '') + (khacCn ? '<span class="cn-nd">Tại ' + esc(l[1]) + '. </span>' : '') + esc(boKmDau(boTienTo(l[6], l[3]))) + '</span></div></div>';
@@ -350,6 +428,8 @@ function veXe(x, kmNhap) {
     + '<div><div class="nhan">GTGT / BD</div><div class="so">' + tyLe + '</div><div class="phu">' + trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd) + '</div></div>'
     + '</div></div>';
 
+  trai += veCap(capBD(x, d.km, kmNhap), d, g);
+
   if (g.nhom === 'tkh') {
     const ngoaiLe = g.muc === 2 ? ', hoặc 1 lần bảo dưỡng cấp lớn để có hiệu lực ngay' : g.muc === 3 ? ', hoặc bảo dưỡng cấp lớn và thêm 1 lần bảo dưỡng tiêu chuẩn' : '';
     trai += '<div class="card"><h2 class="card-title">Tái kích hoạt bảo hành</h2>'
@@ -357,7 +437,7 @@ function veXe(x, kmNhap) {
       + '<div class="chu-thich">Tra DMS để chốt số lần thiếu, quét lỗi GDS Mobile, lập biên bản giám định kỹ thuật cho khách ký.</div></div>';
   }
 
-  trai += '<div class="card"><div class="dau-card"><h2 class="card-title">Đề xuất hôm nay</h2>'
+  trai += '<div class="card"><div class="dau-card"><h2 class="card-title">GTGT đề xuất</h2>'
     + '<span class="so-lieu"><span class="tong">' + tien(d.tong) + ' đ</span> <span class="mo">· kỳ vọng ≈ ' + tien(kyVong) + ' đ</span></span></div>'
     + (d.nay.length ? '<div class="ds-hm">' + d.nay.map(h => dongHm(h)).join('') + '</div>' : '<p class="mo">Chưa có hạng mục tới kỳ.</p>')
     + '<div class="chu-thich" title="Kỳ vọng bằng ' + Math.round(META.ky_vong * 100) + '% giá trị bảo dưỡng ước tính ' + trieu(x.bdu)
