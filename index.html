@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tư vấn dịch vụ BD</title>
+<title>Tra cứu dịch vụ bảo dưỡng</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap">
 <style>
   /* Phong cách "Giao diện 1 – tinh tế": Kien truc agent/giao-dien-1-tinh-te/QUY_CHUAN.md */
   :root {
     --bg: #f4f5f8; --card: #ffffff; --border: #e6e8ee; --line: #eef0f4; --head: #f7f8fa;
     --text: #1f2329; --muted: #6b7280; --hint: #9aa1ad;
-    --accent: #3b5bdb; --accent-hover: #324fc4; --accent-soft: #eef2ff;
+    --accent: #3b5bdb; --accent-hover: #324fc4; --accent-soft: #eef2ff; --accent-line: #d6defa; --gold: #f0b429;
     --red: #c62828; --red-bg: #fdecec; --amber: #a35f00; --amber-bg: #fff4e0; --green: #2e7d32; --green-bg: #e8f5e9;
     --radius: 8px; --radius-sm: 6px; --shadow: 0 1px 2px rgba(16,24,40,.04);
   }
@@ -91,21 +91,22 @@
   .o-nho .nhan { line-height: 1.2; }
   .o-nho .so { font-size: 18px; font-weight: 500; line-height: 1.3; }
   .ds-nhom { margin-top: 4px; }
-  .dong-nhom { padding: 4px 10px; border-radius: var(--radius-sm); color: var(--muted); }
+  .dong-nhom { padding: 2px 10px; border-radius: var(--radius-sm); color: var(--muted); }
   .dong-nhom .d1 { display: flex; gap: 10px; align-items: baseline; }
   .dong-nhom .stt { width: 14px; font-variant-numeric: tabular-nums; }
   .dong-nhom .ten { flex: 1; }
-  .dong-nhom .sao { color: inherit; font-size: 12px; }
+  .dong-nhom .sao { font-size: 12px; }
+  .dong-nhom .sao .day { color: var(--gold); }
+  .dong-nhom .sao .rong { color: #d5d9e0; }
   .dong-nhom.la { background: var(--accent-soft); color: var(--text); margin: 4px 0; padding: 8px 10px; }
   .dong-nhom.la.cam { background: var(--amber-bg); }
   .dong-nhom.la.xanh { background: var(--green-bg); }
   .dong-nhom.la .ten { font-size: 15px; }
-  .dong-nhom.la .sao .day { color: var(--accent); }
-  .dong-nhom.la .sao .rong { color: #c9ced8; }
+  .dong-nhom.la .sao { font-size: 14px; }
   .chi-tiet { margin: 4px 0 0 24px; font-size: 13px; }
   .chi-tiet .dn { color: var(--muted); font-size: 12px; }
   /* Tư vấn hôm nay: viền trên màu nhấn, hai nửa bảo dưỡng | GTGT, dòng chính cỡ lớn để nhìn lướt */
-  .noi-bat { border-top: 3px solid var(--accent); }
+  .ket-qua .card { border-color: var(--accent-line); }
   .hai-muc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; margin-top: 8px; }
   .hai-muc .muc + .muc { border-left: 1px solid var(--line); padding-left: 24px; }
   .muc .chinh { font-size: 24px; font-weight: 500; line-height: 1.3; margin: 2px 0 6px; }
@@ -117,16 +118,15 @@
   .dong-bh { display: flex; white-space: nowrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; }
   .dong-bh .cham { color: var(--hint); }
   .btn-primary { display: inline-flex; align-items: center; gap: 6px; }
-  .ls.dau-bang { color: var(--muted); font-size: 12px; background: var(--head); border-top: 0; padding: 6px 8px; border-radius: var(--radius-sm); margin-top: 8px; }
+  .ls.dau-bang { color: var(--text); font-size: 13px; font-weight: 500; background: var(--head); border-top: 0; padding: 8px; border-radius: var(--radius-sm); margin-top: 8px; }
   .ds-ls .ls { padding-left: 8px; padding-right: 8px; }
   .muc .phu-chinh { font-size: 14px; font-weight: 400; }
   .muc .than { font-size: 13px; margin-top: 6px; }
-  .ba-dong { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .muc .ds-hm { margin-top: 0; }
   .muc .hm { padding: 4px 0; border-top: 0; }
   .muc .chu-thich { margin-top: 6px; }
   /* Lịch sử: một dòng mỗi lần vào xưởng */
-  .ls { display: grid; grid-template-columns: 80px 84px 108px minmax(0, 1fr) 100px; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+  .ls { display: grid; grid-template-columns: 80px 84px 108px minmax(0, 1fr) 100px; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
   .ds-ls { margin-top: 8px; }
   .ds-ls .ls:first-child { border-top: 0; }
   .ls .r { text-align: right; }
@@ -193,7 +193,7 @@
 </head>
 <body>
 <div class="topbar"><div class="topbar-in">
-  <h1>Tư vấn dịch vụ BD<span class="cn" id="cn"></span></h1>
+  <h1>Tra cứu dịch vụ bảo dưỡng<span class="cn" id="cn"></span></h1>
   <span class="ai" id="ai"></span>
   <button id="thoat" hidden>Thoát</button>
 </div></div>
@@ -435,7 +435,7 @@ function veCap(c, d, g) {
   // Lý do tối đa 3 dòng, đủ khi rê chuột
   // Khối bảo dưỡng có nền xanh nhạt và biểu tượng cờ lê để nổi khi nhìn lướt
   const khoi = (chinh, than, cuoi = '') => '<div class="muc muc-bd"><div class="nhan-muc"><span class="bt">' + BIEU_TUONG.lan + '</span>Bảo dưỡng</div><div class="chinh so-lieu">' + chinh + '</div>'
-    + (than ? '<div class="than ba-dong" title="' + esc(than) + '">' + than + '</div>' : '') + cuoi + '</div>';
+    + (than ? '<div class="than">' + than + '</div>' : '') + cuoi + '</div>';
   if (!c) return khoi('<span class="mo">Không áp dụng</span>', 'Xe hãng khác, không theo cấp bảo dưỡng Hyundai.');
   if (c.canh) return khoi('<span class="t-cam">Kiểm tra lại km</span>', c.canh);
   if (c.chuaToi) return khoi('<span class="mo">Chưa tới kỳ</span>', (c.daMoc ? 'Đã làm mốc ' + tien(c.daMoc) + ' km ngày ' + ngayVN(c.ngay) + '. ' : '')
@@ -515,7 +515,7 @@ function dongLs(l, hienCn) {
   const nd = (khacCn ? 'Tại ' + l[1] + '. ' : '') + boKmDau(boTienTo(l[6], l[3]));
   return '<div class="ls so-lieu" title="' + esc(nd) + '"><span>' + ngayVN(l[0]) + '</span><span class="mo r">' + tien(l[2]) + ' km</span>'
     + '<span' + (l[3] === 'BD' && !l[8] ? ' title="Chưa ghi cấp"' : '') + '>' + tag(esc(loai), l[3] === 'BD' ? 'bd' : '') + (l[7] === 'Chờ sửa' ? ' ' + tag('Chờ sửa', 'cam') : '') + '</span>'
-    + '<span class="nd">' + (l[5] ? '<span class="t-nhan">' + esc(l[5]) + '</span>' + (nd ? ' · ' : '') : '') + '<span class="mo">' + esc(nd) + '</span></span>'
+    + '<span class="nd">' + (l[5] ? l[5].split(', ').map(t => tag(esc(t), 'bd')).join(' ') + (nd ? ' ' : '') : '') + '<span class="mo">' + esc(nd) + '</span></span>'
     + '<span class="r">' + (l[4] ? tien(l[4]) + ' đ' : '<span class="dash">–</span>') + '</span></div>';
 }
 
@@ -573,9 +573,9 @@ function veLs(x, chiBD) {
   const nut = (loc, ten, so) => '<button data-loc="' + loc + '" class="' + ((loc === 'bd') === chiBD ? 'on' : '') + '">' + ten + ' ' + so + '</button>';
   let h = '<div class="dau-card dau-ls"><h2 class="card-title">Lịch sử vào xưởng</h2><div class="loc">' + nut('tat', 'Tất cả', x.ls.length) + nut('bd', '<span class="dai">Bảo dưỡng</span><span class="ngan">BD</span>', bd.length) + '</div></div>';
   if (!ds.length) return h + '<p class="mo">Chưa có lần bảo dưỡng nào từ 01/2025.</p>';
-  // Dòng tổng theo bộ lọc đang chọn (tiền gồm cả GTGT trong lệnh)
+  // Bình quân theo bộ lọc đang chọn (tiền gồm cả GTGT trong lệnh); số lần, tổng đã có ở ô Vào xưởng
   const tong = ds.reduce((s, l) => s + l[4], 0);
-  h += '<div class="dong-phu so-lieu">' + ds.length + ' lệnh · tổng ' + trieu(tong) + ' · bình quân ' + trieu(tong / ds.length) + '/lệnh</div>';
+  h += '<div class="dong-phu so-lieu">Bình quân ' + trieu(tong / ds.length) + ' mỗi lần' + (chiBD ? ' bảo dưỡng' : '') + '</div>';
   const dau = chiBD ? ds : ds.slice(0, SO_LS_HIEN), con = chiBD ? [] : ds.slice(SO_LS_HIEN);
   return h + '<div class="ls dau-bang"><span>Ngày</span><span class="r">Km</span><span>Loại</span><span>Ghi chú</span><span class="r">Chi phí</span></div>'
     + '<div class="ds-ls">' + dau.map(l => dongLs(l, hienCn)).join('') + '</div>'
