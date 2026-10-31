@@ -621,8 +621,8 @@ function veXe(x, kmNhap) {
   const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>' + lamSom + '</div>';
 
   XE = x;
-  return '<div class="ket-qua ba-cot"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + '<div class="card" id="lich-su">' + veLs(x, false) + '</div>'
-    + veHanhTrinh(x, d) + '</div><div>' + veCongCu(x, d) + '</div></div>';
+  return '<div class="ket-qua ba-cot"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + veHanhTrinh(x, d)
+    + '<div class="card" id="lich-su">' + veLs(x, false) + '</div></div><div>' + veCongCu(x, d) + '</div></div>';
 }
 
 /** Cột công cụ: mỗi hạng mục GTGT một biểu tượng; hạng mục khuyến nghị hôm nay tô đậm kèm số thứ tự như danh sách;
