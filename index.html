@@ -90,38 +90,34 @@
   .cc-muc:hover { background: var(--head); }
   .cc-muc .bt { width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
   .cc-muc.nay .bt { background: var(--accent); color: #fff; }
+  .cc-muc.cho .bt { background: var(--card); border: 1px solid var(--accent); }
+  .cc-muc.ko .bt, .cc-muc.ko .ten { opacity: .4; }
   .cc-muc .ten { display: block; font-size: var(--fs-1); color: var(--muted); line-height: 1.3; margin-top: 4px; }
-  .cc-muc .stt { position: absolute; top: 2px; right: 12px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--card); color: var(--accent); border: 1px solid var(--accent-line); font-size: 11px; line-height: 14px; }
+  .cc-muc .stt { position: absolute; top: 2px; right: 12px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--card); color: var(--accent); border: 1px solid var(--accent-line); font-size: var(--fs-1); line-height: 16px; }
   .cc-muc .tip { display: none; position: absolute; right: calc(100% + 8px); top: 0; width: 300px; z-index: 20; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(16,24,40,.12); padding: 12px 14px; font-size: var(--fs-2); line-height: 1.5; cursor: auto; }
   .cc-muc.duoi .tip { top: auto; bottom: 0; }
   .cc-muc:hover .tip { display: block; }
   .tip .t1 { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-3); font-weight: 500; margin-bottom: 6px; }
-  .tip .t1 .gia { font-weight: 400; color: var(--muted); }
+  .tip .t1 .gia { font-weight: 400; color: var(--muted); white-space: nowrap; }
   .tip .dong { margin-top: 4px; }
-  .tip .dong b { font-weight: 500; color: var(--muted); }
+  .tip .dong b, .tip .xe-nay b { font-weight: 400; color: var(--muted); }
   .tip .xe-nay { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
   /* Hành trình km: trục km, bảo dưỡng phía trên, sửa chữa/bảo hành/bảo hiểm phía dưới */
   .hanh-trinh .dau-card { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .ht { position: relative; margin: 12px 8px 4px; }
   .ht .truc { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent-line); }
   .ht .vach { position: absolute; width: 1px; height: 6px; background: var(--hint); }
-  .ht .so-vach { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--hint); white-space: nowrap; }
+  .ht .so-vach { position: absolute; transform: translateX(-50%); font-size: var(--fs-1); color: var(--muted); white-space: nowrap; }
   .ht .noi { position: absolute; width: 1px; background: var(--border); z-index: 0; }
   .ht .the, .ht .cham { z-index: 1; }
   .ht .cham { position: absolute; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; border: 2px solid var(--card); background: var(--hint); }
   .ht .the { position: absolute; transform: translateX(-50%); padding: 2px 6px; border-radius: 4px; font-size: var(--fs-1); line-height: 1.25; text-align: center; white-space: nowrap; background: var(--head); color: var(--muted); cursor: default; }
-  .ht .the .k { display: block; font-size: 11px; opacity: .8; }
+  .ht .the .k { display: block; font-size: var(--fs-1); opacity: .85; }
   .ht .the.bd, .ht .cham.bd { background: var(--accent-soft); color: var(--accent); }
   .ht .cham.bd { background: var(--accent); }
-  .ht .the.bh, .ht .cham.bh { background: var(--green-bg); color: var(--green); }
-  .ht .cham.bh { background: var(--green); }
-  .ht .the.bhi, .ht .cham.bhi { background: var(--red-bg); color: var(--red); }
-  .ht .cham.bhi { background: var(--red); }
-  .ht .the.ds, .ht .cham.ds { background: var(--amber-bg); color: var(--amber); }
-  .ht .cham.ds { background: var(--amber); }
-  /* BD chờ sửa: hồng nhạt như nhãn bảo hiểm, chưa tính là đã làm */
-  .ht .the.cho { background: var(--red-bg); color: var(--red); }
-  .ht .cham.cho { background: var(--red); }
+  /* BD chờ sửa: cam như nhãn "Chờ sửa" ở Lịch sử, chưa tính là đã làm */
+  .ht .the.cho { background: var(--amber-bg); color: var(--amber); }
+  .ht .cham.cho { background: var(--amber); }
   .ht .the.nay { background: var(--card); color: var(--accent); border: 1px dashed var(--accent); }
   .ht .noi.nay { border-left: 1px dashed var(--accent); background: none; }
   .nhan-muc { font-size: var(--fs-2); color: var(--muted); }
@@ -165,11 +161,11 @@
   .btn-primary { display: inline-flex; align-items: center; gap: 6px; }
   .ls.dau-bang { color: var(--text); font-size: var(--fs-2); font-weight: 500; background: var(--head); border-top: 0; padding: 8px; border-radius: var(--radius-sm); margin-top: 8px; }
   .ds-ls .ls { padding-left: 8px; padding-right: 8px; }
-  .muc .phu-chinh { font-size: var(--fs-3); font-weight: 400; }
+  .muc .phu-chinh { font-size: var(--fs-3); font-weight: 400; white-space: nowrap; }
   /* Công việc cần làm sớm (KTV ghi ở lần trước): dải vàng nhạt dưới hai khối tư vấn */
   .lam-som { margin-top: 14px; padding: 10px 14px; background: var(--amber-bg); border-left: 3px solid var(--gold); border-radius: var(--radius-sm); font-size: var(--fs-3); line-height: 1.5; }
-  .lam-som .nhan { color: var(--amber); font-weight: 500; }
-  .lam-som .ngay { color: var(--muted); font-size: var(--fs-1); }
+  .lam-som .nhan { color: var(--amber); }
+  .lam-som .ngay { color: var(--muted); font-size: var(--fs-1); white-space: nowrap; }
   .muc .than { font-size: var(--fs-2); margin-top: 6px; }
   .muc .ds-hm { margin-top: 0; }
   .muc .hm { padding: 4px 0; border-top: 0; }
@@ -658,9 +654,11 @@ function veCongCu(x, d) {
   const muc = META.hang_muc.map((h, i) => {
     const stt = d.nay.findIndex(n => n.ma === h.ma);
     const cuoi = x.hm[h.ma];
-    const tt = stt >= 0 ? 'Khuyến nghị hôm nay (số ' + (stt + 1) + ')'
-      : d.sau.some(n => n.ma === h.ma) ? 'Đã tới kỳ, để kỳ sau vì vượt trần'
-      : d.sap.some(n => n.ma === h.ma) ? 'Sắp tới kỳ' : h.ma === 'bl' && !x.bl ? 'Không áp dụng cho model này' : 'Chưa tới kỳ';
+    const sau = d.sau.some(n => n.ma === h.ma), sap = d.sap.some(n => n.ma === h.ma), ko = h.ma === 'bl' && !x.bl;
+    const tt = stt >= 0 ? 'Khuyến nghị hôm nay (số ' + (stt + 1) + ')' : sau ? 'Đã tới kỳ, để kỳ sau vì vượt trần'
+      : sap ? 'Sắp tới kỳ' : ko ? 'Không áp dụng cho model này' : 'Chưa tới kỳ';
+    // Tình trạng trên biểu tượng: khuyến nghị tô đậm; để kỳ sau, sắp tới viền xanh; không áp dụng mờ
+    const lop = stt >= 0 ? ' nay' : sau || sap ? ' cho' : ko ? ' ko' : '';
     const mt = MO_TA[h.ma] || ['', ''];
     const tip = '<div class="tip"><div class="t1"><span>' + esc(TEN_DAY[h.ma] || h.ten) + '</span><span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>'
       + (mt[0] ? '<div class="dong"><b>Làm gì:</b> ' + mt[0] + '</div>' : '')
@@ -668,7 +666,7 @@ function veCongCu(x, d) {
       + (mt[1] ? '<div class="dong"><b>Nên làm khi:</b> ' + mt[1] + '</div>' : '')
       + '<div class="dong so-lieu"><b>Định kỳ:</b> ' + tien(h.ck) + ' km' + (h.thang ? ', xe đi ít ' + h.thang + ' tháng' : '') + '</div>'
       + '<div class="xe-nay so-lieu"><b>Xe này:</b> ' + (cuoi ? 'lần cuối ' + ngayVN(cuoi[0]) + ' ở ' + tien(cuoi[1]) + ' km' : 'chưa ghi nhận từ 01/2025') + '. ' + tt + '.</div></div>';
-    return '<div class="cc-muc' + (stt >= 0 ? ' nay' : '') + (i >= META.hang_muc.length - 3 ? ' duoi' : '') + '"><span class="bt">' + (BT_HM[h.ma] || '') + '</span>'
+    return '<div class="cc-muc' + lop + (i >= META.hang_muc.length - 3 ? ' duoi' : '') + '"><span class="bt">' + (BT_HM[h.ma] || '') + '</span>'
       + (stt >= 0 ? '<span class="stt">' + (stt + 1) + '</span>' : '') + '<span class="ten">' + esc(h.ten) + '</span>' + tip + '</div>';
   }).join('');
   return '<div class="card cong-cu"><div class="nhan-muc">GTGT</div>' + muc + '</div>';
@@ -687,7 +685,7 @@ function veHanhTrinh(x, d) {
   const vt = k => Math.min(97, Math.max(3, (k - goc) / (tran - goc) * 100));
   const LOP = { 'Bảo hành': 'bh', 'Bảo hiểm': 'bhi', 'Đồng sơn tiền mặt': 'ds' };
   const TEN = { 'Bảo hành': 'Bảo hành', 'Bảo hiểm': 'Bảo hiểm', 'Đồng sơn tiền mặt': 'Đồng sơn' };
-  const RONG = 9, CAO = 36;  // nhãn rộng khoảng 9% trục; mỗi tầng cao 36px
+  const RONG = 10, CAO = 38;  // nhãn rộng khoảng 10% trục; mỗi tầng cao 36px
   const xep = arr => { const cuoi = []; return arr.map(o => { let t = cuoi.findIndex(p => o.v - p >= RONG); if (t < 0) t = cuoi.length < 3 ? cuoi.length : cuoi.indexOf(Math.min(...cuoi)); cuoi[t] = o.v; return Object.assign(o, { t }); }); };
   const tren = xep(ds.filter(l => l[3] === 'BD').map(l => ({ l, v: vt(l[2]), lop: l[7] === 'Chờ sửa' ? 'cho' : 'bd',
     ten: l[7] === 'Chờ sửa' ? 'BD chờ sửa' : l[8] ? 'Cấp ' + tenCap(l[8]) : 'BD' }))
@@ -711,7 +709,7 @@ function veHanhTrinh(x, d) {
   tren.forEach(o => { const top = A - (o.t + 1) * CAO; h += the(o, top, top + 30, A - top - 30); });
   duoi.forEach(o => { const top = A + 24 + o.t * CAO; h += the(o, top, A + 2, top - A - 2); });
   return '<div class="card hanh-trinh"><div class="dau-card"><h2 class="card-title">Hành trình km</h2>'
-    + '<span class="chu-thich" style="margin:0">Trên trục: bảo dưỡng · dưới trục: sửa chữa, bảo hành, bảo hiểm · rê chuột xem chi tiết</span></div>'
+    + '<span class="chu-thich" style="margin:0">Bảo dưỡng ở trên trục, các lần vào khác ở dưới; rê chuột để xem chi tiết</span></div>'
     + '<div class="ht" style="height:' + H + 'px">' + h + '</div></div>';
 }
 
