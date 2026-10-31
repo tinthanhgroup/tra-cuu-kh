@@ -330,6 +330,12 @@ const MO_TA = {
   bl: ['Vệ sinh bầu lọc khí thải DPF/GPF và cảm biến oxy', 'Báo lỗi khí thải, đèn check, máy yếu (Santa Fe, Tucson, Palisade)'],
   hg: ['Làm sạch họng ga, cánh bướm ga, đường nạp khí', 'Không tải không đều, chết máy khi dừng, chân ga kém nhạy'],
 };
+// Tên đầy đủ hiện trong bảng rê chuột của cột công cụ (nhãn dưới biểu tượng vẫn dùng tên ngắn)
+const TEN_DAY = {
+  pg: 'Phụ gia động cơ', ccgl: 'Cân chỉnh góc đặt bánh xe', bd: 'Làm sạch buồng đốt bằng công nghệ Hydro',
+  kdc: 'Vệ sinh khoang động cơ', gl: 'Vệ sinh giàn lạnh điều hòa', kmu: 'Khử mùi, diệt khuẩn nội thất',
+  kp: 'Súc rửa kim phun nhiên liệu', bl: 'Vệ sinh bầu lọc khí thải và cảm biến oxy', hg: 'Vệ sinh họng ga, cánh bướm ga',
+};
 const svg20 = p => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
 const BT_HM = {
   pg: svg20('<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>'),
@@ -656,7 +662,7 @@ function veCongCu(x, d) {
       : d.sau.some(n => n.ma === h.ma) ? 'Đã tới kỳ, để kỳ sau vì vượt trần'
       : d.sap.some(n => n.ma === h.ma) ? 'Sắp tới kỳ' : h.ma === 'bl' && !x.bl ? 'Không áp dụng cho model này' : 'Chưa tới kỳ';
     const mt = MO_TA[h.ma] || ['', ''];
-    const tip = '<div class="tip"><div class="t1"><span>' + esc(h.ten) + '</span><span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>'
+    const tip = '<div class="tip"><div class="t1"><span>' + esc(TEN_DAY[h.ma] || h.ten) + '</span><span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>'
       + (mt[0] ? '<div class="dong"><b>Làm gì:</b> ' + mt[0] + '</div>' : '')
       + (LOI_ICH[h.ma] ? '<div class="dong"><b>Tác dụng:</b> ' + LOI_ICH[h.ma] + '</div>' : '')
       + (mt[1] ? '<div class="dong"><b>Nên làm khi:</b> ' + mt[1] + '</div>' : '')
