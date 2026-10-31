@@ -283,9 +283,25 @@ const MODEL = {
   'creta': ['Creta', 'creta'], 'elantra': ['Elantra', 'elantra'], 'stargazer': ['Stargazer', 'stargazer'], 'i10': ['Grand i10', 'i10'],
   'custin': ['Custin', 'custin'], 'venue': ['Venue', 'venue'], 'palisade': ['Palisade', 'palisade'], 'ioniq5': ['Ioniq 5', 'ioniq5'],
   'solati': ['Solati', 'solati'], 'n250': ['Mighty N250', 'mighty'], 'hd72': ['Mighty HD72', 'mighty'],
-  'kona': ['Kona', 'kona'], 'avante': ['Avante', 'elantra'], 'starex': ['Starex', 'starex'], 'staria': ['Staria', 'staria'],
+  'kona': ['Kona', 'kona'], 'avante': ['Avante', ''], 'starex': ['Starex', 'starex'], 'staria': ['Staria', 'staria'],
   'porter': ['Porter', 'porter'], 'poterii': ['Porter II', 'porter'],
 };
+// Ảnh theo đời xe (năm sản xuất theo số khung): [từ năm, ảnh]; năm nhỏ hơn mốc đầu tiên thì không hiện ảnh
+// (không có ảnh đúng đời, hiện ảnh đời khác dễ sai); không biết năm thì dùng ảnh mẫu mới trong MODEL
+const DOI_XE = {
+  accent: [[2018, 'accent-2021'], [2025, 'accent']], 'bn7i-ckd': [[0, 'accent']],
+  creta: [[2022, 'creta-2022'], [2025, 'creta']], tucson: [[2022, 'tucson-2022'], [2025, 'tucson']],
+  santafe: [[2019, 'santafe-2021'], [2025, 'santafe']], elantra: [[2016, 'elantra-2019'], [2023, 'elantra']],
+  i10: [[2022, 'i10']], stargazer: [[2026, 'stargazer']], palisade: [[2023, 'palisade-2023'], [2026, 'palisade']],
+};
+function anhXe(ma, nsx) {
+  const doi = DOI_XE[ma];
+  if (!doi) return MODEL[ma] ? MODEL[ma][1] : '';
+  if (!nsx) return MODEL[ma][1];
+  let anh = '';
+  doi.forEach(([tu, a]) => { if (nsx >= tu) anh = a; });
+  return anh;
+}
 // Câu lợi ích từng hạng mục GTGT để CVDV nói với khách (mã như HANG_MUC trong tao_du_lieu.py; người dùng duyệt 30/10/2026)
 const LOI_ICH = {
   pg: 'Làm sạch, bảo vệ động cơ giữa hai lần thay dầu',
@@ -538,15 +554,16 @@ function veBaoHanh(x, d) {
 function veKhach(x, d, g, phu) {
   const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
   const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
-  const mo = MODEL[(x.m || '').toLowerCase().replace(/\s+/g, '')];
+  const ma = (x.m || '').toLowerCase().replace(/\s+/g, ''), mo = MODEL[ma];
+  const anh = mo && anhXe(ma, x.nsx);
   // 3 số chính xếp ngang dưới ảnh xe
   const o = (bt, nhan, so, phu) => '<div class="o-nho"><div><div class="nhan">' + nhan + '</div>'
     + '<div class="so">' + so + '</div><div class="phu">' + phu + '</div></div></div>';
   return '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(mo ? mo[0] : chuanModel(x.m)) + '</span></div>'
     + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '')
     + (x.the.length ? ' · ' + esc(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', ')) : '') + '</div>'
-    + '<div class="anh-so so-lieu' + (mo ? '' : ' khong-anh') + '">'
-    + (mo ? '<img class="anh-xe" src="' + ANH_XE + mo[1] + '.webp" alt="' + esc(mo[0]) + '" onerror="this.parentNode.classList.add(\'khong-anh\'); this.remove()">' : '')
+    + '<div class="anh-so so-lieu' + (anh ? '' : ' khong-anh') + '">'
+    + (anh ? '<img class="anh-xe" src="' + ANH_XE + anh + '.webp" alt="' + esc(mo[0]) + '" onerror="this.parentNode.classList.add(\'khong-anh\'); this.remove()">' : '')
     + '<div class="ds-so">' + o('km', d.uoc ? 'Km ước tính' : 'Km hôm nay', tien(d.km), kpd) + o('lan', 'Vào xưởng', x.sl + ' lần', 'tổng ' + trieu(x.tong))
     + o('tien', 'GTGT / BD', tyLe, trieu(x.gt).replace(' tr', '') + ' / ' + trieu(x.bd)) + '</div></div>'
     + veBaoHanh(x, d)
