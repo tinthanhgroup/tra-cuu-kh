@@ -25,13 +25,13 @@
 
   /* Thanh trên cùng */
   .topbar { background: var(--accent); color: #fff; }
-  .topbar-in { max-width: 1280px; margin: 0 auto; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
+  .topbar-in { max-width: 1376px; margin: 0 auto; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
   .topbar h1 { margin: 0; font-size: var(--fs-4); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .topbar .cn { font-size: var(--fs-1); font-weight: 400; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,.18); margin-left: 8px; vertical-align: 2px; }
   .topbar .ai { font-size: var(--fs-2); opacity: .85; }
   .topbar button { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,.4); background: transparent; color: #fff; font-size: var(--fs-2); font-weight: 400; cursor: pointer; }
 
-  main { max-width: 1280px; margin: 0 auto; padding: 0 16px 24px; }
+  main { max-width: 1376px; margin: 0 auto; padding: 0 16px 24px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; margin-bottom: 16px; }
   .card-title { margin: 0; font-size: var(--fs-4); font-weight: 500; }
   .sub-title { font-size: var(--fs-2); color: var(--muted); margin: 16px 0 0; }
@@ -78,8 +78,49 @@
   /* Bố cục máy tính (README "Bố cục trang"): trái khung Khách hàng, phải Tư vấn hôm nay + Lịch sử */
   /* Hai cột cao bằng nhau: khung Khách hàng kéo dài bằng cột phải, Lịch sử giãn lấp phần còn lại */
   .ket-qua { display: grid; grid-template-columns: 400px minmax(0, 1fr); gap: 16px; align-items: stretch; }
+  .ket-qua.ba-cot { grid-template-columns: 400px minmax(0, 1fr) 88px; }
   .ket-qua > div { display: flex; flex-direction: column; }
   .ket-qua > div > .card:last-child { flex: 1; margin-bottom: 0; }
+  .ket-qua > div > #lich-su { flex: 1; }
+  .ket-qua > div > .card.hanh-trinh { flex: none; }
+  /* Cột công cụ: 9 hạng mục GTGT dạng biểu tượng, rê chuột hiện mô tả, tác dụng, định kỳ, tình trạng của xe */
+  .cong-cu { padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .cong-cu .nhan-muc { margin-bottom: 4px; }
+  .cc-muc { position: relative; width: 76px; padding: 6px 2px; border-radius: var(--radius-sm); text-align: center; cursor: default; }
+  .cc-muc:hover { background: var(--head); }
+  .cc-muc .bt { width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+  .cc-muc.nay .bt { background: var(--accent); color: #fff; }
+  .cc-muc .ten { display: block; font-size: var(--fs-1); color: var(--muted); line-height: 1.3; margin-top: 4px; }
+  .cc-muc .stt { position: absolute; top: 2px; right: 12px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--card); color: var(--accent); border: 1px solid var(--accent-line); font-size: 11px; line-height: 14px; }
+  .cc-muc .tip { display: none; position: absolute; right: calc(100% + 8px); top: 0; width: 300px; z-index: 20; text-align: left; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(16,24,40,.12); padding: 12px 14px; font-size: var(--fs-2); line-height: 1.5; cursor: auto; }
+  .cc-muc.duoi .tip { top: auto; bottom: 0; }
+  .cc-muc:hover .tip { display: block; }
+  .tip .t1 { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-3); font-weight: 500; margin-bottom: 6px; }
+  .tip .t1 .gia { font-weight: 400; color: var(--muted); }
+  .tip .dong { margin-top: 4px; }
+  .tip .dong b { font-weight: 500; color: var(--muted); }
+  .tip .xe-nay { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  /* Hành trình km: trục km, bảo dưỡng phía trên, sửa chữa/bảo hành/bảo hiểm phía dưới */
+  .hanh-trinh .dau-card { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ht { position: relative; margin: 12px 8px 4px; }
+  .ht .truc { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent-line); }
+  .ht .vach { position: absolute; width: 1px; height: 6px; background: var(--hint); }
+  .ht .so-vach { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--hint); white-space: nowrap; }
+  .ht .noi { position: absolute; width: 1px; background: var(--border); z-index: 0; }
+  .ht .the, .ht .cham { z-index: 1; }
+  .ht .cham { position: absolute; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; border: 2px solid var(--card); background: var(--hint); }
+  .ht .the { position: absolute; transform: translateX(-50%); padding: 2px 6px; border-radius: 4px; font-size: var(--fs-1); line-height: 1.25; text-align: center; white-space: nowrap; background: var(--head); color: var(--muted); cursor: default; }
+  .ht .the .k { display: block; font-size: 11px; opacity: .8; }
+  .ht .the.bd, .ht .cham.bd { background: var(--accent-soft); color: var(--accent); }
+  .ht .cham.bd { background: var(--accent); }
+  .ht .the.bh, .ht .cham.bh { background: var(--green-bg); color: var(--green); }
+  .ht .cham.bh { background: var(--green); }
+  .ht .the.bhi, .ht .cham.bhi { background: var(--red-bg); color: var(--red); }
+  .ht .cham.bhi { background: var(--red); }
+  .ht .the.ds, .ht .cham.ds { background: var(--amber-bg); color: var(--amber); }
+  .ht .cham.ds { background: var(--amber); }
+  .ht .the.nay { background: var(--card); color: var(--accent); border: 1px dashed var(--accent); }
+  .ht .noi.nay { border-left: 1px dashed var(--accent); background: none; }
   .nhan-muc { font-size: var(--fs-2); color: var(--muted); }
   .nhan-muc.tach { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
   /* Khung Khách hàng: ảnh xe bên trái, 3 số chính xếp dọc bên phải; chân dung 6 nhóm mỗi nhóm một dòng */
@@ -256,6 +297,30 @@ const LOI_ICH = {
   kp: 'Phun nhiên liệu đều, máy bốc, tiết kiệm nhiên liệu',
   bl: 'Thông bầu lọc khí thải, cảm biến oxy đo chuẩn, tránh báo lỗi',
   hg: 'Không tải êm, chân ga nhạy, dễ nổ máy',
+};
+// Cột công cụ GTGT: [làm gì, nên làm khi] (bản nháp 31/10/2026, chờ người dùng duyệt câu chữ) và biểu tượng
+const MO_TA = {
+  pg: ['Đổ chế phẩm X-1R vào dầu máy hoặc bình nhiên liệu khi thay dầu', 'Mỗi lần thay dầu; xe chạy nhiều, đổ xăng nhiều nơi'],
+  ccgl: ['Đo và chỉnh độ chụm, góc đặt bánh xe trên máy Corghi', 'Xe nhao lái, vô lăng lệch, lốp mòn không đều; sau khi thay lốp, va chạm'],
+  bd: ['Làm sạch muội than buồng đốt bằng khí Hydro-Oxi hoặc dung dịch chuyên dụng', 'Máy rung, ì, hao nhiên liệu, khói đen'],
+  kdc: ['Làm sạch dầu, bụi khoang động cơ, phủ dưỡng nhựa và cao su', 'Khoang máy bám bụi, dầu; xe đi đường đất, công trình'],
+  gl: ['Tháo lắp hoặc nội soi, phun dung dịch làm sạch giàn lạnh điều hòa', 'Điều hòa kém mát, có mùi hôi, gió yếu'],
+  kmu: ['Phun khử khuẩn, khử mùi toàn bộ nội thất', 'Xe có mùi, chở trẻ nhỏ, chở khách, hút thuốc'],
+  kp: ['Súc rửa kim phun nhiên liệu bằng máy và dung dịch chuyên dụng', 'Không tải rung, khó nổ, hao nhiên liệu, máy yếu'],
+  bl: ['Vệ sinh bầu lọc khí thải DPF/GPF và cảm biến oxy', 'Báo lỗi khí thải, đèn check, máy yếu (Santa Fe, Tucson, Palisade)'],
+  hg: ['Làm sạch họng ga, cánh bướm ga, đường nạp khí', 'Không tải không đều, chết máy khi dừng, chân ga kém nhạy'],
+};
+const svg20 = p => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+const BT_HM = {
+  pg: svg20('<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>'),
+  ccgl: svg20('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M3.5 10h6.5M14 10h6.5M12 14v7"/>'),
+  bd: svg20('<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.4 1.3-4 2.5-5 .4 1.8 1.4 2.8 2.5 3 0-3-1-5.5 0-8z"/>'),
+  kdc: svg20('<path d="M4 9h3l2-2h5l2 2h2v3h2v4h-2v2H8l-2-2H4z"/><path d="M10 7V5h4v2"/>'),
+  gl: svg20('<path d="M12 2v20M3.3 7l17.4 10M20.7 7L3.3 17"/><path d="M9.5 4L12 6l2.5-2M9.5 20l2.5-2 2.5 2"/>'),
+  kmu: svg20('<path d="M7 21h6a1 1 0 0 0 1-1V11a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v9a1 1 0 0 0 1 1z"/><path d="M9 8V5h3M12 5l2-1"/><path d="M17 5h.01M19 3h.01M19 7h.01M21 5h.01"/>'),
+  kp: svg20('<path d="M10 3h4v5l2 2v4l-4 4-4-4v-4l2-2z"/><path d="M12 18v3M9 21h.01M15 21h.01"/>'),
+  bl: svg20('<path d="M3 5h18l-7 8v6l-4 2v-8z"/>'),
+  hg: svg20('<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/><path d="M2 12h2M20 12h2"/>'),
 };
 // Đường dẫn tuyệt đối để cả bản mở qua link Apps Script cũng thấy ảnh
 const ANH_XE = 'https://tinthanhgroup.github.io/tra-cuu-kh/xe/';
@@ -556,7 +621,70 @@ function veXe(x, kmNhap) {
   const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>' + lamSom + '</div>';
 
   XE = x;
-  return '<div class="ket-qua"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + '<div class="card" id="lich-su">' + veLs(x, false) + '</div></div></div>';
+  return '<div class="ket-qua ba-cot"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + '<div class="card" id="lich-su">' + veLs(x, false) + '</div>'
+    + veHanhTrinh(x, d) + '</div><div>' + veCongCu(x, d) + '</div></div>';
+}
+
+/** Cột công cụ: mỗi hạng mục GTGT một biểu tượng; hạng mục khuyến nghị hôm nay tô đậm kèm số thứ tự như danh sách;
+ *  rê chuột hiện làm gì, tác dụng, nên làm khi, định kỳ, giá và tình trạng của xe này. */
+function veCongCu(x, d) {
+  const muc = META.hang_muc.map((h, i) => {
+    const stt = d.nay.findIndex(n => n.ma === h.ma);
+    const cuoi = x.hm[h.ma];
+    const tt = stt >= 0 ? 'Khuyến nghị hôm nay (số ' + (stt + 1) + ')'
+      : d.sau.some(n => n.ma === h.ma) ? 'Đã tới kỳ, để kỳ sau vì vượt trần'
+      : d.sap.some(n => n.ma === h.ma) ? 'Sắp tới kỳ' : h.ma === 'bl' && !x.bl ? 'Không áp dụng cho model này' : 'Chưa tới kỳ';
+    const mt = MO_TA[h.ma] || ['', ''];
+    const tip = '<div class="tip"><div class="t1"><span>' + esc(h.ten) + '</span><span class="gia so-lieu">' + tien(h.gia) + ' đ</span></div>'
+      + (mt[0] ? '<div class="dong"><b>Làm gì:</b> ' + mt[0] + '</div>' : '')
+      + (LOI_ICH[h.ma] ? '<div class="dong"><b>Tác dụng:</b> ' + LOI_ICH[h.ma] + '</div>' : '')
+      + (mt[1] ? '<div class="dong"><b>Nên làm khi:</b> ' + mt[1] + '</div>' : '')
+      + '<div class="dong so-lieu"><b>Định kỳ:</b> ' + tien(h.ck) + ' km' + (h.thang ? ', xe đi ít ' + h.thang + ' tháng' : '') + '</div>'
+      + '<div class="xe-nay so-lieu"><b>Xe này:</b> ' + (cuoi ? 'lần cuối ' + ngayVN(cuoi[0]) + ' ở ' + tien(cuoi[1]) + ' km' : 'chưa ghi nhận từ 01/2025') + '. ' + tt + '.</div></div>';
+    return '<div class="cc-muc' + (stt >= 0 ? ' nay' : '') + (i >= META.hang_muc.length - 3 ? ' duoi' : '') + '"><span class="bt">' + (BT_HM[h.ma] || '') + '</span>'
+      + (stt >= 0 ? '<span class="stt">' + (stt + 1) + '</span>' : '') + '<span class="ten">' + esc(h.ten) + '</span>' + tip + '</div>';
+  }).join('');
+  return '<div class="card cong-cu"><div class="nhan-muc">GTGT</div>' + muc + '</div>';
+}
+
+/** Hành trình km: các lần vào xưởng đặt theo km trên một trục; bảo dưỡng phía trên, lần khác phía dưới; mốc hôm nay.
+ *  Nhãn gần nhau thì xếp tầng (tối đa 3 tầng mỗi phía). */
+function veHanhTrinh(x, d) {
+  const ds = x.ls.filter(l => l[2] > 0).slice().reverse();
+  if (!ds.length) return '';
+  // Trục bắt đầu gần lần vào đầu tiên (xe km cao không dồn về bên phải); gần 0 thì lấy từ 0
+  const max = Math.max(d.km, ...ds.map(l => l[2])) * 1.04, min = Math.min(...ds.map(l => l[2]));
+  const buoc = [1000, 2000, 5000, 10000, 20000, 25000, 50000].find(b => (max - min) / b <= 9) || 100000;
+  let goc = Math.floor(min / buoc) * buoc; if (goc <= 2 * buoc) goc = 0;
+  const tran = Math.ceil(max / buoc) * buoc;
+  const vt = k => Math.min(97, Math.max(3, (k - goc) / (tran - goc) * 100));
+  const LOP = { 'Bảo hành': 'bh', 'Bảo hiểm': 'bhi', 'Đồng sơn tiền mặt': 'ds' };
+  const TEN = { 'Bảo hành': 'Bảo hành', 'Bảo hiểm': 'Bảo hiểm', 'Đồng sơn tiền mặt': 'Đồng sơn' };
+  const RONG = 9, CAO = 36;  // nhãn rộng khoảng 9% trục; mỗi tầng cao 36px
+  const xep = arr => { const cuoi = []; return arr.map(o => { let t = cuoi.findIndex(p => o.v - p >= RONG); if (t < 0) t = cuoi.length < 3 ? cuoi.length : cuoi.indexOf(Math.min(...cuoi)); cuoi[t] = o.v; return Object.assign(o, { t }); }); };
+  const tren = xep(ds.filter(l => l[3] === 'BD').map(l => ({ l, v: vt(l[2]), lop: 'bd', ten: l[8] ? 'Cấp ' + tenCap(l[8]) : 'BD' }))
+    .concat([{ v: vt(d.km), lop: 'nay', ten: 'Hôm nay', km: d.km }]).sort((a, b) => a.v - b.v));
+  const duoi = xep(ds.filter(l => l[3] !== 'BD').map(l => ({ l, v: vt(l[2]), lop: LOP[l[3]] || '', ten: TEN[l[3]] || l[3] })));
+  const nT = Math.max(1, ...tren.map(o => o.t + 1)), nD = duoi.length ? Math.max(...duoi.map(o => o.t + 1)) : 0;
+  const A = nT * CAO + 6, H = A + 22 + nD * CAO;
+  const the = (o, top, noiTop, noiCao) => {
+    const l = o.l, km = l ? l[2] : o.km;
+    const tt = l ? ngayVN(l[0]) + ' · ' + tien(l[2]) + ' km · ' + (l[3] === 'BD' && l[8] ? 'BD cấp ' + tenCap(l[8]) : l[3]) + (l[7] === 'Chờ sửa' ? ' (chờ sửa)' : '')
+      + (l[4] ? ' · ' + tien(l[4]) + ' đ' : '') + (l[6] ? '\n' + l[6] : '') : 'Km hôm nay' + (d.uoc ? ' (ước tính)' : '') + ': ' + tien(d.km);
+    return '<div class="noi' + (o.lop === 'nay' ? ' nay' : '') + '" style="left:' + o.v + '%;top:' + noiTop + 'px;height:' + noiCao + 'px"></div>'
+      + (o.lop !== 'nay' ? '<div class="cham ' + o.lop + '" style="left:' + o.v + '%;top:' + (A - 3) + 'px"></div>' : '')
+      + '<div class="the so-lieu ' + o.lop + '" style="left:' + o.v + '%;top:' + top + 'px" title="' + esc(tt) + '">' + esc(o.ten) + '<span class="k">' + tien(km) + ' km</span></div>';
+  };
+  let h = '<div class="truc" style="top:' + A + 'px"></div>';
+  for (let k = goc; k <= tran; k += buoc) {
+    const p = (k - goc) / (tran - goc) * 100;
+    h += '<div class="vach" style="left:' + p + '%;top:' + (A + 2) + 'px"></div><div class="so-vach so-lieu" style="left:' + p + '%;top:' + (A + 6) + 'px">' + (k ? tien(k / 1000) + 'k' : '0') + '</div>';
+  }
+  tren.forEach(o => { const top = A - (o.t + 1) * CAO; h += the(o, top, top + 30, A - top - 30); });
+  duoi.forEach(o => { const top = A + 24 + o.t * CAO; h += the(o, top, A + 2, top - A - 2); });
+  return '<div class="card hanh-trinh"><div class="dau-card"><h2 class="card-title">Hành trình km</h2>'
+    + '<span class="chu-thich" style="margin:0">Trên trục: bảo dưỡng · dưới trục: sửa chữa, bảo hành, bảo hiểm · rê chuột xem chi tiết</span></div>'
+    + '<div class="ht" style="height:' + H + 'px">' + h + '</div></div>';
 }
 
 /** Danh mục để kiểm tra: hạng mục GTGT (chu kỳ, giá tham khảo) và 6 nhóm khách. */
