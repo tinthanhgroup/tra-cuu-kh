@@ -85,7 +85,7 @@
   /* Khung Khách hàng: ảnh xe bên trái, 3 số chính xếp dọc bên phải; chân dung 6 nhóm mỗi nhóm một dòng */
   /* Ảnh xe rộng hết khung, 3 số chính xếp ngang bên dưới */
   .anh-so { margin-top: 8px; }
-  .anh-xe { display: block; width: 81%; height: 122px; margin: 0 auto; object-fit: contain; }
+  .anh-xe { display: block; width: 73%; height: 110px; margin: 0 auto; object-fit: contain; }
   .ds-so { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
   .o-nho { display: flex; gap: 8px; align-items: flex-start; white-space: nowrap; min-width: 0; }
   .o-nho .nhan, .o-nho .phu { font-size: var(--fs-1); color: var(--muted); }
@@ -122,6 +122,10 @@
   .ls.dau-bang { color: var(--text); font-size: var(--fs-2); font-weight: 500; background: var(--head); border-top: 0; padding: 8px; border-radius: var(--radius-sm); margin-top: 8px; }
   .ds-ls .ls { padding-left: 8px; padding-right: 8px; }
   .muc .phu-chinh { font-size: var(--fs-3); font-weight: 400; }
+  /* Công việc cần làm sớm (KTV ghi ở lần trước): dải vàng nhạt dưới hai khối tư vấn */
+  .lam-som { margin-top: 14px; padding: 10px 14px; background: var(--amber-bg); border-left: 3px solid var(--gold); border-radius: var(--radius-sm); font-size: var(--fs-3); line-height: 1.5; }
+  .lam-som .nhan { color: var(--amber); font-weight: 500; }
+  .lam-som .ngay { color: var(--muted); font-size: var(--fs-1); }
   .muc .than { font-size: var(--fs-2); margin-top: 6px; }
   .muc .ds-hm { margin-top: 0; }
   .muc .hm { padding: 4px 0; border-top: 0; }
@@ -544,7 +548,10 @@ function veXe(x, kmNhap) {
     + '. Giá tham khảo có VAT, trung vị tại ' + META.chi_nhanh + '. Rê chuột lên hạng mục để xem lần cuối và chu kỳ.">'
     + (d.sau.length || d.sap.length ? 'Để kỳ sau: ' + [d.sau.length ? ten(d.sau) + ' (vượt trần)' : '', d.sap.length ? 'sắp tới ' + ten(d.sap).toLowerCase() : ''].filter(Boolean).join('; ') + '. ' : '')
     + 'Kỳ vọng ≈ ' + tien(kyVong) + ' đ, trần ' + tien(META.tran) + ' đ.</div></div>';
-  const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div></div>';
+  // Công việc cần làm sớm: phát hiện kỹ thuật KTV ghi ở lần gần nhất có ghi (lốp, ắc quy, phanh…), ngoài trần GTGT
+  const lamSom = x.lsm ? '<div class="lam-som"><span class="nhan">Công việc cần làm sớm:</span> ' + esc(x.lsm[1])
+    + ' <span class="ngay">(ghi ngày ' + ngayVN(x.lsm[0]) + ')</span></div>' : '';
+  const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>' + lamSom + '</div>';
 
   XE = x;
   return '<div class="ket-qua"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + '<div class="card" id="lich-su">' + veLs(x, false) + '</div></div></div>';
