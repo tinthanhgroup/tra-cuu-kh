@@ -557,7 +557,7 @@ function veBaoHanh(x, d) {
   const hetKm = d.km > N.han_bh_km, hetNam = x.nsx && nam - x.nsx > N.han_bh_nam;
   const bh = hetKm || hetNam ? tag('Hết hạn', '') + ' <span class="mo">' + (hetKm ? 'quá ' + tien(N.han_bh_km) + ' km' : 'quá ' + N.han_bh_nam + ' năm') + '</span>'
     : tag('Còn hạn', 'xanh') + ' <span class="mo">' + (x.nsx ? (x.nsx + N.han_bh_nam) + ' / ' : 'tới ') + tien(N.han_bh_km) + ' km' + (x.nsx ? '' : ', chưa rõ năm sản xuất') + '</span>';
-  return '<div class="dong-bh">' + (x.nsx ? '<span>Sản xuất ' + x.nsx + '</span><span class="cham">·</span>' : '') + '<span>Bảo hành ' + bh + '</span></div>';
+  return '<div class="dong-bh"><span>Bảo hành ' + bh + '</span></div>';
 }
 
 function veKhach(x, d, g, phu) {
@@ -568,7 +568,7 @@ function veKhach(x, d, g, phu) {
   // 3 số chính xếp ngang dưới ảnh xe
   const o = (bt, nhan, so, phu) => '<div class="o-nho"><div><div class="nhan">' + nhan + '</div>'
     + '<div class="so">' + so + '</div><div class="phu">' + phu + '</div></div></div>';
-  return '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(mo ? mo[0] : chuanModel(x.m)) + '</span></div>'
+  return '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(mo ? mo[0] : chuanModel(x.m)) + (x.nsx ? ' (SX ' + x.nsx + ')' : '') + '</span></div>'
     + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '')
     + (x.the.length ? ' · ' + esc(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', ')) : '') + '</div>'
     + '<div class="anh-so so-lieu' + (anh ? '' : ' khong-anh') + '">'
