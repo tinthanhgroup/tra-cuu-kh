@@ -119,6 +119,9 @@
   .ht .cham.bhi { background: var(--red); }
   .ht .the.ds, .ht .cham.ds { background: var(--amber-bg); color: var(--amber); }
   .ht .cham.ds { background: var(--amber); }
+  /* BD chờ sửa: hồng nhạt như nhãn bảo hiểm, chưa tính là đã làm */
+  .ht .the.cho { background: var(--red-bg); color: var(--red); }
+  .ht .cham.cho { background: var(--red); }
   .ht .the.nay { background: var(--card); color: var(--accent); border: 1px dashed var(--accent); }
   .ht .noi.nay { border-left: 1px dashed var(--accent); background: none; }
   .nhan-muc { font-size: var(--fs-2); color: var(--muted); }
@@ -680,7 +683,8 @@ function veHanhTrinh(x, d) {
   const TEN = { 'Bảo hành': 'Bảo hành', 'Bảo hiểm': 'Bảo hiểm', 'Đồng sơn tiền mặt': 'Đồng sơn' };
   const RONG = 9, CAO = 36;  // nhãn rộng khoảng 9% trục; mỗi tầng cao 36px
   const xep = arr => { const cuoi = []; return arr.map(o => { let t = cuoi.findIndex(p => o.v - p >= RONG); if (t < 0) t = cuoi.length < 3 ? cuoi.length : cuoi.indexOf(Math.min(...cuoi)); cuoi[t] = o.v; return Object.assign(o, { t }); }); };
-  const tren = xep(ds.filter(l => l[3] === 'BD').map(l => ({ l, v: vt(l[2]), lop: 'bd', ten: l[8] ? 'Cấp ' + tenCap(l[8]) : 'BD' }))
+  const tren = xep(ds.filter(l => l[3] === 'BD').map(l => ({ l, v: vt(l[2]), lop: l[7] === 'Chờ sửa' ? 'cho' : 'bd',
+    ten: l[7] === 'Chờ sửa' ? 'BD chờ sửa' : l[8] ? 'Cấp ' + tenCap(l[8]) : 'BD' }))
     .concat([{ v: vt(d.km), lop: 'nay', ten: 'Hôm nay', km: d.km }]).sort((a, b) => a.v - b.v));
   const duoi = xep(ds.filter(l => l[3] !== 'BD').map(l => ({ l, v: vt(l[2]), lop: LOP[l[3]] || '', ten: TEN[l[3]] || l[3] })));
   const nT = Math.max(1, ...tren.map(o => o.t + 1)), nD = duoi.length ? Math.max(...duoi.map(o => o.t + 1)) : 0;
