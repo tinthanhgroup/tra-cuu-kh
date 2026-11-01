@@ -560,6 +560,15 @@ function veBaoHanh(x, d) {
   return '<div class="dong-bh"><span>Bảo hành ' + bh + '</span></div>';
 }
 
+/** Vào xưởng gần nhất: dưới 1 tháng tính ngày, từ 1 tháng tính tháng (1 chữ số thập phân). */
+function veLanCuoi(x) {
+  const cuoi = x.ls.reduce((m, l) => l[0] > m ? l[0] : m, '');
+  if (!cuoi) return '';
+  const ngay = Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(cuoi + 'T00:00:00')) / 864e5));
+  const cach = ngay === 0 ? 'hôm nay' : ngay < 30 ? ngay + ' ngày' : String(Math.round(ngay / 30.4 * 10) / 10).replace('.', ',') + ' tháng';
+  return '<div class="khach">Vào xưởng gần nhất: ' + cach + ' · ' + ngayVN(cuoi) + '</div>';
+}
+
 function veKhach(x, d, g, phu) {
   const tyLe = x.bd > 0 ? Math.round(x.gt / x.bd * 100) + '%' : '–';
   const kpd = (x.kpd == null ? '~' + META.kpd_md : tien(x.kpd)) + ' km/ngày';
@@ -571,6 +580,7 @@ function veKhach(x, d, g, phu) {
   return '<div class="card"><div class="xe"><span class="bien">' + esc(x.b) + '</span><span class="mo">' + esc(mo ? mo[0] : chuanModel(x.m)) + (x.nsx ? ' (SX ' + x.nsx + ')' : '') + '</span></div>'
     + '<div class="khach">' + esc(chuanTen(x.kh)) + (x.dt ? ' · ' + esc(x.dt) : '')
     + (x.the.length ? ' · ' + esc(x.the.map(t => t === 'BD đều' ? 'bảo dưỡng đều' : t.charAt(0).toLowerCase() + t.slice(1)).join(', ')) : '') + '</div>'
+    + veLanCuoi(x)
     + '<div class="anh-so so-lieu' + (anh ? '' : ' khong-anh') + '">'
     + (anh ? '<img class="anh-xe" src="' + ANH_XE + anh + '.webp" alt="' + esc(mo[0]) + '" onerror="this.parentNode.classList.add(\'khong-anh\'); this.remove()">' : '')
     + '<div class="ds-so">' + o('km', d.uoc ? 'Km ước tính' : 'Km hôm nay', tien(d.km), kpd) + o('lan', 'Vào xưởng', x.sl + ' lần', 'tổng ' + trieu(x.tong))
