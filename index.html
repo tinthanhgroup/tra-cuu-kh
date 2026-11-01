@@ -693,7 +693,14 @@ function veCongCu(x, d) {
 /** Hành trình km: các lần vào xưởng đặt theo km trên một trục; bảo dưỡng phía trên, lần khác phía dưới; mốc hôm nay.
  *  Nhãn gần nhau thì xếp tầng (tối đa 3 tầng mỗi phía). */
 function veHanhTrinh(x, d) {
-  const ds = x.ls.filter(l => l[2] > 0).slice().reverse();
+  // Km nghi nhập sai (vd. gõ 121.381 thay vì 101.381): giữ chuỗi km tăng dần theo ngày dài nhất (lệch lùi ≤ 1.000 km),
+  // bỏ ít điểm nhất khỏi trục và ghi chú bên dưới
+  const tatCa = x.ls.filter(l => l[2] > 0).slice().reverse();
+  const dai = tatCa.map(() => 1), truoc = tatCa.map(() => -1);
+  tatCa.forEach((l, i) => { for (let j = 0; j < i; j++) if (l[2] >= tatCa[j][2] - 1000 && dai[j] + 1 > dai[i]) { dai[i] = dai[j] + 1; truoc[i] = j; } });
+  const giu = new Set();
+  for (let i = dai.lastIndexOf(Math.max(0, ...dai)); i >= 0; i = truoc[i]) giu.add(i);
+  const ds = tatCa.filter((l, i) => giu.has(i)), sai = tatCa.filter((l, i) => !giu.has(i));
   if (!ds.length) return '';
   // Trục bắt đầu gần lần vào đầu tiên (xe km cao không dồn về bên phải); gần 0 thì lấy từ 0
   const max = Math.max(d.km, ...ds.map(l => l[2])) * 1.04, min = Math.min(...ds.map(l => l[2]));
@@ -728,7 +735,9 @@ function veHanhTrinh(x, d) {
   duoi.forEach(o => { const top = A + 24 + o.t * CAO; h += the(o, top, A + 2, top - A - 2); });
   return '<div class="card hanh-trinh"><div class="dau-card"><h2 class="card-title">Hành trình km</h2>'
     + '<span class="chu-thich" style="margin:0">Bảo dưỡng ở trên trục, các lần vào khác ở dưới; rê chuột để xem chi tiết</span></div>'
-    + '<div class="ht" style="height:' + H + 'px">' + h + '</div></div>';
+    + '<div class="ht" style="height:' + H + 'px">' + h + '</div>'
+    + (sai.length ? '<div class="chu-thich so-lieu">Không vẽ ' + sai.map(l => tien(l[2]) + ' km ngày ' + ngayVN(l[0])).join(', ') + ': km lớn hơn các lần vào sau, nghi nhập sai trên DMS.</div>' : '')
+    + '</div>';
 }
 
 /** Danh mục để kiểm tra: hạng mục GTGT (chu kỳ, giá tham khảo) và 6 nhóm khách. */
