@@ -73,6 +73,9 @@
   .xe { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .bien { font-size: var(--fs-5); font-weight: 500; }
   .khach { font-size: var(--fs-2); color: var(--muted); margin-top: 2px; }
+  .lan-cuoi { margin-top: 6px; white-space: nowrap; }
+  .so-cach { display: inline-block; padding: 1px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .so-cach.cam { background: var(--amber-bg); color: var(--amber); }
   .the-phu { font-size: var(--fs-2); color: var(--muted); }
   .sao { font-size: var(--fs-2); color: var(--muted); letter-spacing: 1px; }
   /* Bố cục máy tính (README "Bố cục trang"): trái khung Khách hàng, phải Tư vấn hôm nay + Lịch sử */
@@ -560,13 +563,15 @@ function veBaoHanh(x, d) {
   return '<div class="dong-bh"><span>Bảo hành ' + bh + '</span></div>';
 }
 
-/** Vào xưởng gần nhất: dưới 1 tháng tính ngày, từ 1 tháng tính tháng (1 chữ số thập phân). */
+/** Vào xưởng gần nhất: dưới 1 tháng tính ngày, từ 1 tháng tính tháng (1 chữ số thập phân); số tô nổi để nhìn lướt
+ *  (cam khi vắng từ ngưỡng "Cần giữ chân"); kèm CVDV lập lệnh lần đó. */
 function veLanCuoi(x) {
-  const cuoi = x.ls.reduce((m, l) => l[0] > m ? l[0] : m, '');
-  if (!cuoi) return '';
-  const ngay = Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(cuoi + 'T00:00:00')) / 864e5));
+  const l = x.ls.reduce((m, l) => !m || l[0] > m[0] ? l : m, null);
+  if (!l) return '';
+  const ngay = Math.max(0, Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(l[0] + 'T00:00:00')) / 864e5));
   const cach = ngay === 0 ? 'hôm nay' : ngay < 30 ? ngay + ' ngày' : String(Math.round(ngay / 30.4 * 10) / 10).replace('.', ',') + ' tháng';
-  return '<div class="khach">Vào xưởng gần nhất: ' + cach + ' · ' + ngayVN(cuoi) + '</div>';
+  return '<div class="khach lan-cuoi">Vào xưởng gần nhất: <span class="so-cach' + (ngay >= META.nhom.vang ? ' cam' : '') + '">' + cach + '</span> '
+    + ngayVN(l[0]) + (l[9] ? ' · ' + esc(l[9]) : '') + '</div>';
 }
 
 function veKhach(x, d, g, phu) {
