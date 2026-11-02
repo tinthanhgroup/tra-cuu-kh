@@ -711,9 +711,10 @@ function veXe(x, kmNhap) {
     + '. Giá tham khảo có VAT, trung vị tại ' + META.chi_nhanh + '. Rê chuột lên hạng mục để xem lần cuối và chu kỳ.">'
     + (d.sau.length || d.sap.length ? 'Để kỳ sau: ' + [d.sau.length ? ten(d.sau) + ' (vượt trần)' : '', d.sap.length ? 'sắp tới ' + ten(d.sap).toLowerCase() : ''].filter(Boolean).join('; ') + '. ' : '')
     + 'Kỳ vọng ≈ ' + tien(kyVong) + ' đ, trần ' + tien(META.tran) + ' đ.</div></div>';
-  // Công việc cần làm sớm: phát hiện kỹ thuật KTV ghi ở lần gần nhất có ghi (lốp, ắc quy, phanh…), ngoài trần GTGT
-  const lamSom = x.lsm ? '<div class="lam-som"><span class="nhan">Công việc cần làm sớm:</span> ' + esc(x.lsm[1])
-    + ' <span class="ngay">(ghi ngày ' + ngayVN(x.lsm[0]) + ')</span></div>' : '';
+  // Công việc cần làm sớm: phát hiện kỹ thuật KTV ghi (lốp, ắc quy, phanh…), tối đa 2 lần gần nhất trong 12 tháng, ngoài trần GTGT
+  const dsLs = !x.lsm ? [] : Array.isArray(x.lsm[0]) ? x.lsm : [x.lsm];
+  const lamSom = dsLs.length ? '<div class="lam-som"><span class="nhan">Công việc cần làm sớm:</span>'
+    + dsLs.map(s => (dsLs.length > 1 ? '<br>• ' : ' ') + esc(s[1]) + ' <span class="ngay">(ghi ngày ' + ngayVN(s[0]) + ')</span>').join('') + '</div>' : '';
   const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>' + lamSom + '</div>';
 
   XE = x;
