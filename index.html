@@ -452,7 +452,7 @@ function hien(man) {
     $('xem-dm').onclick = e => {
       e.preventDefault();
       const truoc = XE; XE = null;
-      $('ket-qua').innerHTML = '<p class="quay-lai"><a href="#" id="dm-ve">← Quay lại' + (truoc ? ' xe ' + esc(truoc.b) : '') + '</a></p>' + veDanhMuc();
+      $('ket-qua').innerHTML = '<p class="quay-lai"><a href="#" id="dm-ve">← Quay lại</a></p>' + veDanhMuc();
       $('dm-ve').onclick = e2 => { e2.preventDefault(); $('ket-qua').innerHTML = truoc ? veXe(truoc, Number($('km').value) || 0) : ''; };
     };
     $('bien').focus();
