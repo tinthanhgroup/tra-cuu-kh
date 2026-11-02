@@ -334,6 +334,7 @@
   <section id="man-bc" hidden>
     <div class="thanh-tra"><div class="card">
       <div class="hang-bc">
+        <div class="loc" id="bc-muc"></div>
         <div class="loc" id="bc-cn"></div>
         <input id="bc-ngay" type="date">
         <a href="#" id="bc-ve" hidden>Quay lại tra cứu</a>
@@ -467,7 +468,7 @@ function hien(man) {
   $('thoat').hidden = man === 'dn';
   $('ai').textContent = man !== 'dn' ? PHIEN.ma : '';
   $('cn').hidden = man === 'dn' || man === 'bc';
-  document.querySelector('.topbar h1').firstChild.textContent = man === 'lt' ? 'Lễ tân dịch vụ' : man === 'bc' ? 'Tổng hợp Lễ tân' : 'Tra cứu dịch vụ bảo dưỡng';
+  document.querySelector('.topbar h1').firstChild.textContent = man === 'lt' ? 'Lễ tân dịch vụ' : man === 'bc' ? 'Tổng hợp' : 'Tra cứu dịch vụ bảo dưỡng';
   clearInterval(LT.hen);
   if (man === 'bc') {
     $('bc-ve').hidden = META.vai === 'baocao';
@@ -482,7 +483,7 @@ function hien(man) {
     $('cn').textContent = META.chi_nhanh;
     DM = undefined;
     $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>'
-      + ((META.xemBc || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp Lễ tân</a>' : '');
+      + ((META.xemBc || []).length || (META.xemLs || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp</a>' : '');
     if ($('xem-bc')) $('xem-bc').onclick = e => { e.preventDefault(); hien('bc'); };
     // Danh mục GTGT thay chỗ kết quả tra, chữ đổi thành "Quay lại"; bấm lần nữa vẽ lại xe đang xem (hoặc trang trống)
     $('xem-dm').onclick = e => {
@@ -954,13 +955,18 @@ document.addEventListener('change', async e => {
   const ds = await ltGoi('ltNhan', s.dataset.ltId, s.value);
   if (ds) { LT.ds = ds; veLt(); } else s.disabled = false;
 });
-// ---------- Tổng hợp Lễ tân ----------
-const BC = { cn: null };
+// ---------- Tổng hợp: Lễ tân DV | Công việc cần làm sớm ----------
+const BC = { cn: null, muc: null };   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm
 const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc' };
 
 async function bcTai() {
+  const coLt = (META.xemBc || []).length, coLs = (META.xemLs || []).length;
+  if (!BC.muc) BC.muc = coLt ? 'lt' : 'ls';
+  $('bc-muc').innerHTML = coLt && coLs ? [['lt', 'Lễ tân DV'], ['ls', 'Công việc cần làm sớm']]
+    .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
+  $('bc-ngay').hidden = BC.muc === 'ls';
   $('bc-loi').textContent = ''; $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';
-  try { veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn)); }
+  try { if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn)); else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn)); }
   catch (e) {
     $('bc-nd').innerHTML = '';
     if (e.message.includes('HET_PHIEN')) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; }
@@ -994,6 +1000,43 @@ function veBc(d) {
     + '</div>';
 }
 
+/** Công việc cần làm sớm: 4 tuần gần nhất so với mốc 8–10/2026 (trước khi áp dụng mẫu 3 nhãn), theo tuần, theo CVDV, ghi chép gần nhất. */
+function veBcLs(d) {
+  BC.cn = d.cn;
+  $('bc-cn').innerHTML = d.cacCn.map(c => '<button data-cn="' + c + '" class="' + (c === d.cn ? 'on' : '') + '">' + (TEN_CN[c] || c) + '</button>').join('');
+  const pt = (a, b) => b ? Math.round((a || 0) / b * 100) : null, ptc = v => v == null ? '–' : v + '%';
+  const cong = ds => ds.reduce((s, x) => { Object.keys(x).forEach(k => { if (typeof x[k] === 'number') s[k] = (s[k] || 0) + x[k]; }); return s; }, {});
+  const g = cong(d.tuan.slice(-4)), m = d.moc || {};
+  const o = (nhan, nay, truoc, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + nay + '</div>'
+    + (truoc != null ? '<div class="nhan">8–10/2026: ' + truoc + '</div>' : '') + '</div>';
+  const thanh = (v, max) => '<span class="bc-thanh" style="width:' + Math.round((v || 0) / (max || 100) * 70) + 'px"></span>';
+  const bang = (dau, hang, phai) => hang.length ? '<table class="bang"><thead><tr>' + dau.map((h, i) => '<th' + (phai.includes(i) ? ' class="r"' : '') + '>' + h + '</th>').join('')
+    + '</tr></thead><tbody>' + hang.map(h => '<tr>' + h.map((v, i) => '<td' + (phai.includes(i) ? ' class="r"' : '') + '>' + v + '</td>').join('') + '</tr>').join('') + '</tbody></table>'
+    : '<p class="mo">Chưa có dữ liệu.</p>';
+  const LOAI = { khong_viec: tag('Không có việc', 'xanh'), phat_hien: tag('Có việc'), khong_phat_hien: tag('Chỉ mốc BD / chung chung', 'do') };
+  const MUC = ['', 'sơ sài', 'đạt', 'chi tiết'];
+  $('bc-nd').innerHTML = '<div class="bc-so">'
+    + o('Lệnh BD, SCC / tuần (4 tuần gần nhất)', Math.round((g.lenh || 0) / Math.max(1, Math.min(4, d.tuan.length))), m.lenh ? Math.round(m.lenh / 13) : null)
+    + o('Ghi đúng mẫu', ptc(pt(g.mau, g.lenh)), ptc(pt(m.mau, m.lenh)))
+    + o('Có việc cần làm', ptc(pt(g.ph, g.lenh)), ptc(pt(m.ph, m.lenh)))
+    + o('Chỉ mốc BD / trống', ptc(pt(g.moc_bd, g.lenh)), ptc(pt(m.moc_bd, m.lenh)), pt(g.moc_bd, g.lenh) > 50 ? 'do' : '')
+    + o('Ghi chi tiết', ptc(pt(g.tot, g.ph)), ptc(pt(m.tot, m.ph)))
+    + o('Việc "Làm ngay"', g.lam_ngay || 0, null) + '</div>'
+    + '<div class="card" style="margin-top:16px"><h2 class="card-title">Theo tuần</h2>'
+    + '<div class="mo" style="font-size:var(--fs-1);margin-top:4px">Mẫu 3 nhãn áp dụng từ 02/11/2026; các tuần trước là mốc so sánh. Chỉ lệnh BD, SCC đã có trong file RO gốc.</div>'
+    + bang(['Tuần từ', 'Lệnh', 'Đúng mẫu', 'Có việc cần làm', 'Chỉ mốc BD / trống', 'Làm ngay'], d.tuan.slice().reverse().map(x => [
+      ngayVN(x.tu) + (x.tu >= '2026-11-02' ? ' ' + tag('áp dụng', 'xanh') : ''), x.lenh,
+      thanh(pt(x.mau, x.lenh)) + ptc(pt(x.mau, x.lenh)), thanh(pt(x.ph, x.lenh)) + ptc(pt(x.ph, x.lenh)), ptc(pt(x.moc_bd, x.lenh)), x.lam_ngay || 0]), [1, 2, 3, 4, 5])
+    + '</div><div class="bc-2">'
+    + '<div class="card"><h2 class="card-title">Theo CVDV (30 ngày)</h2>' + bang(['CVDV', 'Lệnh', 'Đúng mẫu', 'Có việc', 'Chi tiết'],
+      d.cvdv.map(c => [esc(c.cv), c.lenh, ptc(pt(c.mau, c.lenh)), ptc(pt(c.ph, c.lenh)), ptc(pt(c.tot, c.ph))]), [1, 2, 3, 4]) + '</div>'
+    + '<div class="card"><h2 class="card-title">Ghi chép gần nhất</h2>' + bang(['Ngày', 'CVDV', 'Nội dung'],
+      d.gan.map(x => [ngayVN(x[0]).slice(0, 5), esc(x[1]), esc(x[2]) + '<div style="margin-top:2px">' + (x[4] ? tag('Đúng mẫu', 'xanh') + ' ' : '')
+        + LOAI[x[3]] + (x[5] ? ' <span class="mo" style="font-size:var(--fs-1)">' + MUC[x[5]] + '</span>' : '') + '</div>']), []) + '</div>'
+    + '</div>';
+}
+
+$('bc-muc').onclick = e => { const b = e.target.closest('[data-muc]'); if (b) { BC.muc = b.dataset.muc; BC.cn = null; bcTai(); } };
 $('bc-ngay').onchange = bcTai;
 $('bc-ve').onclick = e => { e.preventDefault(); hien('tra'); };
 $('bc-cn').onclick = e => { const b = e.target.closest('[data-cn]'); if (b) { BC.cn = b.dataset.cn; bcTai(); } };
