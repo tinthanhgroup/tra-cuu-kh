@@ -228,6 +228,11 @@
   .lt-h { display: grid; grid-template-columns: minmax(0, 1fr) 92px 112px; gap: 8px; align-items: center; padding: 6px 10px 6px 9px; border-top: 1px solid var(--line); border-left: 3px solid var(--gold); }
   .lt-h:first-child { border-top: 0; }
   .lt-h.nhan { border-left-color: var(--green); }
+  .lt-h.lau { border-left-color: var(--red); background: var(--red-bg); }
+  .lt-h .cho { color: var(--red); font-weight: 500; }
+  .lt-tom { font-size: var(--fs-2); color: var(--muted); margin: 8px 0 0; }
+  .lt-tom b { font-weight: 500; color: var(--text); }
+  .lt-tom .do { color: var(--red); }
   .lt-h .xe-lt { min-width: 0; cursor: pointer; }
   .lt-h .bien { font-size: var(--fs-3); font-weight: 500; white-space: nowrap; }
   .lt-h .phu, .lt-h .kn2 { font-size: var(--fs-1); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -306,6 +311,7 @@
       <div class="loi" id="lt-loi"></div>
       <div id="lt-goi-y"></div>
       <div class="loc lt-loc" id="lt-loc"></div>
+      <div class="lt-tom so-lieu" id="lt-tom"></div>
     </div></div>
     <div id="lt-ds"></div>
   </section>
@@ -848,8 +854,18 @@ async function ltThem(bien) {
 
 /** Mỗi khách một hàng gọn: biển số (model · giờ vào) | khuyến nghị 1, 2 | ô chọn CVDV nhận.
  *  Bấm biển số mở chi tiết: tên khách, 5 lần vào xưởng gần nhất (ngày, loại, km, CVDV), xóa dòng nhập nhầm. */
+const phutLt = s => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? +m[1] * 60 + +m[2] : null; };
+// Phút hiện tại trong ngày (bản demo đặt LT.gioNay để cố định giờ)
+const phutNay = () => LT.gioNay ? phutLt(LT.gioNay) : new Date().getHours() * 60 + new Date().getMinutes();
+/** Số phút chờ: đã nhận = giờ nhận − giờ vào; chưa nhận = bây giờ − giờ vào. */
+const choLt = r => Math.max(0, (r.cvdv ? phutLt(r.gioNhan) : phutNay()) - phutLt(r.gio));
+
 function veLt() {
-  const nhan = LT.ds.filter(r => r.cvdv).length, chua = LT.ds.length - nhan;
+  const nhan = LT.ds.filter(r => r.cvdv).length, chua = LT.ds.length - nhan, NG = META.choLau || 20;
+  // Tóm tắt: chờ trung bình của xe đã nhận, số xe chờ quá ngưỡng (gồm cả xe đang chờ)
+  const daNhan = LT.ds.filter(r => r.cvdv).map(choLt), lau = LT.ds.filter(r => choLt(r) > NG).length;
+  $('lt-tom').innerHTML = LT.ds.length ? 'Chờ CVDV nhận TB <b>' + (daNhan.length ? Math.round(daNhan.reduce((s, v) => s + v, 0) / daNhan.length) + ' phút' : '–') + '</b>'
+    + ' · <span class="' + (lau ? 'do' : '') + '">' + lau + ' xe chờ quá ' + NG + ' phút</span>' : '';
   const nut = (loc, ten, so) => '<button data-lt-loc="' + loc + '" class="' + (LT.loc === loc ? 'on' : '') + '">' + ten + ' ' + so + '</button>';
   $('lt-loc').innerHTML = nut('tat', 'Tất cả', LT.ds.length) + nut('chua', 'Chưa nhận', chua) + nut('nhan', 'Đã nhận', nhan);
   const ds = LT.ds.filter(r => LT.loc === 'tat' || (LT.loc === 'nhan') === !!r.cvdv).slice().reverse();
@@ -869,8 +885,11 @@ function veLt() {
         : '<div class="mo">Chưa có lịch sử từ 01/2025.</div>')
       + '<button class="xoa" data-lt-xoa="' + esc(r.id) + '">Xóa khỏi danh sách (nhập nhầm)</button></div>' : '';
     const model = (MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0];
-    return '<div class="lt-h' + (r.cvdv ? ' nhan' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b) + '</div>'
-      + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? '→' + esc(r.gioNhan) : '') + (model ? ' · ' + esc(model) : '') + '</div></div>'
+    // Chưa nhận mà chờ quá ngưỡng: hàng đỏ, hiện số phút đang chờ
+    const cho = choLt(r), lau = !r.cvdv && cho > (META.choLau || 20);
+    return '<div class="lt-h' + (r.cvdv ? ' nhan' : lau ? ' lau' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b) + '</div>'
+      // Đã nhận: giờ vào → giờ nhận · số phút chờ (bỏ model cho gọn, model xem trong chi tiết)
+      + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? '→' + esc(r.gioNhan) + ' · ' + cho + "'" : (lau ? ' · <span class="cho">chờ ' + cho + "'</span>" : '') + (model ? ' · ' + esc(model) : '')) + '</div></div>'
       + '<div class="kn">' + (r.kn.length ? '<div class="kn1">' + knHien(r.kn[0]) + '</div>' + (r.kn[1] ? '<div class="kn2">' + knHien(r.kn[1]) + '</div>' : '')
         : '<div class="kn2">Khách mới</div>') + '</div>'
       + chon + ct + '</div>';
