@@ -214,30 +214,32 @@
   .bang .r { text-align: right; white-space: nowrap; }
   @media (max-width: 640px) { .bang th, .bang td { padding: 8px 6px; font-size: var(--fs-2); } }
 
-  /* Lễ tân DV: mỗi khách một thẻ; chưa có CVDV nhận thì viền trái cam */
+  /* Lễ tân DV: mỗi khách một hàng gọn (~50px, ~10 xe một màn hình điện thoại); chưa có CVDV nhận thì vạch trái vàng */
   #man-lt { max-width: 640px; margin: 0 auto; }
-  .lt-nhap { display: block !important; }
+  #man-lt .thanh-tra { padding-top: 8px; }
+  #man-lt .thanh-tra .card { display: block; padding: 10px 12px; margin-bottom: 8px; }
   .hang-lt { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-  .hang-lt input { height: 44px; font-size: var(--fs-4); }
-  .hang-lt .btn { height: 44px; }
-  .lt-loc { margin: 12px 0 0; }
-  .lt-loc button { flex: 1; height: 36px; }
+  .hang-lt input, .hang-lt .btn { height: 40px; min-height: 40px; }
+  .hang-lt input { font-size: var(--fs-4); }
+  .lt-loc { margin: 8px 0 0; }
+  .lt-loc button { flex: 1; height: 32px; min-height: 32px; }
   #lt-goi-y .btn { margin: 8px 8px 0 0; }
-  .lt-the { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; }
-  .lt-the.nhan { border-left-color: var(--green); }
-  .lt-the .d1 { display: flex; align-items: baseline; gap: 8px; }
-  .lt-the .bien { font-size: var(--fs-4); }
-  .lt-the .gio { margin-left: auto; font-size: var(--fs-2); color: var(--muted); white-space: nowrap; }
-  .lt-the .kh { font-size: var(--fs-2); color: var(--muted); margin-top: 2px; }
-  .lt-kn { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: var(--fs-2); }
-  .lt-kn .tag { font-size: var(--fs-2); padding: 2px 8px; }
-  .lt-chon { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 10px; }
-  .lt-chon select { height: 40px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text); font: inherit; font-size: var(--fs-3); min-width: 0; }
-  .lt-chon select.co { border-color: var(--green); color: var(--green); background: var(--green-bg); }
-  .lt-chon .btn { height: 40px; width: 84px; }
-  .lt-ct { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--fs-2); }
-  .lt-ct .dong { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; gap: 8px; padding: 4px 0; }
-  .lt-ct .xoa { margin-top: 8px; color: var(--red); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
+  .lt-ds { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .lt-h { display: grid; grid-template-columns: minmax(0, 1fr) 92px 112px; gap: 8px; align-items: center; padding: 6px 10px 6px 9px; border-top: 1px solid var(--line); border-left: 3px solid var(--gold); }
+  .lt-h:first-child { border-top: 0; }
+  .lt-h.nhan { border-left-color: var(--green); }
+  .lt-h .xe-lt { min-width: 0; cursor: pointer; }
+  .lt-h .bien { font-size: var(--fs-3); font-weight: 500; white-space: nowrap; }
+  .lt-h .phu, .lt-h .kn2 { font-size: var(--fs-1); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lt-h .kn { font-size: var(--fs-2); line-height: 1.3; min-width: 0; }
+  .lt-h .kn1 { color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lt-h .kn1 .so, .lt-h .kn2 .so { color: var(--hint); }
+  .lt-h select { height: 34px; width: 100%; padding: 0 6px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--muted); font: inherit; font-size: var(--fs-2); }
+  .lt-h select.co { border-color: var(--green); color: var(--green); background: var(--green-bg); font-weight: 500; }
+  .lt-ct { grid-column: 1 / -1; padding: 6px 0 4px; border-top: 1px dashed var(--line); font-size: var(--fs-2); }
+  .lt-ct .kh { margin-bottom: 4px; }
+  .lt-ct .dong { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 8px; padding: 2px 0; }
+  .lt-ct .xoa { margin-top: 4px; color: var(--red); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
 
   @media (min-width: 700px) {
     .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
@@ -296,7 +298,7 @@
 
   <!-- Lễ tân DV (tài khoản LETAN, dùng trên điện thoại): nhập biển số → khuyến nghị CVDV, chọn CVDV nhận xe -->
   <section id="man-lt" hidden>
-    <div class="thanh-tra"><div class="card lt-nhap">
+    <div class="thanh-tra"><div class="card">
       <div class="hang-lt">
         <input id="lt-bien" placeholder="Biển số khách vừa tới" autocapitalize="characters">
         <button class="btn btn-primary" id="lt-them">Thêm</button>
@@ -844,29 +846,35 @@ async function ltThem(bien) {
   await ltTai();
 }
 
-/** Mỗi khách một thẻ: biển số, giờ vào, khách; khuyến nghị CVDV; ô chọn CVDV nhận; Chi tiết = 5 lần vào xưởng gần nhất. */
+/** Mỗi khách một hàng gọn: biển số (model · giờ vào) | khuyến nghị 1, 2 | ô chọn CVDV nhận.
+ *  Bấm biển số mở chi tiết: tên khách, 5 lần vào xưởng gần nhất (ngày, loại, km, CVDV), xóa dòng nhập nhầm. */
 function veLt() {
   const nhan = LT.ds.filter(r => r.cvdv).length, chua = LT.ds.length - nhan;
   const nut = (loc, ten, so) => '<button data-lt-loc="' + loc + '" class="' + (LT.loc === loc ? 'on' : '') + '">' + ten + ' ' + so + '</button>';
   $('lt-loc').innerHTML = nut('tat', 'Tất cả', LT.ds.length) + nut('chua', 'Chưa nhận', chua) + nut('nhan', 'Đã nhận', nhan);
   const ds = LT.ds.filter(r => LT.loc === 'tat' || (LT.loc === 'nhan') === !!r.cvdv).slice().reverse();
   if (!ds.length) { $('lt-ds').innerHTML = '<p class="mo">' + (LT.ds.length ? 'Không có khách trong mục này.' : 'Chưa có khách hôm nay. Nhập biển số khi khách tới.') + '</p>'; return; }
-  $('lt-ds').innerHTML = ds.map(r => {
+  $('lt-ds').innerHTML = '<div class="lt-ds">' + ds.map(r => {
     const knTen = r.kn.map(k => k.split(' ')[0]);
+    // "TruongNV (5/5)" → tên + số lần nhạt
+    const knHien = k => esc(k.split(' ')[0]) + ' <span class="so">' + esc((k.split(' ')[1] || '').replace(/[()]/g, '')) + '</span>';
     // Ô chọn: khuyến nghị đứng đầu, sau đó các CVDV còn lại
     const tuy = knTen.concat(META.cvdv.filter(c => knTen.indexOf(c) < 0));
-    const chon = '<select data-lt-id="' + esc(r.id) + '"' + (r.cvdv ? ' class="co"' : '') + '><option value="">— Chọn CVDV nhận xe —</option>'
+    const chon = '<select data-lt-id="' + esc(r.id) + '"' + (r.cvdv ? ' class="co"' : '') + '><option value="">Chọn CVDV</option>'
       + tuy.map(c => '<option' + (c === r.cvdv ? ' selected' : '') + '>' + esc(c) + '</option>').join('') + '</select>';
     const mo = LT.mo.has(r.id);
-    const ct = mo ? '<div class="lt-ct">' + (r.ls.length ? '<div class="mo">5 lần vào xưởng gần nhất</div>' + r.ls.map(l => '<div class="dong so-lieu"><span>' + ngayVN(l[0]) + '</span><span>' + esc(l[2])
-      + (l[1] ? ' <span class="mo">· ' + tien(l[1]) + ' km</span>' : '') + '</span><span>' + (esc(l[3]) || '<span class="dash">–</span>') + '</span></div>').join('') : '<div class="mo">Chưa có lịch sử từ 01/2025.</div>')
+    const ct = mo ? '<div class="lt-ct">' + (r.kh ? '<div class="kh">' + esc(chuanTen(r.kh)) + '</div>' : '')
+      + (r.ls.length ? r.ls.map(l => '<div class="dong so-lieu"><span class="mo">' + ngayVN(l[0]) + '</span><span>' + esc(l[2])
+        + (l[1] ? ' <span class="mo">· ' + tien(l[1]) + ' km</span>' : '') + '</span><span>' + (esc(l[3]) || '<span class="dash">–</span>') + '</span></div>').join('')
+        : '<div class="mo">Chưa có lịch sử từ 01/2025.</div>')
       + '<button class="xoa" data-lt-xoa="' + esc(r.id) + '">Xóa khỏi danh sách (nhập nhầm)</button></div>' : '';
-    return '<div class="lt-the' + (r.cvdv ? ' nhan' : '') + '"><div class="d1"><span class="bien">' + esc(r.b) + '</span><span class="mo">' + esc((MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0]) + '</span>'
-      + '<span class="gio so-lieu">Vào ' + esc(r.gio) + (r.cvdv ? ' · nhận ' + esc(r.gioNhan) : '') + '</span></div>'
-      + (r.kh ? '<div class="kh">' + esc(chuanTen(r.kh)) + '</div>' : '')
-      + '<div class="lt-kn"><span class="mo">Khuyến nghị:</span>' + (r.kn.length ? r.kn.map((k, i) => tag(esc(k), i ? '' : 'bd')).join('') : '<span class="mo">khách mới, chưa có CVDV quen</span>') + '</div>'
-      + '<div class="lt-chon">' + chon + '<button class="btn" data-lt-ct="' + esc(r.id) + '">' + (mo ? 'Ẩn' : 'Chi tiết') + '</button></div>' + ct + '</div>';
-  }).join('');
+    const model = (MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0];
+    return '<div class="lt-h' + (r.cvdv ? ' nhan' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b) + '</div>'
+      + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? '→' + esc(r.gioNhan) : '') + (model ? ' · ' + esc(model) : '') + '</div></div>'
+      + '<div class="kn">' + (r.kn.length ? '<div class="kn1">' + knHien(r.kn[0]) + '</div>' + (r.kn[1] ? '<div class="kn2">' + knHien(r.kn[1]) + '</div>' : '')
+        : '<div class="kn2">Khách mới</div>') + '</div>'
+      + chon + ct + '</div>';
+  }).join('') + '</div>';
 }
 
 document.addEventListener('click', e => {
