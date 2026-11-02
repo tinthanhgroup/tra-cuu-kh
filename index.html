@@ -207,7 +207,22 @@
   details summary .btn { display: flex; align-items: center; justify-content: center; width: 100%; pointer-events: none; }
   details[open] summary { display: none; }
   .goi-y button { margin: 12px 8px 0 0; }
-  a { color: var(--accent); text-decoration: none; }  .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); text-decoration: none; }
+  /* Tổng hợp Lễ tân (tài khoản NT, DL, ADMIN): ô số chính, 2 cột bảng, 30 ngày gần nhất */
+  .hang-bc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .hang-bc input { width: 160px; height: 32px; font: inherit; font-size: var(--fs-2); padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  .hang-bc .loc { margin-left: 0; }
+  .hang-bc #bc-ve { margin-left: auto; font-size: var(--fs-2); }
+  .bc-so { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .bc-so > div { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .bc-so .nhan { font-size: var(--fs-1); color: var(--muted); }
+  .bc-so .so { font-size: var(--fs-5); font-weight: 500; margin-top: 2px; }
+  .bc-so .so.do, .t-do { color: var(--red); }
+  .bc-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .bc-2 .card { margin-bottom: 0; }
+  .bc-thanh { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); opacity: .35; vertical-align: middle; margin-right: 6px; }
+  @media (max-width: 760px) { .bc-so { grid-template-columns: repeat(3, minmax(0, 1fr)); } .bc-2 { grid-template-columns: minmax(0, 1fr); } }
+  .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
   .bang th { background: var(--head); font-size: var(--fs-2); font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
   .bang td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
   .bang .r { text-align: right; white-space: nowrap; }
@@ -313,6 +328,19 @@
       <div class="lt-tom so-lieu" id="lt-tom"></div>
     </div></div>
     <div id="lt-ds"></div>
+  </section>
+
+  <!-- Tổng hợp Lễ tân (thay email 16h): chọn chi nhánh, ngày; số liệu ngày + 30 ngày gần nhất -->
+  <section id="man-bc" hidden>
+    <div class="thanh-tra"><div class="card">
+      <div class="hang-bc">
+        <div class="loc" id="bc-cn"></div>
+        <input id="bc-ngay" type="date">
+        <a href="#" id="bc-ve" hidden>Quay lại tra cứu</a>
+      </div>
+      <div class="loi" id="bc-loi"></div>
+    </div></div>
+    <div id="bc-nd"></div>
   </section>
 </main>
 
@@ -434,12 +462,18 @@ function goi(ham, ...thamSo) {
 function luuPhien(p) { PHIEN = p; try { sessionStorage.setItem('gtgt', JSON.stringify(p)); } catch (e) {} }
 function hien(man) {
   if (man === 'tra' && META.vai === 'letan') man = 'lt';
-  $('man-dn').hidden = man !== 'dn'; $('man-tra').hidden = man !== 'tra'; $('man-lt').hidden = man !== 'lt'; $('thoat').hidden = man === 'dn';
+  if (man === 'tra' && META.vai === 'baocao') man = 'bc';
+  $('man-dn').hidden = man !== 'dn'; $('man-tra').hidden = man !== 'tra'; $('man-lt').hidden = man !== 'lt'; $('man-bc').hidden = man !== 'bc';
+  $('thoat').hidden = man === 'dn';
   $('ai').textContent = man !== 'dn' ? PHIEN.ma : '';
-  $('cn').hidden = man === 'dn';
-  document.querySelector('.topbar h1').firstChild.textContent = man === 'lt' ? 'Lễ tân dịch vụ' : 'Tra cứu dịch vụ bảo dưỡng';
+  $('cn').hidden = man === 'dn' || man === 'bc';
+  document.querySelector('.topbar h1').firstChild.textContent = man === 'lt' ? 'Lễ tân dịch vụ' : man === 'bc' ? 'Tổng hợp Lễ tân' : 'Tra cứu dịch vụ bảo dưỡng';
   clearInterval(LT.hen);
-  if (man === 'lt') {
+  if (man === 'bc') {
+    $('bc-ve').hidden = META.vai === 'baocao';
+    if (!$('bc-ngay').value) $('bc-ngay').value = new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10);
+    bcTai();
+  } else if (man === 'lt') {
     $('cn').textContent = META.chi_nhanh;
     ltTai();
     LT.hen = setInterval(ltTai, 60000);   // nhiều lễ tân dùng chung: tự làm mới mỗi phút
@@ -447,7 +481,9 @@ function hien(man) {
   } else if (man === 'tra') {
     $('cn').textContent = META.chi_nhanh;
     DM = undefined;
-    $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>';
+    $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>'
+      + ((META.xemBc || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp Lễ tân</a>' : '');
+    if ($('xem-bc')) $('xem-bc').onclick = e => { e.preventDefault(); hien('bc'); };
     // Danh mục GTGT thay chỗ kết quả tra, chữ đổi thành "Quay lại"; bấm lần nữa vẽ lại xe đang xem (hoặc trang trống)
     $('xem-dm').onclick = e => {
       e.preventDefault();
@@ -918,6 +954,50 @@ document.addEventListener('change', async e => {
   const ds = await ltGoi('ltNhan', s.dataset.ltId, s.value);
   if (ds) { LT.ds = ds; veLt(); } else s.disabled = false;
 });
+// ---------- Tổng hợp Lễ tân ----------
+const BC = { cn: null };
+const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc' };
+
+async function bcTai() {
+  $('bc-loi').textContent = ''; $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';
+  try { veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn)); }
+  catch (e) {
+    $('bc-nd').innerHTML = '';
+    if (e.message.includes('HET_PHIEN')) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; }
+    else $('bc-loi').textContent = e.message;
+  }
+}
+
+function veBc(d) {
+  BC.cn = d.cn;
+  $('bc-cn').innerHTML = d.cacCn.map(c => '<button data-cn="' + c + '" class="' + (c === d.cn ? 'on' : '') + '">' + (TEN_CN[c] || c) + '</button>').join('');
+  const t = d.ngayNay, phut = v => v == null ? '–' : v + "'";
+  const o = (nhan, so, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div></div>';
+  const bang = (dau, hang, phai) => hang.length ? '<table class="bang"><thead><tr>' + dau.map((h, i) => '<th' + (phai.includes(i) ? ' class="r"' : '') + '>' + h + '</th>').join('')
+    + '</tr></thead><tbody>' + hang.map(h => '<tr>' + h.map((v, i) => '<td' + (phai.includes(i) ? ' class="r"' : '') + '>' + v + '</td>').join('') + '</tr>').join('') + '</tbody></table>'
+    : '<p class="mo">Không có.</p>';
+  const the = (tieuDe, noiDung) => '<div class="card"><h2 class="card-title">' + tieuDe + '</h2>' + noiDung + '</div>';
+  const maxN = Math.max(1, ...d.xuHuong.map(x => x.n));
+  $('bc-nd').innerHTML = (t.n ? '' : '<div class="card"><p class="mo">Ngày ' + ngayVN(d.ngay) + ' chưa có khách nào được lễ tân nhập.</p></div>')
+    + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Đã có CVDV nhận', t.nhan) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
+      + o('Chờ quá ' + d.choLau + ' phút', t.lau.length + ' xe', t.lau.length ? 'do' : '') + o('Nhận đúng khuyến nghị', t.coKn ? t.dungKn + '/' + t.coKn : '–') + '</div>'
+      + '<div class="bc-2">'
+      + the('Xe chờ quá ' + d.choLau + ' phút', bang(['Biển số', 'Vào', 'Nhận', 'Chờ', 'CVDV'], t.lau.map(r => [esc(r.b), r.gio, r.gioNhan, r.cho + "'", esc(r.cvdv)]), [3]))
+      + the('Theo CVDV', bang(['CVDV', 'Số xe nhận', 'Chờ TB'], t.theoCv.map(c => [esc(c.cvdv), c.n, c.tb + "'"]), [1, 2]))
+      + the('Chưa ghi nhận CVDV nhận', '<div class="mo" style="font-size:var(--fs-1);margin-top:4px">Lễ tân chưa chọn CVDV hoặc khách đã về</div>'
+        + bang(['Biển số', 'Vào', 'Khuyến nghị'], t.chua.map(r => [esc(r.b), r.gio, esc(r.kn.join(', ') || 'Khách mới')]), []))
+      + the('Khách theo khung giờ vào', bang(['Giờ', 'Số khách'], t.theoGio.map(g => [g.gio, '<span class="bc-thanh" style="width:' + Math.round(g.n / t.n * 120) + 'px"></span>' + g.n]), [1]))
+      + '</div>' : '')
+    + '<div class="card" style="margin-top:16px"><h2 class="card-title">30 ngày gần nhất</h2>'
+    + bang(['Ngày', 'Khách', 'Chờ TB', 'Chờ > ' + d.choLau + "'", 'Chưa nhận'], d.xuHuong.slice().reverse().map(x => [ngayVN(x.ngay),
+      '<span class="bc-thanh" style="width:' + Math.round(x.n / maxN * 80) + 'px"></span>' + x.n, phut(x.tb), x.lau ? '<span class="t-do">' + x.lau + '</span>' : '0', x.chua]), [1, 2, 3, 4])
+    + '</div>';
+}
+
+$('bc-ngay').onchange = bcTai;
+$('bc-ve').onclick = e => { e.preventDefault(); hien('tra'); };
+$('bc-cn').onclick = e => { const b = e.target.closest('[data-cn]'); if (b) { BC.cn = b.dataset.cn; bcTai(); } };
+
 $('lt-them').onclick = () => ltThem();
 $('lt-bien').onkeydown = e => { if (e.key === 'Enter') ltThem(); };
 
