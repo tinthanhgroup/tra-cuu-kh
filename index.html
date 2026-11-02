@@ -208,6 +208,7 @@
   details[open] summary { display: none; }
   .goi-y button { margin: 12px 8px 0 0; }
   a { color: var(--accent); text-decoration: none; }
+  .quay-lai { margin: 0 0 12px; font-size: var(--fs-3); }
   .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
   .bang th { background: var(--head); font-size: var(--fs-2); font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
   .bang td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -447,7 +448,13 @@ function hien(man) {
   } else if (man === 'tra') {
     $('cn').textContent = META.chi_nhanh;
     $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>';
-    $('xem-dm').onclick = e => { e.preventDefault(); XE = null; $('ket-qua').innerHTML = veDanhMuc(); };
+    // Danh mục GTGT thay chỗ kết quả tra; nút "Quay lại" vẽ lại xe đang xem (hoặc trang trống)
+    $('xem-dm').onclick = e => {
+      e.preventDefault();
+      const truoc = XE; XE = null;
+      $('ket-qua').innerHTML = '<p class="quay-lai"><a href="#" id="dm-ve">← Quay lại' + (truoc ? ' xe ' + esc(truoc.b) : '') + '</a></p>' + veDanhMuc();
+      $('dm-ve').onclick = e2 => { e2.preventDefault(); $('ket-qua').innerHTML = truoc ? veXe(truoc, Number($('km').value) || 0) : ''; };
+    };
     $('bien').focus();
   } else $('ma').focus();
 }
