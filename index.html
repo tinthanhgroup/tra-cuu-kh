@@ -988,7 +988,8 @@ function veBc(d) {
     + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Đã có CVDV nhận', t.nhan) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
       + o('Chờ quá ' + d.choLau + ' phút', t.lau.length + ' xe', t.lau.length ? 'do' : '') + o('Nhận đúng khuyến nghị', t.coKn ? t.dungKn + '/' + t.coKn : '–') + '</div>'
       + '<div class="bc-2">'
-      + the('Xe chờ quá ' + d.choLau + ' phút', bang(['Biển số', 'Vào', 'Nhận', 'Chờ', 'CVDV'], t.lau.map(r => [esc(r.b), r.gio, r.gioNhan, r.cho + "'", esc(r.cvdv)]), [3]))
+      + the('5 xe chờ lâu nhất', bang(['Biển số', 'Vào', 'Nhận', 'Chờ', 'CVDV'], (t.top5 || t.lau).map(r => [esc(r.b), r.gio, r.gioNhan,
+        r.cho > d.choLau ? '<span class="t-do">' + r.cho + "'</span>" : r.cho + "'", esc(r.cvdv)]), [3]))
       + the('Theo CVDV', bang(['CVDV', 'Số xe nhận', 'Chờ TB'], t.theoCv.map(c => [esc(c.cvdv), c.n, c.tb + "'"]), [1, 2]))
       + the('Chưa ghi nhận CVDV nhận', '<div class="mo" style="font-size:var(--fs-1);margin-top:4px">Lễ tân chưa chọn CVDV hoặc khách đã về</div>'
         + bang(['Biển số', 'Vào', 'Khuyến nghị'], t.chua.map(r => [esc(r.b), r.gio, esc(r.kn.join(', ') || 'Khách mới')]), []))
