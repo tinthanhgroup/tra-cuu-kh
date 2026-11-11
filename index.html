@@ -226,6 +226,10 @@
   .bc-so .so.do, .t-do { color: var(--red); }
   .bc-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
   .bc-2 .card { margin-bottom: 0; }
+  .bc-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }   /* 5 xe chờ lâu nhất | Theo CVDV | Khung giờ trên một hàng */
+  @media (min-width: 641px) { .bc-3 .bang th, .bc-3 .bang td { padding-left: 8px; padding-right: 8px; } }
+  @media (max-width: 1100px) { .bc-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px) { .bc-3 { grid-template-columns: minmax(0, 1fr); } }
   .bc-thanh { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); opacity: .35; vertical-align: middle; margin-right: 6px; }
   @media (max-width: 760px) { .bc-so { grid-template-columns: repeat(3, minmax(0, 1fr)); } .bc-2 { grid-template-columns: minmax(0, 1fr); } }
   .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
@@ -1011,12 +1015,10 @@ function veBc(d) {
   $('bc-nd').innerHTML = (t.n ? '' : '<div class="card"><p class="mo">Ngày ' + ngayVN(d.ngay) + ' chưa có khách nào được lễ tân nhập.</p></div>')
     + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Đã có CVDV nhận', t.nhan) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
       + o('Chờ quá ' + d.choLau + ' phút', t.lau.length + ' xe', t.lau.length ? 'do' : '') + o('Nhận đúng khuyến nghị', t.coKn ? t.dungKn + '/' + t.coKn : '–') + '</div>'
-      + '<div class="bc-2">'
+      + '<div class="bc-2 bc-3">'
       + the('5 xe chờ lâu nhất', bang(['Biển số', 'Vào', 'Nhận', 'Chờ (phút)', 'CVDV'], (t.top5 || t.lau).slice(0, 5).map(r => [esc(r.b), r.gio, r.gioNhan,
         r.cho > d.choLau ? '<span class="t-do">' + r.cho + '</span>' : r.cho, esc(r.cvdv)]), [3]))
       + the('Theo CVDV', bang(['CVDV', 'Số xe nhận', 'Chờ TB (phút)'], t.theoCv.map(c => [esc(c.cvdv), c.n, c.tb]), [1, 2]))
-      + the('Chưa ghi nhận CVDV nhận', '<div class="bc-chu">Lễ tân chưa chọn CVDV hoặc khách đã về</div>'
-        + bang(['Biển số', 'Vào', 'Khuyến nghị'], t.chua.map(r => [esc(r.b), r.gio, esc(r.kn.join(', ') || 'Khách mới')]), []))
       // Thanh dài nhất = khung giờ đông nhất
       + the('Khách theo khung giờ vào', bang(['Giờ', 'Số khách'], t.theoGio.map(g => [g.gio, '<span class="bc-thanh" style="width:' + Math.round(g.n / maxG * 120) + 'px"></span>' + g.n]), [1]))
       + '</div>' : '')
