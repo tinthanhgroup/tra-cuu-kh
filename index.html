@@ -1010,7 +1010,9 @@ function veBc(d) {
   const t = d.ngayNay, phut = v => v == null ? '–' : v + ' phút', so = v => v == null ? '–' : v;
   const o = (nhan, so, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div></div>';
   const bang = (dau, hang, phai, gioi) => bangBc(dau, hang, phai, gioi, 'Không có.');
-  const the = (tieuDe, noiDung) => '<div class="card"><h2 class="card-title">' + tieuDe + '</h2>' + noiDung + '</div>';
+  // Bảng đánh số theo thứ tự trên màn hình để dễ nhắc tên khi trao đổi (quy chuẩn tinh tế, nguyên tắc 10)
+  let stt = 0;
+  const the = (tieuDe, noiDung, kieu) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
   const maxN = Math.max(1, ...d.xuHuong.map(x => x.n)), maxG = Math.max(1, ...t.theoGio.map(g => g.n));
   $('bc-nd').innerHTML = (t.n ? '' : '<div class="card"><p class="mo">Ngày ' + ngayVN(d.ngay) + ' chưa có khách nào được lễ tân nhập.</p></div>')
     + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Đã có CVDV nhận', t.nhan) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
@@ -1022,11 +1024,9 @@ function veBc(d) {
       // Thanh dài nhất = khung giờ đông nhất
       + the('Khách theo khung giờ vào', bang(['Giờ', 'Số khách'], t.theoGio.map(g => [g.gio, '<span class="bc-thanh" style="width:' + Math.round(g.n / maxG * 120) + 'px"></span>' + g.n]), [1]))
       + '</div>' : '')
-    + '<div class="card" style="margin-top:16px"><h2 class="card-title">30 ngày gần nhất</h2>'
-    + '<div class="bc-chu">Thời gian chờ tính bằng phút.</div>'
+    + the('30 ngày gần nhất', '<div class="bc-chu">Thời gian chờ tính bằng phút.</div>'
     + bang(['Ngày', 'Khách', 'Chờ TB', 'Quá ' + d.choLau + ' phút', 'Chưa nhận'], d.xuHuong.slice().reverse().map(x => [ngayVN(x.ngay).slice(0, 5),
-      '<span class="bc-thanh" style="width:' + Math.round(x.n / maxN * 80) + 'px"></span>' + x.n, so(x.tb), x.lau ? '<span class="t-do">' + x.lau + '</span>' : '0', x.chua]), [1, 2, 3, 4], 7)
-    + '</div>';
+      '<span class="bc-thanh" style="width:' + Math.round(x.n / maxN * 80) + 'px"></span>' + x.n, so(x.tb), x.lau ? '<span class="t-do">' + x.lau + '</span>' : '0', x.chua]), [1, 2, 3, 4], 7), 'margin-top:16px');
 }
 
 /** Công việc cần làm sớm: 4 tuần gần nhất so với mốc 8–10/2026 (trước khi áp dụng mẫu 3 nhãn), theo tuần, theo CVDV, ghi chép gần nhất. */
@@ -1049,15 +1049,15 @@ function veBcLs(d) {
     + o('Ghi chi tiết', ptc(pt(g.tot, g.ph)), ptc(pt(m.tot, m.ph)))
     + o('Việc "Làm ngay"', g.lam_ngay || 0, null) + '</div>'
     + '<div class="bc-chu">Số liệu 4 tuần gần nhất; "trước" là bình quân 8–10/2026, trước khi áp dụng mẫu.</div>'
-    + '<div class="card" style="margin-top:16px"><h2 class="card-title">Theo tuần</h2>'
+    + '<div class="card" style="margin-top:16px"><h2 class="card-title">1. Theo tuần</h2>'
     + '<div class="bc-chu">Mẫu 3 nhãn áp dụng từ 02/11/2026; các tuần trước là mốc so sánh. Chỉ lệnh BD, SCC đã có trong file RO gốc.</div>'
     + bang(['Tuần từ', 'Lệnh', 'Đúng mẫu', 'Có việc', 'Chỉ mốc', 'Làm ngay'], d.tuan.slice().reverse().map(x => [
       ngayVN(x.tu).slice(0, 5) +(x.tu >= '2026-11-02' ? '<br>' + tag('áp dụng') : ''), x.lenh,
       thanh(pt(x.mau, x.lenh)) + ptc(pt(x.mau, x.lenh)), thanh(pt(x.ph, x.lenh)) + ptc(pt(x.ph, x.lenh)), ptc(pt(x.moc_bd, x.lenh)), x.lam_ngay || 0]), [1, 2, 3, 4, 5])
     + '</div><div class="bc-2">'
-    + '<div class="card"><h2 class="card-title">Theo CVDV (30 ngày)</h2>' + bang(['CVDV', 'Lệnh', 'Đúng mẫu', 'Có việc', 'Chi tiết'],
+    + '<div class="card"><h2 class="card-title">2. Theo CVDV (30 ngày)</h2>' + bang(['CVDV', 'Lệnh', 'Đúng mẫu', 'Có việc', 'Chi tiết'],
       d.cvdv.map(c => [esc(c.cv), c.lenh, ptc(pt(c.mau, c.lenh)), ptc(pt(c.ph, c.lenh)), ptc(pt(c.tot, c.ph))]), [1, 2, 3, 4]) + '</div>'
-    + '<div class="card"><h2 class="card-title">Ghi chép gần nhất</h2>' + bang(['Ngày', 'CVDV', 'Nội dung'],
+    + '<div class="card"><h2 class="card-title">3. Ghi chép gần nhất</h2>' + bang(['Ngày', 'CVDV', 'Nội dung'],
       d.gan.map(x => [ngayVN(x[0]).slice(0, 5), esc(x[1]), esc(x[2]) + '<div style="margin-top:2px">' + (x[4] ? tag('Đúng mẫu', 'xanh') + ' ' : '')
         + LOAI[x[3]] + (x[5] ? ' <span class="mo" style="font-size:var(--fs-1)">' + MUC[x[5]] + '</span>' : '') + '</div>']), [], 8) + '</div>'
     + '</div>';
