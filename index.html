@@ -270,15 +270,20 @@
   .lt-ct .xoa { margin-top: 4px; color: var(--muted); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
   #lt-hen { margin-top: 12px; }
   .lt-h.co-hen { background: var(--accent-soft); }
-  .lt-h .bien .tag { margin-left: 6px; vertical-align: 1px; }
+  .lt-h .bien.co-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; white-space: normal; }
+  .lt-h .bien.co-tag .tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
   .lt-h.co-hen .bien .tag { background: var(--card); }
-  .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0 0 8px; }
+  /* Khối khách hẹn nổi bật (người dùng yêu cầu 13/11/2026): khung viền màu nhấn, đầu khối nền màu nhấn chữ trắng */
+  .hen-khung { background: var(--card); border: 1px solid var(--accent); border-radius: var(--radius); overflow: hidden; }
+  .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; padding: 8px 12px; background: var(--accent); color: #fff; }
   .hen-dau h2 { font-size: var(--fs-4); font-weight: 500; margin: 0; white-space: nowrap; }
-  .hen-dau .mo { font-size: var(--fs-2); }
+  .hen-dau span { font-size: var(--fs-2); color: rgba(255, 255, 255, .85); }
+  .hen-khung .lt-h:first-child { border-top: 0; }
+  .hen-khung > p { margin: 0; padding: 12px; }
   .lt-h .tg { font-size: var(--fs-2); color: var(--muted); text-align: right; }
   .lt-h .btn { height: 40px; min-height: 40px; padding: 0 8px; }
   .lt-ct a { color: var(--accent); text-decoration: none; }
-  .hen-them { display: block; margin-top: 8px; font-size: var(--fs-2); color: var(--accent); }
+  .hen-them { display: block; padding: 8px 12px; border-top: 1px solid var(--line); font-size: var(--fs-2); color: var(--accent); }
 
   @media (min-width: 700px) {
     .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
@@ -966,8 +971,8 @@ function veLt() {
     const model = (MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0];
     // Chưa nhận mà chờ quá ngưỡng: nhãn đỏ nhỏ cạnh biển số với số phút đang chờ
     const cho = choLt(r), lau = !r.cvdv && cho > (META.choLau || 20);
-    return '<div class="lt-h' + (dungHen ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b)
-      + (dungHen ? tag('Hẹn ' + esc(hen), 'bd') : hen != null ? tag('Hẹn ' + esc(hen) + ', trễ ' + treHen + ' phút') : '') + '</div>'
+    return '<div class="lt-h' + (dungHen ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien' + (hen != null ? ' co-tag' : '') + '">' + esc(r.b)
+      + (dungHen ? tag('Hẹn ' + esc(hen), 'bd') : hen != null ? tag('Trễ hẹn ' + phutChu(treHen)) : '') + '</div>'
       // Đã nhận: giờ vào · số phút chờ (giờ nhận, model xem trong chi tiết); chưa nhận quá ngưỡng: số phút đang chờ chữ đỏ thay model
       + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? ' · ' + cho + ' phút' : lau ? ' · <span class="t-do">' + cho + ' phút</span>' : model ? ' · ' + esc(model) : '') + '</div></div>'
       + '<div class="kn">' + (r.kn.length ? '<div class="kn1">' + knHien(r.kn[0]) + '</div>' + (r.kn[1] ? '<div class="kn2">' + knHien(r.kn[1]) + '</div>' : '')
@@ -986,7 +991,9 @@ function veHen() {
   const vao = {};
   LT.ds.forEach(r => { const k = gonBien(r.b); if (!vao[k] || r.gio < vao[k]) vao[k] = r.gio; });
   const ds = h.ds.map(x => Object.assign({}, x, { toi: vao[gonBien(x.b)] || '' })).sort((a, b) => a.gio < b.gio ? -1 : a.gio > b.gio ? 1 : 0);
-  const chua = ds.filter(x => !x.toi), toi = ds.filter(x => x.toi), nay = phutNay();
+  const nay = phutNay(), treNay = x => phutLt(x.gio) != null && nay - phutLt(x.gio) > henTre();
+  // Chưa tới: hẹn còn trong giờ lên trước (ưu tiên đúng giờ), hẹn đã trễ xuống sau
+  const chua = ds.filter(x => !x.toi && !treNay(x)).concat(ds.filter(x => !x.toi && treNay(x))), toi = ds.filter(x => x.toi);
   const homNay = new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10);
   const dong = x => {
     const id = 'h' + x.so + x.b, tre = !x.toi && phutLt(x.gio) != null ? nay - phutLt(x.gio) : 0;
@@ -999,19 +1006,21 @@ function veHen() {
       + (x.nd ? '<div class="kh">' + esc(x.nd) + '</div>' : '')
       + (!x.cv && x.cvTen ? '<div class="kh mo">CVDV hẹn ' + esc(x.cvTen) + '</div>' : '') + '</div>' : '';
     return '<div class="lt-h' + (dung ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(id) + '"><div class="bien">' + esc(x.b) + '</div>'
-      + '<div class="phu so-lieu">' + esc(x.gio) + (tre > henTre() ? ' · <span class="t-do">trễ ' + tre + ' phút</span>'
-        : x.toi && !dung ? ' · tới trễ ' + (phutLt(x.toi) - phutLt(x.gio)) + ' phút' : x.nd ? ' · ' + esc(x.nd) : '') + '</div></div>'
+      + '<div class="phu so-lieu">' + esc(x.gio) + (tre > henTre() ? ' · <span class="t-do">trễ ' + phutChu(tre) + '</span>'
+        : x.toi && !dung ? ' · tới trễ ' + phutChu(phutLt(x.toi) - phutLt(x.gio)) : x.nd ? ' · ' + esc(x.nd) : '') + '</div></div>'
       + '<div class="kn">' + (x.cv ? '<div class="kn1">' + esc(x.cv) + '</div>' : '<div class="kn2">Chưa hẹn CVDV</div>') + '</div>'
       + (x.toi ? '<div class="tg so-lieu">Tới ' + esc(x.toi) + '</div>' : '<button class="btn" data-hen-toi="' + esc(x.b) + '">Khách tới</button>') + ct + '</div>';
   };
   const cu = h.ngay !== homNay ? ', chưa có file hôm nay' : '';
-  el.innerHTML = '<div class="hen-dau"><h2>Khách hẹn hôm nay</h2><span class="mo so-lieu">' + (ds.length ? chua.length + ' chưa tới, ' + toi.length + ' đã tới · ' : '')
+  el.innerHTML = '<div class="hen-khung"><div class="hen-dau"><h2>Khách hẹn hôm nay</h2><span class="so-lieu">' + (ds.length ? chua.length + ' chưa tới, ' + toi.length + ' đã tới · ' : '')
     + 'lịch cập nhật ' + esc(h.gio) + (h.ngay !== homNay ? ' ' + ngayVN(h.ngay).slice(0, 5) : '') + cu + '</span></div>'
     + (!ds.length ? '<p class="mo">Không có khách hẹn hôm nay.</p>'
-      : '<div class="lt-ds">' + (chua.length ? chua.map(dong).join('') : '<div class="lt-h mo">Khách hẹn đã tới hết.</div>')
-        + (LT.henToi ? toi.map(dong).join('') : '') + '</div>'
-        + (toi.length ? '<a href="#" class="hen-them" data-hen-xem>' + (LT.henToi ? 'Ẩn khách hẹn đã tới' : 'Xem ' + toi.length + ' khách hẹn đã tới') + '</a>' : ''));
+      : (chua.length ? chua.map(dong).join('') : '<p class="mo">Khách hẹn đã tới hết.</p>')
+        + (LT.henToi ? toi.map(dong).join('') : '')
+        + (toi.length ? '<a href="#" class="hen-them" data-hen-xem>' + (LT.henToi ? 'Ẩn khách hẹn đã tới' : 'Xem ' + toi.length + ' khách hẹn đã tới') + '</a>' : '')) + '</div>';
 }
+// Thời lượng gọn cho màn hình điện thoại: 45 → "45 phút", 331 → "5 giờ"
+const phutChu = n => n < 60 ? n + ' phút' : Math.floor(n / 60) + ' giờ';
 const henTre = () => (LT.lh && LT.lh.tre) || 30;
 const gonBien = s => String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 
