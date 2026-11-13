@@ -1093,7 +1093,7 @@ function veBc(d) {
   const chu = '<div class="bc-chu">Thời gian chờ tính bằng phút, từ giờ vào tới khi CVDV nhận.</div>';
   const maxN = Math.max(1, ...d.xuHuong.map(x => x.n)), maxG = Math.max(1, ...t.theoGio.map(g => g.n));
   $('bc-nd').innerHTML = (t.n ? '' : '<div class="card"><p class="mo">Ngày ' + ngayVN(d.ngay) + ' chưa có khách nào được lễ tân nhập.</p></div>')
-    + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Đã có CVDV nhận', t.nhan) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
+    + (t.n ? '<div class="bc-so">' + o('Khách', t.n) + o('Khách hẹn', t.hen == null ? '–' : t.hen) + o('Chờ trung bình', phut(t.tb)) + o('Chờ trung vị', phut(t.tv))
       + o('Chờ quá ' + d.choLau + ' phút', t.lau.length + ' xe', t.lau.length ? 'do' : '') + o('Nhận đúng khuyến nghị', t.coKn ? t.dungKn + '/' + t.coKn : '–') + '</div>'
       + chu
       + '<div class="bc-2 bc-3">'
