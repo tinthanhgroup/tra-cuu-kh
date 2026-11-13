@@ -268,7 +268,7 @@
   .lt-ct .kh { margin-bottom: 4px; }
   .lt-ct .dong { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 8px; padding: 2px 0; }
   .lt-ct .xoa { margin-top: 4px; color: var(--muted); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
-  #lt-hen { margin-top: 16px; }
+  #lt-hen { margin-top: 12px; }
   .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0 0 8px; }
   .hen-dau h2 { font-size: var(--fs-4); font-weight: 500; margin: 0; white-space: nowrap; }
   .hen-dau .mo { font-size: var(--fs-2); }
@@ -276,10 +276,6 @@
   .lt-h .btn { height: 40px; min-height: 40px; padding: 0 8px; }
   .lt-ct a { color: var(--accent); text-decoration: none; }
   .hen-them { display: block; margin-top: 8px; font-size: var(--fs-2); color: var(--accent); }
-  @media (min-width: 1100px) {
-    #man-lt.co-hen { max-width: 1160px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-    #man-lt.co-hen #lt-hen { position: sticky; top: 8px; margin-top: 8px; max-height: calc(100vh - 76px); overflow: auto; }
-  }
 
   @media (min-width: 700px) {
     .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
@@ -338,7 +334,8 @@
 
   <!-- Lễ tân DV (tài khoản LETAN, dùng trên điện thoại): nhập biển số → khuyến nghị CVDV, chọn CVDV nhận xe -->
   <section id="man-lt" hidden>
-    <div class="lt-trai">
+    <!-- Khách hẹn hôm nay (NT, người dùng chốt 13/11/2026: đặt trên cùng vì ưu tiên khách hẹn): từ file DMS lễ tân lưu vào thư mục "Lich hen" -->
+    <aside id="lt-hen" hidden></aside>
     <div class="thanh-tra"><div class="card">
       <div class="hang-lt">
         <input id="lt-bien" placeholder="Biển số khách vừa tới" autocapitalize="characters">
@@ -350,9 +347,6 @@
       <div class="lt-tom so-lieu" id="lt-tom"></div>
     </div></div>
     <div id="lt-ds"></div>
-    </div>
-    <!-- Khách hẹn hôm nay (NT): từ file DMS lễ tân lưu vào thư mục "Lich hen"; máy tính đặt cột phải, điện thoại dưới danh sách -->
-    <aside id="lt-hen" hidden></aside>
   </section>
 
   <!-- Tổng hợp Lễ tân (thay email 16h): chọn chi nhánh, ngày; số liệu ngày + 30 ngày gần nhất -->
@@ -978,7 +972,7 @@ function veLt() {
  *  Bấm biển số mở tên khách, số điện thoại (bấm để gọi), model, khung giờ hẹn, nội dung đầy đủ. */
 function veHen() {
   const el = $('lt-hen'), h = LT.lh;
-  el.hidden = !h; $('man-lt').classList.toggle('co-hen', !!h);
+  el.hidden = !h;
   if (!h) { el.innerHTML = ''; return; }
   const vao = {};
   LT.ds.forEach(r => { const k = gonBien(r.b); if (!vao[k] || r.gio < vao[k]) vao[k] = r.gio; });
