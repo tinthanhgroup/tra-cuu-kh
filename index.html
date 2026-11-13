@@ -268,6 +268,18 @@
   .lt-ct .kh { margin-bottom: 4px; }
   .lt-ct .dong { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 8px; padding: 2px 0; }
   .lt-ct .xoa { margin-top: 4px; color: var(--muted); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
+  #lt-hen { margin-top: 16px; }
+  .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0 0 8px; }
+  .hen-dau h2 { font-size: var(--fs-4); font-weight: 500; margin: 0; white-space: nowrap; }
+  .hen-dau .mo { font-size: var(--fs-2); }
+  .lt-h .tg { font-size: var(--fs-2); color: var(--muted); text-align: right; }
+  .lt-h .btn { height: 40px; min-height: 40px; padding: 0 8px; }
+  .lt-ct a { color: var(--accent); text-decoration: none; }
+  .hen-them { display: block; margin-top: 8px; font-size: var(--fs-2); color: var(--accent); }
+  @media (min-width: 1100px) {
+    #man-lt.co-hen { max-width: 1160px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    #man-lt.co-hen #lt-hen { position: sticky; top: 8px; margin-top: 8px; max-height: calc(100vh - 76px); overflow: auto; }
+  }
 
   @media (min-width: 700px) {
     .thanh-tra .card { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
@@ -326,6 +338,7 @@
 
   <!-- Lễ tân DV (tài khoản LETAN, dùng trên điện thoại): nhập biển số → khuyến nghị CVDV, chọn CVDV nhận xe -->
   <section id="man-lt" hidden>
+    <div class="lt-trai">
     <div class="thanh-tra"><div class="card">
       <div class="hang-lt">
         <input id="lt-bien" placeholder="Biển số khách vừa tới" autocapitalize="characters">
@@ -337,6 +350,9 @@
       <div class="lt-tom so-lieu" id="lt-tom"></div>
     </div></div>
     <div id="lt-ds"></div>
+    </div>
+    <!-- Khách hẹn hôm nay (NT): từ file DMS lễ tân lưu vào thư mục "Lich hen"; máy tính đặt cột phải, điện thoại dưới danh sách -->
+    <aside id="lt-hen" hidden></aside>
   </section>
 
   <!-- Tổng hợp Lễ tân (thay email 16h): chọn chi nhánh, ngày; số liệu ngày + 30 ngày gần nhất -->
@@ -876,7 +892,7 @@ function veLs(x, chiBD) {
 }
 
 // ---------- Lễ tân DV ----------
-const LT = { ds: [], loc: 'tat', mo: new Set(), hen: null };
+const LT = { ds: [], loc: 'tat', mo: new Set(), hen: null, lh: null, henToi: false };
 
 async function ltGoi(ham, ...thamSo) {
   $('lt-loi').textContent = '';
@@ -888,7 +904,12 @@ async function ltGoi(ham, ...thamSo) {
   }
 }
 
-async function ltTai() { const ds = await ltGoi('ltDanhSach'); if (ds) { LT.ds = ds; veLt(); } }
+async function ltTai() {
+  // Lịch hẹn đọc riêng, lỗi (chưa Deploy bản có ltHen, chưa có thư mục) thì bỏ qua, không báo lễ tân
+  const [ds, lh] = await Promise.all([ltGoi('ltDanhSach'), goi('ltHen', PHIEN.token).catch(() => LT.lh)]);
+  LT.lh = lh || null;
+  if (ds) { LT.ds = ds; veLt(); } else veHen();
+}
 
 async function ltThem(bien) {
   bien = bien || $('lt-bien').value;
@@ -915,6 +936,7 @@ const phutNay = () => LT.gioNay ? phutLt(LT.gioNay) : new Date().getHours() * 60
 const choLt = r => Math.max(0, (r.cvdv ? phutLt(r.gioNhan) : phutNay()) - phutLt(r.gio));
 
 function veLt() {
+  veHen();
   const nhan = LT.ds.filter(r => r.cvdv).length, chua = LT.ds.length - nhan, NG = META.choLau || 20;
   // Tóm tắt: chờ trung bình của xe đã nhận, số xe chờ quá ngưỡng (gồm cả xe đang chờ)
   const daNhan = LT.ds.filter(r => r.cvdv).map(choLt), lau = LT.ds.filter(r => choLt(r) > NG).length;
@@ -951,9 +973,46 @@ function veLt() {
   }).join('') + '</div>';
 }
 
+/** Khách hẹn hôm nay (NT): chưa tới xếp theo giờ hẹn, quá giờ hẹn META tre phút thì số phút trễ chữ đỏ; nút "Khách tới" thêm xe
+ *  vào danh sách (CVDV hẹn thành khuyến nghị 1). Đã tới (biển số có trong danh sách hôm nay) thu sau liên kết "Xem thêm".
+ *  Bấm biển số mở tên khách, số điện thoại (bấm để gọi), model, khung giờ hẹn, nội dung đầy đủ. */
+function veHen() {
+  const el = $('lt-hen'), h = LT.lh;
+  el.hidden = !h; $('man-lt').classList.toggle('co-hen', !!h);
+  if (!h) { el.innerHTML = ''; return; }
+  const vao = {};
+  LT.ds.forEach(r => { const k = gonBien(r.b); if (!vao[k] || r.gio < vao[k]) vao[k] = r.gio; });
+  const ds = h.ds.map(x => Object.assign({}, x, { toi: vao[gonBien(x.b)] || '' })).sort((a, b) => a.gio < b.gio ? -1 : a.gio > b.gio ? 1 : 0);
+  const chua = ds.filter(x => !x.toi), toi = ds.filter(x => x.toi), nay = phutNay();
+  const homNay = new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10);
+  const dong = x => {
+    const id = 'h' + x.so + x.b, tre = !x.toi && phutLt(x.gio) != null ? nay - phutLt(x.gio) : 0;
+    const model = (MODEL[(x.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(x.m)])[0];
+    const ct = LT.mo.has(id) ? '<div class="lt-ct">' + (x.kh ? '<div class="kh">' + esc(chuanTen(x.kh)) + '</div>' : '')
+      + (x.dt ? '<div class="kh"><a href="tel:' + esc(x.dt.replace(/[^0-9+]/g, '')) + '">' + esc(x.dt) + '</a></div>' : '')
+      + '<div class="kh mo">' + esc([model, 'hẹn ' + x.gio + (x.den ? '–' + x.den : '')].filter(Boolean).join(', ')) + '</div>'
+      + (x.nd ? '<div class="kh">' + esc(x.nd) + '</div>' : '')
+      + (!x.cv && x.cvTen ? '<div class="kh mo">CVDV hẹn ' + esc(x.cvTen) + '</div>' : '') + '</div>' : '';
+    return '<div class="lt-h"><div class="xe-lt" data-lt-ct="' + esc(id) + '"><div class="bien">' + esc(x.b) + '</div>'
+      + '<div class="phu so-lieu">' + esc(x.gio) + (tre > (h.tre || 30) ? ' · <span class="t-do">trễ ' + tre + ' phút</span>' : x.nd ? ' · ' + esc(x.nd) : '') + '</div></div>'
+      + '<div class="kn">' + (x.cv ? '<div class="kn1">' + esc(x.cv) + '</div>' : '<div class="kn2">Chưa hẹn CVDV</div>') + '</div>'
+      + (x.toi ? '<div class="tg so-lieu">Tới ' + esc(x.toi) + '</div>' : '<button class="btn" data-hen-toi="' + esc(x.b) + '">Khách tới</button>') + ct + '</div>';
+  };
+  const cu = h.ngay !== homNay ? ', chưa có file hôm nay' : '';
+  el.innerHTML = '<div class="hen-dau"><h2>Khách hẹn hôm nay</h2><span class="mo so-lieu">' + (ds.length ? chua.length + ' chưa tới, ' + toi.length + ' đã tới · ' : '')
+    + 'lịch cập nhật ' + esc(h.gio) + (h.ngay !== homNay ? ' ' + ngayVN(h.ngay).slice(0, 5) : '') + cu + '</span></div>'
+    + (!ds.length ? '<p class="mo">Không có khách hẹn hôm nay.</p>'
+      : '<div class="lt-ds">' + (chua.length ? chua.map(dong).join('') : '<div class="lt-h mo">Khách hẹn đã tới hết.</div>')
+        + (LT.henToi ? toi.map(dong).join('') : '') + '</div>'
+        + (toi.length ? '<a href="#" class="hen-them" data-hen-xem>' + (LT.henToi ? 'Ẩn khách hẹn đã tới' : 'Xem ' + toi.length + ' khách hẹn đã tới') + '</a>' : ''));
+}
+const gonBien = s => String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+
 document.addEventListener('click', e => {
   const t = e.target;
-  if (t.closest('[data-lt-loc]')) { LT.loc = t.closest('[data-lt-loc]').dataset.ltLoc; veLt(); }
+  if (t.closest('[data-hen-xem]')) { e.preventDefault(); LT.henToi = !LT.henToi; veHen(); }
+  else if (t.closest('[data-hen-toi]')) ltThem(t.closest('[data-hen-toi]').dataset.henToi);
+  else if (t.closest('[data-lt-loc]')) { LT.loc = t.closest('[data-lt-loc]').dataset.ltLoc; veLt(); }
   else if (t.closest('[data-lt-ct]')) { const id = t.closest('[data-lt-ct]').dataset.ltCt; LT.mo.has(id) ? LT.mo.delete(id) : LT.mo.add(id); veLt(); }
   else if (t.closest('[data-lt-b]')) ltThem(t.closest('[data-lt-b]').dataset.ltB);
   else if (t.closest('[data-lt-xoa]') && confirm('Xóa khách này khỏi danh sách hôm nay?')) ltGoi('ltXoa', t.closest('[data-lt-xoa]').dataset.ltXoa).then(ds => { if (ds) { LT.ds = ds; veLt(); } });
