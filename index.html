@@ -269,6 +269,8 @@
   .lt-ct .dong { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; gap: 8px; padding: 2px 0; }
   .lt-ct .xoa { margin-top: 4px; color: var(--muted); background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-2); cursor: pointer; }
   #lt-hen { margin-top: 12px; }
+  .lt-h.co-hen { background: var(--accent-soft); }
+  .lt-h .bien .tag { margin-left: 6px; vertical-align: 1px; background: var(--card); }
   .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0 0 8px; }
   .hen-dau h2 { font-size: var(--fs-4); font-weight: 500; margin: 0; white-space: nowrap; }
   .hen-dau .mo { font-size: var(--fs-2); }
@@ -940,7 +942,11 @@ function veLt() {
   $('lt-loc').innerHTML = nut('tat', 'Tất cả', LT.ds.length) + nut('chua', 'Chưa nhận', chua) + nut('nhan', 'Đã nhận', nhan);
   const ds = LT.ds.filter(r => LT.loc === 'tat' || (LT.loc === 'nhan') === !!r.cvdv).slice().reverse();
   if (!ds.length) { $('lt-ds').innerHTML = '<p class="mo">' + (LT.ds.length ? 'Không có khách trong mục này.' : 'Chưa có khách hôm nay. Nhập biển số khi khách tới.') + '</p>'; return; }
+  // Khách có hẹn (biển số trùng lịch hẹn hôm nay): nền xanh nhạt + nhãn "Hẹn hh:mm" để ưu tiên (người dùng yêu cầu 13/11/2026)
+  const henB = {};
+  ((LT.lh || {}).ds || []).forEach(x => henB[gonBien(x.b)] = x.gio);
   $('lt-ds').innerHTML = '<div class="lt-ds">' + ds.map(r => {
+    const hen = henB[gonBien(r.b)];
     const knTen = r.kn.map(k => k.split(' ')[0]);
     // "TruongNV (5/5)" → tên + số lần nhạt
     const knHien = k => esc(k.split(' ')[0]) + ' <span class="so">' + esc((k.split(' ')[1] || '').replace(/[()]/g, '')) + '</span>';
@@ -958,7 +964,8 @@ function veLt() {
     const model = (MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0];
     // Chưa nhận mà chờ quá ngưỡng: nhãn đỏ nhỏ cạnh biển số với số phút đang chờ
     const cho = choLt(r), lau = !r.cvdv && cho > (META.choLau || 20);
-    return '<div class="lt-h"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b) + '</div>'
+    return '<div class="lt-h' + (hen != null ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien">' + esc(r.b)
+      + (hen != null ? tag('Hẹn ' + esc(hen), 'bd') : '') + '</div>'
       // Đã nhận: giờ vào · số phút chờ (giờ nhận, model xem trong chi tiết); chưa nhận quá ngưỡng: số phút đang chờ chữ đỏ thay model
       + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? ' · ' + cho + ' phút' : lau ? ' · <span class="t-do">' + cho + ' phút</span>' : model ? ' · ' + esc(model) : '') + '</div></div>'
       + '<div class="kn">' + (r.kn.length ? '<div class="kn1">' + knHien(r.kn[0]) + '</div>' + (r.kn[1] ? '<div class="kn2">' + knHien(r.kn[1]) + '</div>' : '')
