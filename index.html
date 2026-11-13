@@ -272,7 +272,7 @@
   .lt-h.co-hen { background: var(--accent-soft); }
   .lt-h .bien.co-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; white-space: normal; }
   .lt-h .bien.co-tag .tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-  .lt-h.co-hen .bien .tag { background: var(--card); }
+  .lt-h.co-hen .bien .tag.bd { background: var(--card); }
   /* Khối khách hẹn nổi bật (người dùng yêu cầu 13/11/2026): khung viền màu nhấn, đầu khối nền màu nhấn chữ trắng */
   .hen-khung { background: var(--card); border: 1px solid var(--accent); border-radius: var(--radius); overflow: hidden; }
   .hen-dau { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; padding: 8px 12px; background: var(--accent); color: #fff; }
@@ -948,8 +948,8 @@ function veLt() {
   $('lt-loc').innerHTML = nut('tat', 'Tất cả', LT.ds.length) + nut('chua', 'Chưa nhận', chua) + nut('nhan', 'Đã nhận', nhan);
   const ds = LT.ds.filter(r => LT.loc === 'tat' || (LT.loc === 'nhan') === !!r.cvdv).slice().reverse();
   if (!ds.length) { $('lt-ds').innerHTML = '<p class="mo">' + (LT.ds.length ? 'Không có khách trong mục này.' : 'Chưa có khách hôm nay. Nhập biển số khi khách tới.') + '</p>'; return; }
-  // Khách hẹn (biển số trùng lịch hẹn hôm nay): đã khớp lịch nên ưu tiên khách tới đúng giờ (người dùng chốt 13/11/2026):
-  // tới không quá giờ hẹn + HEN_TRE_PHUT → nền xanh nhạt, nhãn "Hẹn hh:mm"; tới trễ → nền thường, nhãn xám "Hẹn hh:mm, trễ N phút"
+  // Khách hẹn (biển số trùng lịch hẹn hôm nay): mọi khách hẹn đã tới đều nền xanh nhạt (người dùng chốt 13/11/2026: trễ hay đúng
+  // giờ đã xảy ra rồi); tới không quá giờ hẹn + HEN_TRE_PHUT → nhãn "Hẹn hh:mm", tới trễ hơn → nhãn cam "Trễ hẹn 1 giờ 12 phút"
   const henB = {};
   ((LT.lh || {}).ds || []).forEach(x => henB[gonBien(x.b)] = x.gio);
   $('lt-ds').innerHTML = '<div class="lt-ds">' + ds.map(r => {
@@ -971,8 +971,8 @@ function veLt() {
     const model = (MODEL[(r.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(r.m)])[0];
     // Chưa nhận mà chờ quá ngưỡng: nhãn đỏ nhỏ cạnh biển số với số phút đang chờ
     const cho = choLt(r), lau = !r.cvdv && cho > (META.choLau || 20);
-    return '<div class="lt-h' + (dungHen ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien' + (hen != null ? ' co-tag' : '') + '">' + esc(r.b)
-      + (dungHen ? tag('Hẹn ' + esc(hen), 'bd') : hen != null ? tag('Trễ hẹn ' + phutChu(treHen)) : '') + '</div>'
+    return '<div class="lt-h' + (hen != null ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(r.id) + '"><div class="bien' + (hen != null ? ' co-tag' : '') + '">' + esc(r.b)
+      + (dungHen ? tag('Hẹn ' + esc(hen), 'bd') : hen != null ? tag('Trễ hẹn ' + phutDu(treHen), 'cam') : '') + '</div>'
       // Đã nhận: giờ vào · số phút chờ (giờ nhận, model xem trong chi tiết); chưa nhận quá ngưỡng: số phút đang chờ chữ đỏ thay model
       + '<div class="phu so-lieu">' + esc(r.gio) + (r.cvdv ? ' · ' + cho + ' phút' : lau ? ' · <span class="t-do">' + cho + ' phút</span>' : model ? ' · ' + esc(model) : '') + '</div></div>'
       + '<div class="kn">' + (r.kn.length ? '<div class="kn1">' + knHien(r.kn[0]) + '</div>' + (r.kn[1] ? '<div class="kn2">' + knHien(r.kn[1]) + '</div>' : '')
@@ -997,7 +997,7 @@ function veHen() {
   const homNay = new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10);
   const dong = x => {
     const id = 'h' + x.so + x.b, tre = !x.toi && phutLt(x.gio) != null ? nay - phutLt(x.gio) : 0;
-    // Nền xanh nhạt: chưa tới và chưa quá giờ hẹn + HEN_TRE_PHUT, hoặc đã tới đúng giờ
+    // Nền xanh nhạt: đã tới (đúng giờ hay trễ), hoặc chưa tới và chưa quá giờ hẹn + HEN_TRE_PHUT
     const dung = x.toi ? phutLt(x.toi) - phutLt(x.gio) <= henTre() : tre <= henTre();
     const model = (MODEL[(x.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(x.m)])[0];
     const ct = LT.mo.has(id) ? '<div class="lt-ct">' + (x.kh ? '<div class="kh">' + esc(chuanTen(x.kh)) + '</div>' : '')
@@ -1005,7 +1005,7 @@ function veHen() {
       + '<div class="kh mo">' + esc([model, 'hẹn ' + x.gio + (x.den ? '–' + x.den : '')].filter(Boolean).join(', ')) + '</div>'
       + (x.nd ? '<div class="kh">' + esc(x.nd) + '</div>' : '')
       + (!x.cv && x.cvTen ? '<div class="kh mo">CVDV hẹn ' + esc(x.cvTen) + '</div>' : '') + '</div>' : '';
-    return '<div class="lt-h' + (dung ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(id) + '"><div class="bien">' + esc(x.b) + '</div>'
+    return '<div class="lt-h' + (dung || x.toi ? ' co-hen' : '') + '"><div class="xe-lt" data-lt-ct="' + esc(id) + '"><div class="bien">' + esc(x.b) + '</div>'
       + '<div class="phu so-lieu">' + esc(x.gio) + (tre > henTre() ? ' · <span class="t-do">trễ ' + phutChu(tre) + '</span>'
         : x.toi && !dung ? ' · tới trễ ' + phutChu(phutLt(x.toi) - phutLt(x.gio)) : x.nd ? ' · ' + esc(x.nd) : '') + '</div></div>'
       + '<div class="kn">' + (x.cv ? '<div class="kn1">' + esc(x.cv) + '</div>' : '<div class="kn2">Chưa hẹn CVDV</div>') + '</div>'
@@ -1021,6 +1021,8 @@ function veHen() {
 }
 // Thời lượng gọn cho màn hình điện thoại: 45 → "45 phút", 331 → "5 giờ"
 const phutChu = n => n < 60 ? n + ' phút' : Math.floor(n / 60) + ' giờ';
+// Thời lượng đủ (chỗ rộng): 72 → "1 giờ 12 phút"
+const phutDu = n => n < 60 ? n + ' phút' : Math.floor(n / 60) + ' giờ' + (n % 60 ? ' ' + n % 60 + ' phút' : '');
 const henTre = () => (LT.lh && LT.lh.tre) || 30;
 const gonBien = s => String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
 
