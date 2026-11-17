@@ -990,7 +990,10 @@ function veHen() {
   if (!h) { el.innerHTML = ''; return; }
   const vao = {};
   LT.ds.forEach(r => { const k = gonBien(r.b); if (!vao[k] || r.gio < vao[k]) vao[k] = r.gio; });
-  const ds = h.ds.map(x => Object.assign({}, x, { toi: vao[gonBien(x.b)] || '' })).sort((a, b) => a.gio < b.gio ? -1 : a.gio > b.gio ? 1 : 0);
+  // Đã tới: có trong danh sách hôm nay (giờ vào), hoặc DMS đã tiếp nhận (AppStatus 3 / có phiếu, người dùng chốt 17/11/2026)
+  // dù lễ tân chưa nhập trên màn hình này: ghi "Đã tiếp nhận", không tính trễ
+  const ds = h.ds.map(x => Object.assign({}, x, { toi: vao[gonBien(x.b)] || '', dms: !vao[gonBien(x.b)] && (x.st === '3' || !!x.tn) }))
+    .map(x => Object.assign(x, { toi: x.toi || (x.dms ? 'DMS' : '') })).sort((a, b) => a.gio < b.gio ? -1 : a.gio > b.gio ? 1 : 0);
   const nay = phutNay(), treNay = x => phutLt(x.gio) != null && nay - phutLt(x.gio) > henTre();
   // Chưa tới: hẹn còn trong giờ lên trước (ưu tiên đúng giờ), hẹn đã trễ xuống sau
   const chua = ds.filter(x => !x.toi && !treNay(x)).concat(ds.filter(x => !x.toi && treNay(x))), toi = ds.filter(x => x.toi);
@@ -998,7 +1001,7 @@ function veHen() {
   const dong = x => {
     const id = 'h' + x.so + x.b, tre = !x.toi && phutLt(x.gio) != null ? nay - phutLt(x.gio) : 0;
     // Nền xanh nhạt: đã tới (đúng giờ hay trễ), hoặc chưa tới và chưa quá giờ hẹn + HEN_TRE_PHUT
-    const dung = x.toi ? phutLt(x.toi) - phutLt(x.gio) <= henTre() : tre <= henTre();
+    const dung = x.dms ? true : x.toi ? phutLt(x.toi) - phutLt(x.gio) <= henTre() : tre <= henTre();
     const model = (MODEL[(x.m || '').toLowerCase().replace(/\s+/g, '')] || [chuanModel(x.m)])[0];
     const ct = LT.mo.has(id) ? '<div class="lt-ct">' + (x.kh ? '<div class="kh">' + esc(chuanTen(x.kh)) + '</div>' : '')
       + (x.dt ? '<div class="kh"><a href="tel:' + esc(x.dt.replace(/[^0-9+]/g, '')) + '">' + esc(x.dt) + '</a></div>' : '')
@@ -1009,7 +1012,7 @@ function veHen() {
       + '<div class="phu so-lieu">' + esc(x.gio) + (tre > henTre() ? ' · <span class="t-do">trễ ' + phutChu(tre) + '</span>'
         : x.toi && !dung ? ' · tới trễ ' + phutChu(phutLt(x.toi) - phutLt(x.gio)) : x.nd ? ' · ' + esc(x.nd) : '') + '</div></div>'
       + '<div class="kn">' + (x.cv ? '<div class="kn1">' + esc(x.cv) + '</div>' : '<div class="kn2">Chưa hẹn CVDV</div>') + '</div>'
-      + (x.toi ? '<div class="tg so-lieu">Tới ' + esc(x.toi) + '</div>' : '<button class="btn" data-hen-toi="' + esc(x.b) + '">Khách tới</button>') + ct + '</div>';
+      + (x.dms ? '<div class="tg">Đã tiếp nhận</div>' : x.toi ? '<div class="tg so-lieu">Tới ' + esc(x.toi) + '</div>' : '<button class="btn" data-hen-toi="' + esc(x.b) + '">Khách tới</button>') + ct + '</div>';
   };
   const cu = h.ngay !== homNay ? ', chưa có file hôm nay' : '';
   el.innerHTML = '<div class="hen-khung"><div class="hen-dau"><h2>Khách hẹn hôm nay</h2><span class="so-lieu">' + (ds.length ? chua.length + ' chưa tới, ' + toi.length + ' đã tới · ' : '')
