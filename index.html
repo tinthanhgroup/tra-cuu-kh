@@ -209,6 +209,7 @@
   .goi-y button { margin: 12px 8px 0 0; }
   a { color: var(--accent); text-decoration: none; }
   /* Tổng hợp Lễ tân (tài khoản NT, DL, ADMIN): ô số chính, 2 cột bảng, 30 ngày gần nhất */
+  html { scrollbar-gutter: stable; }   /* giữ chỗ thanh cuộn: đổi chi nhánh không xô ngang */
   .hang-bc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: 100%; }   /* nhóm Hạng mục | Chi nhánh | Quay lại (lề phải) */
   .hang-bc input { width: 160px; height: 32px; font: inherit; font-size: var(--fs-2); padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
   .hang-bc .loc { margin-left: 0; }
@@ -1666,7 +1667,8 @@ async function bcTai() {
   $('bc-muc').innerHTML = muc.length > 1 ? muc
     .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
   $('bc-ngay').hidden = BC.muc !== 'lt';
-  $('bc-loi').textContent = ''; $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';
+  $('bc-loi').textContent = '';
+  if (!(BC.muc === 'dv' && BC_NHO.has('bcDichVu|' + BC.cn))) $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';   // đã có dữ liệu: thay thẳng, không nháy trang
   try {
     if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn));
     else if (BC.muc === 'nb') await bcNb();
