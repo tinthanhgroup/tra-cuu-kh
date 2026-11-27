@@ -1072,7 +1072,7 @@ document.addEventListener('change', async e => {
 });
 // ---------- Tổng hợp: Lễ tân DV | Công việc cần làm sớm ----------
 const BC = { cn: null, muc: null };   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm, 'nb' Nhắc bảo dưỡng
-const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc' };
+const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc', ALL: 'Toàn hệ thống' };
 
 // ---------- Nhắc bảo dưỡng (project 26. Nhac bao duong: dữ liệu nhacbd_*.json do danh_sach_tuan.py ghi mỗi thứ Tư) ----------
 // Tên nhóm theo 26. Nhac bao duong/README.md mục 1
@@ -1117,6 +1117,7 @@ function veNb(n) {
 
 /** Mục "Nhắc bảo dưỡng" trong Tổng hợp: tuần này, kết quả từng tuần, danh sách gửi / gọi tuần này (bấm biển số để tra). */
 function veBcNb(d) {
+  if (d.cn === 'ALL') return veBcNbTong(d);
   veCnBc(d);
   NB = d;
   const t = d.tuan_nay || {}, o = (nhan, so, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div></div>';
@@ -1147,6 +1148,71 @@ function veBcNb(d) {
       d.goi_ds.map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10), 'margin-top:16px') : '');
 }
 let NB = null;
+
+/** Trang tổng thể cho BGĐ (người dùng chốt 27/11/2026): 4 chỉ số theo dõi hằng tuần (26. Nhac bao duong/README.md mục 2),
+ *  các đại lý đặt cạnh nhau theo thứ tự cố định, không xếp hạng, không tô màu tốt/kém. Chưa đủ dữ liệu thì ghi rõ. */
+function veBcNbTong(d) {
+  veCnBc(d);
+  const cn = Object.keys(d.dl), ten = c => TEN_CN[c] || c;
+  const pt = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString('vi-VN') + '%' : '–';
+  const cong = (o, tien) => Object.keys(o || {}).filter(k => k.startsWith(tien)).reduce((s, k) => s + o[k], 0);
+  let stt = 0;
+  const the = (tieuDe, phu, noiDung) => '<div class="card" style="margin-top:16px"><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>'
+    + (phu ? '<div class="bc-chu" style="margin:2px 0 8px">' + phu + '</div>' : '') + noiDung + '</div>';
+  const bang = (dau, hang, phai, trong) => bangBc(dau, hang, phai, 0, trong || 'Chưa đủ dữ liệu.');
+  // 1. Tóm tắt: cộng dồn mọi tuần đã gửi (gửi = theo nhật ký hoặc theo kết quả Zalo nếu nhiều hơn)
+  const tt = cn.map(c => {
+    const x = d.dl[c], tu = x.tuan || [], a = ((x.xe || {}).A1 || 0) + ((x.xe || {}).A2 || 0);
+    const gui = tu.reduce((s, w) => s + Math.max(w.gui || 0, (w.thanh_cong || 0) + cong(w, 'loi_')), 0);
+    const tc = tu.reduce((s, w) => s + (w.thanh_cong || 0), 0), kq = tu.reduce((s, w) => s + (w.thanh_cong || 0) + cong(w, 'loi_'), 0);
+    return { c, a, gui, tc, kq, goi: tu.reduce((s, w) => s + (w.goi || 0), 0), ve: tu.reduce((s, w) => s + (w.quay_lai || 0), 0),
+      nay: (x.tuan_nay || {}).gui || 0, goiNay: (x.tuan_nay || {}).goi || 0 };
+  });
+  const sum = k => tt.reduce((s, r) => s + r[k], 0);
+  const dongTt = r => [ten(r.c), tien(r.a), tien(r.nay), tien(r.goiNay), tien(r.gui), r.kq ? pt(r.tc, r.kq) : '–', tien(r.goi), tien(r.ve)];
+  const tomTat = bang(['Đại lý', 'Xe nhóm A', 'Tuần ' + d.tuan + ': gửi', 'Tuần ' + d.tuan + ': gọi', 'Đã gửi (cộng dồn)', 'Gửi thành công', 'Đã gọi', 'Đã quay lại BD'],
+    tt.map(dongTt).concat(tt.length > 1 ? [['<b>Tổng</b>', tien(sum('a')), tien(sum('nay')), tien(sum('goiNay')), tien(sum('gui')), sum('kq') ? pt(sum('tc'), sum('kq')) : '–', tien(sum('goi')), tien(sum('ve'))]] : []),
+    [1, 2, 3, 4, 5, 6, 7]);
+  // 2. Cơ cấu: mẫu số A1+A2+B+C1 (C2 trên 3 năm, D để ngoài mẫu số)
+  const cc = c => (d.co_cau[c] || []);
+  const dongCc = c => {
+    const ds = cc(c), w = ds[ds.length - 1] || {}, w0 = ds[0] || {};
+    const ms = x => (x.A1 || 0) + (x.A2 || 0) + (x.B || 0) + (x.C1 || 0), a = x => (x.A1 || 0) + (x.A2 || 0);
+    const lech = (f, x0, x1) => ds.length > 1 ? ' <span class="mo">(' + ((Math.round((f(x1) / ms(x1) - f(x0) / ms(x0)) * 1000) / 10) >= 0 ? '+' : '')
+      + (Math.round((f(x1) / ms(x1) - f(x0) / ms(x0)) * 1000) / 10).toLocaleString('vi-VN') + ')</span>' : '';
+    return [ten(c), tien(ms(w)), pt(a(w), ms(w)) + lech(a, w0, w), pt(w.B || 0, ms(w)) + lech(x => x.B || 0, w0, w), pt(w.C1 || 0, ms(w)) + lech(x => x.C1 || 0, w0, w),
+      tien(w.C2 || 0), tien((w.D1 || 0) + (w.D2 || 0))];
+  };
+  const soTuanCc = Math.max(0, ...cn.map(c => cc(c).length));
+  // 3. Dòng chuyển nhóm tuần gần nhất
+  const ch = c => (d.chuyen[c] || []).slice(-1)[0];
+  const dongCh = c => { const x = ch(c); return x ? [ten(c), tien(x.b_a || 0), tien(x.c_a || 0), tien(x.a_b || 0), tien((x.b_a || 0) + (x.c_a || 0) - (x.a_b || 0))] : null; };
+  const hangCh = cn.map(dongCh).filter(Boolean);
+  // 4. Hiệu quả: xe nhận tin đủ 30 ngày → vào xưởng trong 30 ngày; xe chưa đủ 30 ngày tính riêng
+  const hq = c => ((d.hieu_qua || {})[c] || {}).A || {};
+  const hangHq = cn.map(c => { const x = hq(c); return [ten(c), tien(x.du30 || 0), tien(x.ve30 || 0), x.du30 ? pt(x.ve30 || 0, x.du30) : '–', tien(x.dang || 0), tien(x.ve_dang || 0)]; });
+  const coHq = cn.some(c => hq(c).du30 || hq(c).dang);
+  // 5. Liên lạc
+  const hangLl = cn.map(c => {
+    const x = d.dl[c], tu = x.tuan || [], ll = x.lien_lac || {}, a = ((x.xe || {}).A1 || 0) + ((x.xe || {}).A2 || 0);
+    const kq = tu.reduce((s, w) => s + (w.thanh_cong || 0) + cong(w, 'loi_'), 0), tc = tu.reduce((s, w) => s + (w.thanh_cong || 0), 0);
+    return [ten(c), tien(kq), kq ? pt(tc, kq) : '–', tien(tu.reduce((s, w) => s + (w.loi_2 || 0), 0)), tien(kq - tc - tu.reduce((s, w) => s + (w.loi_2 || 0), 0)),
+      tien(ll.thieu_sdt_a || 0) + ' <span class="mo">(' + pt(ll.thieu_sdt_a || 0, a) + ')</span>', tien(ll.can_kt || 0)];
+  });
+  $('bc-nd').innerHTML = '<div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
+    + '. Các đại lý đặt cạnh nhau để theo dõi, không xếp hạng. Chọn từng đại lý ở trên để xem danh sách xe.</div>'
+    + the('Tóm tắt', 'Nhóm A (khách đang bảo dưỡng đều) được nhắn trước; các nhóm khác khởi động sau.', tomTat)
+    + the('Cơ cấu khách', 'Tỷ lệ trên mẫu số A + B + C1 (C2 trên 3 năm và D để ngoài mẫu số). Mục tiêu: A tăng, B và C giảm.'
+      + (soTuanCc > 1 ? ' Số trong ngoặc: thay đổi so với tuần ' + cc(cn[0])[0].tuan + ' (điểm %).' : ' Mới có mốc tuần ' + ((cc(cn[0])[0] || {}).tuan || '') + '; xu hướng hiện từ tuần sau, rõ sau 4–8 tuần.'),
+      bang(['Đại lý', 'Mẫu số', 'Nhóm A', 'Nhóm B', 'Nhóm C1', 'C2 (ngoài)', 'D (ngoài)'], cn.map(dongCc), [1, 2, 3, 4, 5, 6]))
+    + the('Dòng chuyển nhóm trong tuần', 'Kéo về: khách nhóm B, C quay lại thành nhóm A. Rơi ra: khách nhóm A quá 8 tháng chưa quay lại thành nhóm B. Mục tiêu: kéo về nhiều hơn rơi ra.',
+      hangCh.length ? bang(['Đại lý', 'Kéo về B → A', 'Kéo về C → A', 'Rơi ra A → B', 'Chênh lệch'], hangCh, [1, 2, 3, 4]) : '<p class="mo">Chưa đủ dữ liệu: cần số liệu 2 tuần liền nhau (có từ tuần 49).</p>')
+    + the('Hiệu quả nhắn (nhóm A)', 'Khách vào bảo dưỡng trong 30 ngày sau tin đầu tiên. Chỉ tính xe đã nhận tin đủ 30 ngày; xe mới nhận tin để riêng.',
+      coHq ? bang(['Đại lý', 'Xe nhận tin đủ 30 ngày', 'Vào xưởng trong 30 ngày', 'Tỷ lệ', 'Xe nhận tin chưa đủ 30 ngày', 'Đã quay lại'], hangHq, [1, 2, 3, 4, 5])
+        : '<p class="mo">Chưa đủ dữ liệu: tin đầu tiên gửi 25–27/11/2026, tỷ lệ 30 ngày có từ cuối tháng 12/2026.</p>')
+    + the('Chất lượng liên lạc', 'Thiếu/sai SĐT: xe nhóm A không có số di động hợp lệ trên DMS (không nhắn được); cần phòng dịch vụ bổ sung khi khách vào xưởng.',
+      bang(['Đại lý', 'Tin có kết quả', 'Gửi thành công', 'Không có Zalo', 'Lỗi khác', 'Nhóm A thiếu/sai SĐT', 'Cần CVDV sửa DMS'], hangLl, [1, 2, 3, 4, 5, 6]));
+}
 function veNgauNhien() {
   const ds = ((NB || {}).ds || []).slice();
   for (let i = ds.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ds[i], ds[j]] = [ds[j], ds[i]]; }
