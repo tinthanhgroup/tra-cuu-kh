@@ -258,6 +258,10 @@
   .dv-tren { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: stretch; }
   .dv-tren .card { margin-bottom: 0; }
   .dv-mot { margin-top: 16px; }
+  .dv-trang .bc-3 { margin-top: 16px; align-items: stretch; }
+  .dv-trang .bc-3 > .card { display: flex; flex-direction: column; margin-bottom: 0; }
+  .dv-gach { display: inline-block; width: 1px; height: 18px; background: var(--border); margin: 0 4px; vertical-align: middle; }
+  .dv-loc { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .dv-phai { display: flex; flex-direction: column; gap: 12px; }
   .dv-phai .card { flex: 1; padding: 12px 16px; }
   .dv-phai .dv-ngang { gap: 4px 8px; margin-top: 8px; }
@@ -1231,7 +1235,8 @@ const DV_LOAI_12 = [['BD', DV_BAN_HANG[0]], ['SCC', DV_BAN_HANG[1]], ['Bảo hi�
 // Thị phần bảo hiểm: 8 màu phân loại theo thứ tự cố định (bảng màu đã kiểm tra), gán theo công ty (xếp theo doanh thu "Tất cả")
 // để bật/tắt xe ngập không đổi màu; từ công ty thứ 9 trở đi màu xám
 const DV_BH_MAU = DV_BAN_HANG.slice(0, 5);   // 5 công ty lớn nhất theo thứ tự màu báo cáo Bán hàng; còn lại gộp "Khác" (xám)
-let DV_BH = { boNgap: true, d: null };
+let DV_BH = { boNgap: false, x: 'all', d: null };   // thị phần BH: mặc định gồm cả xe ngập; x: xưởng (trang Đà Lạt)
+let DV_NC_X = 'all';                                  // nhân công tổ: lọc xưởng (trang Đà Lạt)
 
 /** Treemap chia ô theo tỷ lệ (thuật toán squarified): ds [{ten, v}] giảm dần → [{ten, v, x, y, w, h}] theo % khung. */
 function chiaO(ds, x, y, w, h) {
@@ -1258,18 +1263,22 @@ function chiaO(ds, x, y, w, h) {
 
 function veBh() {
   const d = DV_BH.d, ds = d.bao_hiem || [];
-  const tong = r => Object.values(r[1]).reduce((s, v) => s + v, 0), ngap = r => Object.values(r[2] || {}).reduce((s, v) => s + v, 0);
+  const cong = o => Object.entries(o || {}).filter(([x]) => DV_BH.x === 'all' || x === DV_BH.x).reduce((s, [, v]) => s + v, 0);
+  const tong = r => cong(r[1]), ngap = r => cong(r[2]), tongCa = r => Object.values(r[1]).reduce((s, v) => s + v, 0);
   // 5 công ty lớn nhất theo chế độ mặc định (bỏ xe ngập), cố định khi bật/tắt; còn lại gộp "Khác"
-  const hang = ds.slice().sort((a, b) => (tong(b) - ngap(b)) - (tong(a) - ngap(a))).map(r => r[0]).slice(0, DV_BH_MAU.length);
+  // màu theo công ty (xếp theo tổng cả trang, gồm xe ngập), cố định khi đổi lọc
+  const hang = ds.slice().sort((a, b) => tongCa(b) - tongCa(a)).map(r => r[0]).slice(0, DV_BH_MAU.length);
   const gt = r => DV_BH.boNgap ? tong(r) - ngap(r) : tong(r);
   const o = ds.filter(r => hang.indexOf(r[0]) >= 0).map(r => ({ ten: r[0], v: gt(r), r: r, mau: DV_BH_MAU[hang.indexOf(r[0])], i: hang.indexOf(r[0]) }));
   const khac = ds.filter(r => hang.indexOf(r[0]) < 0 && gt(r) > 0);
   if (khac.length) o.push({ ten: 'Khác (' + khac.length + ' công ty)', v: khac.reduce((s, r) => s + gt(r), 0), mau: '#e6e8ee', i: 9,
     ds: khac.sort((a, b) => gt(b) - gt(a)).map(r => r[0] + ' ' + trD(gt(r))).join(', ') });
   const oo = o.filter(x => x.v > 0).sort((a, b) => (a.i === 9) - (b.i === 9) || b.v - a.v), sum = oo.reduce((s, x) => s + x.v, 0);
-  $('dv-bh-loc').innerHTML = [[true, 'Bỏ xe ngập nước'], [false, 'Tất cả']].map(([k, ten]) => '<button data-bh="' + k + '" class="' + (k === DV_BH.boNgap ? 'on' : '') + '">' + ten + '</button>').join('');
+  const xw = d.xuong || [];
+  $('dv-bh-loc').innerHTML = [[false, 'Tất cả'], [true, 'Bỏ xe ngập nước']].map(([k, ten]) => '<button data-bh="' + k + '" class="' + (k === DV_BH.boNgap ? 'on' : '') + '">' + ten + '</button>').join('')
+    + (xw.length > 1 ? '<span class="dv-gach"></span>' + [['all', xw.map(x => DV_TEN_X[x]).join(' + ')]].concat(xw.map(x => [x, DV_TEN_X[x]])).map(([k, ten]) => '<button data-bhx="' + k + '" class="' + (k === DV_BH.x ? 'on' : '') + '">' + ten + '</button>').join('') : '');
   if (!sum) { $('dv-bh').innerHTML = '<p class="mo">Không có doanh thu bảo hiểm.</p>'; return; }
-  const xs = Object.keys(d.dt_loai || {}).length > 1;
+  const xs = xw.length > 1 && DV_BH.x === 'all';
   $('dv-bh').innerHTML = '<div class="dv-tm"></div><div class="bc-chu"></div>';
   const kh = $('dv-bh').querySelector('.dv-tm'), rong = kh.clientWidth || 1000, cao = kh.clientHeight || 240, H = 1000 * cao / rong;   // chia ô theo đúng tỷ lệ khung
   $('dv-bh').innerHTML = '<div class="dv-tm">' + chiaO(oo, 0, 0, 1000, H).map(c => {
@@ -1283,10 +1292,33 @@ function veBh() {
 }
 
 
+/** Thẻ nhân công tổ SCC, Đồng, Sơn: mỗi tổ một biểu đồ (so với các tháng trước của chính tổ); trang Đà Lạt lọc theo xưởng. */
+function veNc() {
+  const d = DV_BH.d, el = $('dv-nc');
+  if (!d || !el) return;
+  const thang = d.chot.slice(0, 7), T = 'T' + +thang.slice(5), den = ngayVN(d.chot).slice(0, 5), xw = d.xuong || [], chon = DV_NC_X;
+  const nc = {};
+  (d.nhan_cong || []).forEach(([th, x, c]) => { (nc[th] = nc[th] || {})[x] = c; });
+  const thangNc = Object.keys(nc).sort();
+  const ncTo = (th, to, x) => Object.keys(nc[th]).filter(xx => x ? xx === x : (chon === 'all' || xx === chon)).reduce((s, xx) => s + ((nc[th][xx] || {})[to] || 0), 0);
+  const loc = xw.length > 1 ? '<div class="loc dv-loc">' + [['all', xw.map(x => DV_TEN_X[x]).join(' + ')]].concat(xw.map(x => [x, DV_TEN_X[x]]))
+    .map(([k, ten]) => '<button data-ncx="' + k + '" class="' + (k === chon ? 'on' : '') + '">' + ten + '</button>').join('') + '</div>' : '';
+  if (!thangNc.length) { el.innerHTML = loc + '<p class="mo">Chưa có dữ liệu.</p>'; return; }
+  const mau = chon === 'all' ? 'var(--dv-chinh)' : DV_MAU[chon], dang = thangNc.indexOf(thang);
+  el.innerHTML = loc + '<div class="dv-to">' + DV_TO.map(to => {
+    const g = thangNc.map(th => ncTo(th, to[0])), du = g.filter((v, i) => i !== dang && v), tb = du.length ? du.reduce((s, v) => s + v, 0) / du.length : 0;
+    return '<div><div class="dau"><h3>' + to[1] + '</h3><span>' + (dang >= 0 ? T + ' đến ' + den + ': <b>' + Math.round(g[dang] / 1e6).toLocaleString('vi-VN') + '</b> · ' : '')
+      + 'TB ' + du.length + ' tháng ' + Math.round(tb / 1e6).toLocaleString('vi-VN') + '</span></div>'
+      + bdTo(thangNc.map(th => 'T' + +th.slice(5) + (th === thang ? '*' : '')), g, mau,
+        i => to[1] + ' tháng ' + +thangNc[i].slice(5) + '/' + thangNc[i].slice(0, 4) + ': ' + trD(g[i]) + ' tr'
+          + (xw.length > 1 && chon === 'all' ? ' (' + xw.map(x => DV_TEN_X[x] + ' ' + trD(ncTo(thangNc[i], to[0], x))).join(', ') + ')' : ''), dang) + '</div>';
+  }).join('') + '</div>';
+}
+
 /** Cột một chuỗi theo tháng, có số trên đầu cột: mỗi tổ một biểu đồ, trục riêng (so với các tháng trước của tổ). */
 function bdTo(nhan, gt, mau, tip, dang) {
   // dang: chỉ số tháng đang chạy (chưa đủ tháng) → cột nhạt; đường đứt = trung bình các tháng đủ
-  const W = 520, H = 120, l = 4, r = 4, t = 18, b = 22, n = nhan.length || 1;
+  const W = 420, H = 120, l = 4, r = 4, t = 18, b = 22, n = nhan.length || 1;
   const du = gt.filter((v, i) => i !== dang && v), tb = du.length ? du.reduce((s, v) => s + v, 0) / du.length : 0;
   const max = Math.max(1, tb, ...gt) * 1.08, y = v => t + (H - t - b) * (1 - v / max), rong = (W - l - r) / n, bw = Math.min(34, rong - 18);
   let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img"><line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + (H - b) + '" y2="' + (H - b) + '"/>';
@@ -1309,8 +1341,8 @@ function bdNgang(ds, bien, tip) {
 }
 
 /** Doanh thu theo tháng: cột xếp chồng theo xưởng, số tổng trên đầu cột (triệu), vạch ngang chỉ tiêu tháng; tooltip từng cột. */
-function bdThang(hang, mau, ct, giua) {
-  const W = 720, H = 220, l = 44, r = 8, t = 22, b = 26, n = hang.length || 1;
+function bdThang(hang, mau, ct, giua, W = 720, H = 220) {
+  const l = 44, r = 8, t = 22, b = 26, n = hang.length || 1;
   const tong = h => h.gt.reduce((s, v) => s + v, 0);
   const max = Math.max(1, ...hang.map(tong), ...hang.map(h => ct[h.th] || 0)) * 1.06;
   const y = v => t + (H - t - b) * (1 - v / max), rong = (W - l - r) / n, bw = Math.min(40, rong - 12);
@@ -1359,7 +1391,7 @@ function bdCot(hang, xs, ref, refTen, W = 720, H = 200) {
 
 /** Đường lũy kế thực tế (đến ngày chốt) và chỉ tiêu (cả tháng, nét đứt), một trục. */
 function bdLuyKe(ngay, thucTe, chiTieu) {
-  const W = 880, H = 630, l = 44, r = 12, t = 28, b = 26, n = ngay.length;   // khung 2/3 trang, cao bằng cột top 5 bên phải: chữ trục giữ cỡ ~11px
+  const W = 880, H = 385, l = 44, r = 12, t = 28, b = 26, n = ngay.length;   // khung 2/3 trang, cao bằng cột top 5 bên phải: chữ trục giữ cỡ ~11px
   const max = Math.max(1, ...chiTieu, ...thucTe.filter(v => v != null)) * 1.05;
   const x = i => l + (W - l - r) * (n > 1 ? i / (n - 1) : 0), y = v => t + (H - t - b) * (1 - v / max);
   const duong = (ds, net, mau) => '<polyline fill="none" stroke="' + mau + '" stroke-width="2"' + (net ? ' stroke-dasharray="6 4"' : '') + ' stroke-linejoin="round" points="'
@@ -1379,7 +1411,7 @@ function bdLuyKe(ngay, thucTe, chiTieu) {
 
 function veBcDv(d) {
   veCnBc(d);
-  DV_BH.d = d;
+  DV_BH.d = d; DV_BH.x = 'all'; DV_NC_X = 'all';
   const o = (nhan, so, phu, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div>' + '<div class="nhan">' + (phu || '') + '</div>' + '</div>';
   let stt = 0;
   const the = (tieuDe, noiDung, goi) => '<div class="card"><h2 class="card-title"' + (goi ? ' title="' + esc(goi) + '"' : '') + '>' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
@@ -1427,7 +1459,7 @@ function veBcDv(d) {
   const LOAI = ['BD', 'SCC', 'Đồng sơn tiền mặt', 'Bảo hành', 'Bảo hiểm'];
   const loaiKhac = Object.keys(luotLoai).filter(k => LOAI.indexOf(k) < 0);
   const cot = LOAI.concat(loaiKhac);
-  const tenLoai = k => k === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : k;
+  const tenLoai = k => k;   // ghi đủ "Đồng sơn tiền mặt" (người dùng chốt 27/11/2026)
   const cotKt = cot.filter(k => k !== 'Bảo hành');   // cột lượt tự khai thác
   const tagX = x => xLuot.length > 1 ? '<span class="dv-x" style="background:' + DV_MAU[x] + '"></span>' : '';
   const bienSo = b => tagX(b.x) + (META.vai === 'baocao' ? esc(b.b) : '<a href="#" data-nb="' + esc(b.b) + '">' + esc(b.b) + '</a>');
@@ -1460,12 +1492,12 @@ function veBcDv(d) {
           tt5x[i] ? tt5(tt5x[i], tipLenh) : '', tt5x[i] ? Math.round(tt5x[i].tien / 1e6).toLocaleString('vi-VN') : '']), [0, 2, 4], 0, 'Không có.') + '</div>'
       + '<div class="bc-chu">Có VAT; báo giá: lệnh vào xưởng trong tháng; thanh toán xong: không tính nội bộ.</div>',
       'Báo giá: từng lệnh vào xưởng trong tháng, giá trị có VAT, mọi loại lệnh kể cả chưa sửa. Thanh toán xong: lệnh có ngày thanh toán trong tháng, tổng tiền có VAT (như "xe thanh toán lớn" của bản tin sáng), không tính lệnh nội bộ. Rê chuột lên biển số để xem ngày, loại, nội dung.')
-    + the('Lượt xe 10 ngày (' + ngayVN(ngay10[0] || chot).slice(0, 5) + ' – ' + den + ')', (xLuot.length > 1 ? '<div class="dv-cu">' + xLuot.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + ' ' + tien(luot10[x] || 0) + '</span>').join('') + '</div>' : '')
-      + bdCot(ngay10.map(n => ({ nhan: n.slice(8, 10), gt: xLuot.map(x => (luotNgay[n] || {})[x] || 0),
-        tip: ngayVN(n) + ': ' + xLuot.map(x => (xLuot.length > 1 ? DV_TEN_X[x] + ' ' : '') + ((luotNgay[n] || {})[x] || 0) + ' xe').join(', ') })), xLuot, 0, '', 440, 170),
-      'Số lệnh (RO) không trùng theo ngày vào xưởng (Master Data).')
     + '</div></div>'
     + '<div class="bc-2">'
+    + the('Lượt xe 10 ngày (' + ngayVN(ngay10[0] || chot).slice(0, 5) + ' – ' + den + ')', (xLuot.length > 1 ? '<div class="dv-cu">' + xLuot.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + ' ' + tien(luot10[x] || 0) + '</span>').join('') + '</div>' : '')
+      + bdCot(ngay10.map(n => ({ nhan: n.slice(8, 10), gt: xLuot.map(x => (luotNgay[n] || {})[x] || 0),
+        tip: ngayVN(n) + ': ' + xLuot.map(x => (xLuot.length > 1 ? DV_TEN_X[x] + ' ' : '') + ((luotNgay[n] || {})[x] || 0) + ' xe').join(', ') })), xLuot, 0, '', 720, 220),
+      'Số lệnh (RO) không trùng theo ngày vào xưởng (Master Data).')
     + the('Doanh thu khai thác theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
         + '<span><i class="net"></i>Chỉ tiêu tháng</span></div>'
       + bdThang((d.dt_thang || []).map(r => {
@@ -1476,6 +1508,8 @@ function veBcDv(d) {
       }), xsT.map(x => DV_MAU[x]), d.ct_thang || {}, true)
       + '<div class="bc-chu">' + T + '*: đến ' + den + '.</div>',
       'Chưa VAT, theo tháng thanh toán; gồm BD, SCC, Bảo hiểm, Đồng sơn tiền mặt (không tính nội bộ, bảo hành, PDI và lệnh xe mới không có trong Master Data). Rê chuột lên cột để xem % đạt chỉ tiêu.')
+    + '</div>'
+    + '<div class="bc-3">'
     + the('Doanh thu khai thác theo loại lệnh, 12 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
       + bdThang((d.loai_12 || []).map(([th, ob]) => {
         const g = DV_LOAI_12.map(([l]) => Object.values(ob).reduce((s, c) => s + (c[l] || 0), 0)), tg = g.reduce((s, v) => s + v, 0) || 1;
@@ -1483,18 +1517,10 @@ function veBcDv(d) {
         return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th.slice(5) === '01' || th === (d.loai_12[0] || [])[0] ? '/' + th.slice(2, 4) : ''), gt: g,
           tips: DV_LOAI_12.map(([l], k) => ten + ' · ' + tenLoai(l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%'
             + (Object.keys(ob).length > 1 ? ' (' + Object.keys(ob).map(x => DV_TEN_X[x] + ' ' + trD(ob[x][l] || 0)).join(', ') + ')' : '')) };
-      }), DV_LOAI_12.map(([, m]) => m), {})
+      }), DV_LOAI_12.map(([, m]) => m), {}, false, 440, 470)
       + '<div class="bc-chu">' + T + '*: đến ' + den + '.</div>',
       'Chưa VAT, theo tháng thanh toán; loại theo phân loại lệnh trên DMS (Master Data). Rê chuột lên từng đoạn để xem số tiền, tỷ trọng' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
-    + '</div>'
-    + '<div class="bc-2 bc-23">'
-    + the('Nhân công tổ SCC, Đồng, Sơn (tiền công chưa VAT, triệu)', (thangNc.length ? '<div class="dv-to">' + DV_TO.map(to => { const g = thangNc.map(th => ncTo(th, to[0])), dang = thangNc.indexOf(thang), du = g.filter((v, i) => i !== dang && v), tb = du.length ? du.reduce((s, v) => s + v, 0) / du.length : 0;
-          return '<div><div class="dau"><h3>' + to[1] + '</h3><span>' + (dang >= 0 ? T + ' đến ' + den + ': <b>' + Math.round(g[dang] / 1e6).toLocaleString('vi-VN') + '</b> · ' : '') + 'TB ' + du.length + ' tháng ' + Math.round(tb / 1e6).toLocaleString('vi-VN') + '</span></div>'
-        + bdTo(thangNc.map(th => 'T' + +th.slice(5) + (th === thang ? '*' : '')), g, to[2],
-          i => to[1] + ' tháng ' + +thangNc[i].slice(5) + '/' + thangNc[i].slice(0, 4) + ': ' + trD(ncTo(thangNc[i], to[0])) + ' tr'
-            + (xNc.length > 1 ? ' (' + xNc.map(x => DV_TEN_X[x] + ' ' + trD(ncTo(thangNc[i], to[0], x))).join(', ') + ')' : ''), dang) + '</div>'; }).join('') + '</div>'
-        : '<p class="mo">Chưa có dữ liệu.</p>')
-      + (xNc.length > 1 && thangNc.length ? bangBc(['STT', T + ' theo xưởng'].concat(DV_TO.map(t => t[1])), xNc.map((x, i) => [i + 1, tagX(x) + DV_TEN_X[x]].concat(DV_TO.map(t => trD(ncTo(thang, t[0], x))))), [0, 2, 3, 4], 0, '') : '')
+    + the('Nhân công tổ SCC, Đồng, Sơn (tiền công chưa VAT, triệu)', '<div id="dv-nc"></div>'
       + '<div class="bc-chu">Mỗi tổ một trục riêng; cột nhạt: ' + T + ' đến ' + den + '; đường đứt: trung bình các tháng đủ.</div>',
       'So với các tháng trước của chính tổ đó (không so giữa các tổ). Tiền công các công việc theo tổ nhân công trên lệnh (chi tiết RO dùng tính lương), theo tháng thanh toán, mọi đối tượng thanh toán (khách, bảo hiểm, bảo hành, nội bộ).')
     + the('Thị phần doanh thu bảo hiểm 6 tháng gần nhất', '<div class="loc dv-loc" id="dv-bh-loc"></div><div id="dv-bh"></div>',
@@ -1515,6 +1541,7 @@ function veBcDv(d) {
     + '</div>'
     + '</div>';
   veBh();
+  veNc();
 }
 
 /** Trang tổng thể cho BGĐ (người dùng chốt 27/11/2026): 4 chỉ số theo dõi hằng tuần (26. Nhac bao duong/README.md mục 2),
@@ -1710,6 +1737,10 @@ $('bc-nd').onclick = e => {
   if (e.target.closest('[data-ngau-nhien]')) { e.preventDefault(); veNgauNhien(); }
   const bh = e.target.closest('[data-bh]');
   if (bh) { DV_BH.boNgap = bh.dataset.bh === 'true'; veBh(); }
+  const bhx = e.target.closest('[data-bhx]');
+  if (bhx) { DV_BH.x = bhx.dataset.bhx; veBh(); }
+  const ncx = e.target.closest('[data-ncx]');
+  if (ncx) { DV_NC_X = ncx.dataset.ncx; veNc(); }
 };
 
 $('lt-them').onclick = () => ltThem();
