@@ -1533,12 +1533,12 @@ function veBcDv(d) {
     + the('Cố vấn dịch vụ: doanh thu khai thác', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cotKt.map(tenLoai), ['Bảo hành', 'Tổng', 'DT khai thác ' + T, 'DT GTGT ' + T]),
       (d.cvdv || []).map((c, i) => [i + 1, '<span style="white-space:nowrap" title="' + esc(c[1]) + '">' + tagX(c[0]) + esc(String(c[1]).split('@')[0]) + '</span>'].concat(cotKt.map(k => tien(c[2][k] || 0)),
         [tien(c[2]['Bảo hành'] || 0), tien(Object.values(c[2]).reduce((s, v) => s + v, 0)), trD(c[4] || 0), trD(c[5] || 0)]))
-        .concat([['', '<b>Tổng</b>'].concat(cotKt.map(k => '<b>' + tien(Object.values(luotLoai[k] || {}).reduce((s, v) => s + v, 0)) + '</b>'),
-          ['<b>' + tien(Object.values(luotLoai['Bảo hành'] || {}).reduce((s, v) => s + v, 0)) + '</b>', '<b>' + tien(cot.reduce((s, k) => s + Object.values(luotLoai[k] || {}).reduce((a, v) => a + v, 0), 0)) + '</b>',
+        .concat([['', '<b>Tổng</b>'].concat(cotKt.map(k => '<b>' + tien((d.cvdv || []).reduce((s, c) => s + (c[2][k] || 0), 0)) + '</b>'),
+          ['<b>' + tien((d.cvdv || []).reduce((s, c) => s + (c[2]['Bảo hành'] || 0), 0)) + '</b>', '<b>' + tien((d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0)) + '</b>',
             '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[4] || 0), 0)) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[5] || 0), 0)) + '</b>'])]),
       [0].concat(cotKt.map((_, i) => i + 2), [cotKt.length + 2, cotKt.length + 3, cotKt.length + 4, cotKt.length + 5]), 0, 'Không có.')
-      + '<div class="bc-chu">Lượt xe: 30 ngày; DT: tháng ' + +thang.slice(5) + ', chưa VAT, triệu, không tính nội bộ, bảo hành, PDI.</div>',
-      'Lượt xe: 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + den + '), theo người lập lệnh trên DMS; Tổng gồm cả lượt bảo hành. '
+      + '<div class="bc-chu">Từ đầu tháng ' + +thang.slice(5) + ' đến ' + den + '; DT chưa VAT, triệu, không tính nội bộ, bảo hành, PDI.</div>',
+      'Lượt xe: lệnh vào xưởng từ đầu tháng ' + +thang.slice(5) + ' đến ' + den + ', theo người lập lệnh trên DMS; Tổng gồm cả lượt bảo hành. '
       + 'DT: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, không tính nội bộ, bảo hành, PDI (cộng các CVDV bằng doanh thu khai thác). DT GTGT: tiền công các mã trong quy ước GTGT của trang tra cứu (chưa gồm phụ gia).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : ''))
     + '</div>'
     + '</div>';
