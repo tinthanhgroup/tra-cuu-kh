@@ -1283,7 +1283,7 @@ function veBh() {
   $('dv-bh').innerHTML = '<div class="dv-tm"></div><div class="bc-chu"></div>';
   const kh = $('dv-bh').querySelector('.dv-tm'), rong = kh.clientWidth || 1000, cao = kh.clientHeight || 240, H = 1000 * cao / rong;   // chia ô theo đúng tỷ lệ khung
   $('dv-bh').innerHTML = '<div class="dv-tm">' + chiaO(oo, 0, 0, 1000, H).map(c => {
-    const pt = Math.round(c.v / sum * 1000) / 10, nho = c.w * rong / 1000 < 70 || c.h * cao / H < 34;
+    const pt = Math.round(c.v / sum * 1000) / 10, nho = c.w * rong / 1000 < 70 || c.h * cao / H < 46;
     const tach = xs && c.r ? ' (' + Object.entries(c.r[1]).map(([x, v]) => DV_TEN_X[x] + ' ' + trD(v - ((c.r[2] || {})[x] || 0) * DV_BH.boNgap)).join(', ') + ')' : '';
     return '<div class="' + (chuTren(c.mau) === '#fff' ? '' : 'sang') + '" style="left:' + c.x / 10 + '%;top:' + c.y / H * 100 + '%;width:' + c.w / 10 + '%;height:' + c.h / H * 100 + '%;background:' + c.mau + '" title="'
       + esc(c.ten) + ': ' + trD(c.v) + ' tr, ' + pt.toLocaleString('vi-VN') + '%' + esc(tach) + (c.ds ? '\n' + esc(c.ds) : '') + '">'
@@ -1344,12 +1344,12 @@ function bdNgang(ds, bien, tip) {
 
 /** Doanh thu theo tháng: cột xếp chồng theo xưởng, số tổng trên đầu cột (triệu), vạch ngang chỉ tiêu tháng; tooltip từng cột. */
 function bdThang(hang, mau, ct, giua, W = 720, H = 220) {
-  const l = 44, r = 8, t = 22, b = 26, n = hang.length || 1;
+  const l = 8, r = 8, t = 22, b = 26, n = hang.length || 1;   // không ghi số trục Y (đã có số trên cột)
   const tong = h => h.gt.reduce((s, v) => s + v, 0);
   const max = Math.max(1, ...hang.map(tong), ...hang.map(h => ct[h.th] || 0)) * 1.06;
   const y = v => t + (H - t - b) * (1 - v / max), rong = (W - l - r) / n, bw = Math.min(40, rong - 12);
   let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
-  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.06 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + Math.round(v / 1e6).toLocaleString('vi-VN') + '</text>'; });
+  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.06 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>'; });
   hang.forEach((h, i) => {
     const cx = l + i * rong + rong / 2, c = ct[h.th];
     let dinh = H - b;
@@ -1369,12 +1369,12 @@ function bdThang(hang, mau, ct, giua, W = 720, H = 220) {
 
 /** Biểu đồ cột (xếp chồng theo xưởng) + đường ngang tham chiếu; mỗi cột có tooltip. hang: [{nhan, gt: [..theo xưởng], tip}] */
 function bdCot(hang, xs, ref, refTen, W = 720, H = 200) {
-  const l = 44, r = 8, t = hang.length <= 20 ? 20 : 10, b = 26, n = hang.length || 1;
+  const l = 8, r = 8, t = hang.length <= 20 ? 20 : 10, b = 26, n = hang.length || 1;
   const max = Math.max(1, ref || 0, ...hang.map(h => h.gt.reduce((s, v) => s + v, 0))) * 1.08;
   const y = v => t + (H - t - b) * (1 - v / max), buoc = (W - l - r) / n, bw = Math.max(2, Math.min(n <= 12 ? 20 : 99, buoc - 3));
   const nac = [0, .25, .5, .75, 1].map(k => max / 1.08 * k);
   let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
-  nac.forEach(v => { s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v >= 1e6 ? trD(v) : Math.round(v)) + '</text>'; });
+  nac.forEach(v => { s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>'; });
   hang.forEach((h, i) => {
     const x = l + i * buoc + (buoc - bw) / 2;
     let dinh = H - b;
@@ -1393,13 +1393,13 @@ function bdCot(hang, xs, ref, refTen, W = 720, H = 200) {
 
 /** Đường lũy kế thực tế (đến ngày chốt) và chỉ tiêu (cả tháng, nét đứt), một trục. */
 function bdLuyKe(ngay, thucTe, chiTieu) {
-  const W = 880, H = 385, l = 44, r = 12, t = 28, b = 26, n = ngay.length;   // khung 2/3 trang, cao bằng cột top 5 bên phải: chữ trục giữ cỡ ~11px
+  const W = 880, H = 385, l = 16, r = 12, t = 28, b = 26, n = ngay.length;   // khung 2/3 trang, cao bằng cột top 5 bên phải: chữ trục giữ cỡ ~11px
   const max = Math.max(1, ...chiTieu, ...thucTe.filter(v => v != null)) * 1.05;
   const x = i => l + (W - l - r) * (n > 1 ? i / (n - 1) : 0), y = v => t + (H - t - b) * (1 - v / max);
   const duong = (ds, net, mau) => '<polyline fill="none" stroke="' + mau + '" stroke-width="2"' + (net ? ' stroke-dasharray="6 4"' : '') + ' stroke-linejoin="round" points="'
     + ds.map((v, i) => v == null ? '' : x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ') + '"/>';
   let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
-  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.05 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + Math.round(v / 1e6).toLocaleString('vi-VN') + '</text>'; });
+  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.05 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>'; });
   ngay.forEach((d, i) => { if (i % 3 === 0 || i === n - 1) s += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + d.slice(8, 10) + '</text>'; });
   s += duong(chiTieu, true, 'var(--hint)') + duong(thucTe, false, 'var(--dv-chinh)');
   // điểm hover mỗi ngày đã có số
@@ -1492,7 +1492,7 @@ function veBcDv(d) {
         Array.from({ length: Math.max(bg5.length, tt5x.length) }, (_, i) => [i + 1,
           bg5[i] ? tt5(bg5[i], b => 'Vào xưởng ' + ngayVN(b.ngay) + ' · ' + tipLenh(b)) : '', bg5[i] ? Math.round(bg5[i].tien / 1e6).toLocaleString('vi-VN') : '',
           tt5x[i] ? tt5(tt5x[i], tipLenh) : '', tt5x[i] ? Math.round(tt5x[i].tien / 1e6).toLocaleString('vi-VN') : '']), [0, 2, 4], 0, 'Không có.') + '</div>'
-      + '<div class="bc-chu">Có VAT; báo giá: lệnh vào xưởng trong tháng; thanh toán xong: không tính nội bộ.</div>',
+      ,
       'Báo giá: từng lệnh vào xưởng trong tháng, giá trị có VAT, mọi loại lệnh kể cả chưa sửa. Thanh toán xong: lệnh có ngày thanh toán trong tháng, tổng tiền có VAT (như "xe thanh toán lớn" của bản tin sáng), không tính lệnh nội bộ. Rê chuột lên biển số để xem ngày, loại, nội dung.')
     + '</div></div>'
     + '<div class="bc-2">'
