@@ -209,7 +209,7 @@
   .goi-y button { margin: 12px 8px 0 0; }
   a { color: var(--accent); text-decoration: none; }
   /* Tổng hợp Lễ tân (tài khoản NT, DL, ADMIN): ô số chính, 2 cột bảng, 30 ngày gần nhất */
-  .hang-bc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .hang-bc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: 100%; }   /* nhóm Hạng mục | Chi nhánh | Quay lại (lề phải) */
   .hang-bc input { width: 160px; height: 32px; font: inherit; font-size: var(--fs-2); padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
   .hang-bc .loc { margin-left: 0; }
   .hang-bc #bc-ve { margin-left: auto; font-size: var(--fs-2); }
@@ -268,6 +268,7 @@
   .dv-phai .card { flex: 1; padding: 12px 16px; }
   .dv-phai .dv-ngang { gap: 4px 8px; margin-top: 8px; }
   .dv-phai .dv-ngang .cot i { height: 12px; }
+  .dv-phai .card > .dv-ngang { flex: 1; align-content: space-evenly; margin-top: 4px; }
   .dv-ngang .cot { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .dv-ngang .cot i { display: block; height: 16px; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--dv-chinh, var(--accent)); }
   .dv-ngang .cot span { color: var(--muted); white-space: nowrap; }
@@ -1191,7 +1192,7 @@ function veNb(n) {
 /** Tải mục Nhắc bảo dưỡng. Tài khoản xem từ 2 chi nhánh (ADMIN) có thêm "Toàn hệ thống" (mặc định): gọi bcNhacBd từng chi nhánh
  *  rồi ghép ngay trên trang (số tổng thể có sẵn trong tong_cn từng chi nhánh), không cần chức năng riêng trong Code.gs. */
 async function bcNb() {
-  const ds = META.xemNb || [], cac = ds.length > 1 ? ['ALL'].concat(ds) : ds;
+  const ds = META.xemNb || [], cac = ds.length > 1 ? ds.concat(['ALL']) : ds;   // "Toàn hệ thống" cuối: nút chi nhánh giữ vị trí như các mục khác
   if (!BC.cn || cac.indexOf(BC.cn) < 0) BC.cn = cac[0];
   if (BC.cn !== 'ALL') { const d = await goiNho('bcNhacBd', BC.cn); d.cacCn = cac; return veBcNb(d); }
   const r = await Promise.all(ds.map(c => goiNho('bcNhacBd', c)));
@@ -1382,7 +1383,7 @@ function bdThang(hang, mau, ct, giua, W = 720, H = 220) {
 
 /** Biểu đồ cột (xếp chồng theo xưởng) + đường ngang tham chiếu; mỗi cột có tooltip. hang: [{nhan, gt: [..theo xưởng], tip}] */
 function bdCot(hang, xs, ref, refTen, W = 720, H = 200) {
-  const l = 8, r = 8, t = hang.length <= 20 ? 20 : 10, b = 26, n = hang.length || 1;
+  const l = 8, r = 8, t = hang.length <= 20 ? 22 : 10, b = 26, n = hang.length || 1;
   const max = Math.max(1, ref || 0, ...hang.map(h => h.gt.reduce((s, v) => s + v, 0))) * 1.08;
   const y = v => t + (H - t - b) * (1 - v / max), buoc = (W - l - r) / n, bw = Math.max(2, Math.min(n <= 12 ? 20 : 99, buoc - 3));
   const nac = [0, .25, .5, .75, 1].map(k => max / 1.08 * k);
@@ -1495,7 +1496,7 @@ function veBcDv(d) {
   const T = 'T' + +thang.slice(5), den = ngayVN(chot).slice(0, 5);
 
   $('bc-nd').innerHTML = '<div class="dv-trang" style="--dv-chinh:' + (DV_MAU[(d.xuong || [])[0]] || 'var(--accent)') + '"><div class="bc-so dv-so">'
-    + o('Doanh thu khai thác ' + T + ' (đến ' + den + ')', trD(tt) + ' tr')
+    + o('Doanh thu khai thác', trD(tt) + ' tr')
     + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
     + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
@@ -1518,6 +1519,7 @@ function veBcDv(d) {
     + '</div></div>'
     + '<div class="bc-2">'
     + the('Lượt xe 20 ngày (' + ngayVN(ngay10[0] || chot).slice(0, 5) + ' – ' + den + ')', (xLuot.length > 1 ? '<div class="dv-cu">' + xLuot.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + ' ' + tien(luot10[x] || 0) + '</span>').join('') + '</div>' : '')
+      + (xLuot.length > 1 ? '' : '<div class="dv-cu"><span><i style="background:' + DV_MAU[xLuot[0]] + '"></i>Lượt xe ' + tien(luot10[xLuot[0]] || 0) + '</span></div>')
       + bdCot(ngay10.map(n => ({ nhan: n.slice(8, 10), gt: xLuot.map(x => (luotNgay[n] || {})[x] || 0),
         tip: ngayVN(n) + ': ' + xLuot.map(x => (xLuot.length > 1 ? DV_TEN_X[x] + ' ' : '') + ((luotNgay[n] || {})[x] || 0) + ' xe').join(', ') })), xLuot, 0, '', 720, 220),
       'Số lệnh (RO) không trùng theo ngày vào xưởng (Master Data).')
@@ -1541,7 +1543,7 @@ function veBcDv(d) {
           tips: DV_LOAI_12.map(([l], k) => ten + ' · ' + tenLoai(l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%'
             + (Object.keys(ob).length > 1 ? ' (' + Object.keys(ob).map(x => DV_TEN_X[x] + ' ' + trD(ob[x][l] || 0)).join(', ') + ')' : '')) };
       }), DV_LOAI_12.map(([, m]) => m), {}, false, 720, 270)
-      + '<div class="bc-chu">6 tháng gần nhất và ' + T + '* (đến ' + den + ').</div>',
+      + '',
       'Chưa VAT, theo tháng thanh toán; loại theo phân loại lệnh trên DMS (Master Data). Rê chuột lên từng đoạn để xem số tiền, tỷ trọng' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
     + the('Thị phần doanh thu bảo hiểm 6 tháng gần nhất', '<div class="loc dv-loc" id="dv-bh-loc"></div><div id="dv-bh"></div>',
       'Lệnh loại Bảo hiểm, doanh thu chưa VAT theo ngày thanh toán, theo công ty bảo hiểm ghi trên lệnh (Master Data, cột "Chi tiết BH"); 5 công ty lớn nhất, còn lại gộp "Khác". Rê chuột lên ô để xem số tiền' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
@@ -1753,7 +1755,7 @@ function veBcLs(d) {
     + '</div>';
 }
 
-$('bc-muc').onclick = e => { const b = e.target.closest('[data-muc]'); if (b) { BC.muc = b.dataset.muc; BC.cn = null; bcTai(); } };
+$('bc-muc').onclick = e => { const b = e.target.closest('[data-muc]'); if (b) { BC.muc = b.dataset.muc; bcTai(); } };   // giữ chi nhánh đang chọn
 $('bc-ngay').onchange = bcTai;
 $('bc-ve').onclick = e => { e.preventDefault(); hien('tra'); };
 $('bc-cn').onclick = e => { const b = e.target.closest('[data-cn]'); if (b) { BC.cn = b.dataset.cn; bcTai(); } };
