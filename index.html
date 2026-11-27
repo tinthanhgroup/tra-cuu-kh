@@ -1433,17 +1433,17 @@ function veBcDv(d) {
   const T = 'T' + +thang.slice(5), den = ngayVN(chot).slice(0, 5);
 
   $('bc-nd').innerHTML = '<div class="dv-trang" style="--dv-chinh:' + (DV_MAU[(d.xuong || [])[0]] || 'var(--accent)') + '"><div class="bc-so dv-so">'
-    + o('Doanh thu tính chỉ tiêu ' + T + ' (đến ' + den + ')', trD(tt) + ' tr')
+    + o('Doanh thu khai thác ' + T + ' (đến ' + den + ')', trD(tt) + ' tr')
     + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
     + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
     + o('Cần mỗi ngày còn lại', canNgay != null ? trD(canNgay) + ' tr' : '–', lvCon + ' ngày làm việc')
     + o('Lượt xe 30 ngày', tien(tongLuot)) + '</div>'
-    + '<div class="bc-chu">Chưa VAT, theo ngày thanh toán, trừ nội bộ và bảo hành; lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + ', cập nhật ' + esc(d.cap_nhat) + '.</div>'
+    + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, theo ngày thanh toán, không tính nội bộ, bảo hành, PDI; lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + ', cập nhật ' + esc(d.cap_nhat) + '.</div>'
     + '<div class="dv-tren">'
-    + the('Doanh thu lũy kế so với chỉ tiêu (trừ nội bộ, bảo hành)', '<div class="dv-cu"><span><i style="background:var(--dv-chinh)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
+    + the('Doanh thu khai thác lũy kế so với chỉ tiêu', '<div class="dv-cu"><span><i style="background:var(--dv-chinh)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
       + (d.chi_tieu ? bdLuyKe(ngayThang, ttLk, ctLk) : '<p class="mo">Chưa có chỉ tiêu tháng ' + thang.slice(5) + '.</p>'),
-      'Doanh thu theo ngày thanh toán, chưa VAT, trừ lệnh nội bộ (chỉ đối tượng LOCAL) và bảo hành. Chỉ tiêu nội bộ tháng (trước thuế) chia đều ' + soLv + ' ngày làm việc (thứ Hai – thứ Bảy).')
+      'Doanh thu khai thác: theo ngày thanh toán, chưa VAT, không tính lệnh nội bộ (chỉ đối tượng LOCAL), bảo hành, PDI và lệnh xe mới không có trong Master Data. Chỉ tiêu nội bộ tháng (trước thuế) chia đều ' + soLv + ' ngày làm việc (thứ Hai – thứ Bảy).')
     + '<div class="dv-phai">'
     + the('Top 5 báo giá ngày ' + (d.bg_ngay_d ? ngayVN(d.bg_ngay_d).slice(0, 5) : '') + ' (triệu)', bdNgang((d.bg_ngay || []).slice(0, 5), bienSo, tipLenh),
       'Lệnh vào xưởng ngày mới nhất có dữ liệu, giá trị có VAT, mọi loại lệnh kể cả lệnh chưa sửa (như Power BI DV). Rê chuột lên thanh để xem nội dung' + (META.vai === 'baocao' ? '.' : ', bấm biển số để tra xe.'))
@@ -1459,7 +1459,7 @@ function veBcDv(d) {
       'Số lệnh (RO) không trùng theo ngày vào xưởng (Master Data).')
     + '</div></div>'
     + '<div class="bc-2">'
-    + the('Doanh thu theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
+    + the('Doanh thu khai thác theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
         + '<span><i class="net"></i>Chỉ tiêu tháng</span></div>'
       + bdThang((d.dt_thang || []).map(r => {
         const g = xsT.map(x => r[1 + xs.indexOf(x)] || 0), tg = g.reduce((s, v) => s + v, 0), c = (d.ct_thang || {})[r[0]];
@@ -1467,9 +1467,9 @@ function veBcDv(d) {
           tip: 'Tháng ' + +r[0].slice(5) + (r[0] === thang ? ' (đến ' + den + ')' : '') + ': ' + trD(tg) + ' tr' + (xsT.length > 1 ? ' (' + xsT.map((x, k) => DV_TEN_X[x] + ' ' + trD(g[k])).join(', ') + ')' : '')
             + (c ? ', chỉ tiêu ' + trD(c) + ' tr, đạt ' + Math.round(tg / c * 100) + '%' : '') };
       }), xsT.map(x => DV_MAU[x]), d.ct_thang || {}, true)
-      + '<div class="bc-chu">Chưa VAT, trừ nội bộ, bảo hành, PDI; ' + T + '*: đến ' + den + '.</div>',
+      + '<div class="bc-chu">' + T + '*: đến ' + den + '.</div>',
       'Chưa VAT, theo tháng thanh toán; gồm BD, SCC, Bảo hiểm, Đồng sơn tiền mặt (không tính nội bộ, bảo hành, PDI và lệnh xe mới không có trong Master Data). Rê chuột lên cột để xem % đạt chỉ tiêu.')
-    + the('Doanh thu theo loại lệnh, 12 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
+    + the('Doanh thu khai thác theo loại lệnh, 12 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
       + bdThang((d.loai_12 || []).map(([th, ob]) => {
         const g = DV_LOAI_12.map(([l]) => Object.values(ob).reduce((s, c) => s + (c[l] || 0), 0)), tg = g.reduce((s, v) => s + v, 0) || 1;
         const ten = 'Tháng ' + +th.slice(5) + '/' + th.slice(0, 4) + (th === thang ? ' (đến ' + den + ')' : '');
@@ -1477,7 +1477,7 @@ function veBcDv(d) {
           tips: DV_LOAI_12.map(([l], k) => ten + ' · ' + tenLoai(l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%'
             + (Object.keys(ob).length > 1 ? ' (' + Object.keys(ob).map(x => DV_TEN_X[x] + ' ' + trD(ob[x][l] || 0)).join(', ') + ')' : '')) };
       }), DV_LOAI_12.map(([, m]) => m), {})
-      + '<div class="bc-chu">Chưa VAT, trừ nội bộ, bảo hành, PDI; ' + T + '*: đến ' + den + '.</div>',
+      + '<div class="bc-chu">' + T + '*: đến ' + den + '.</div>',
       'Chưa VAT, theo tháng thanh toán; loại theo phân loại lệnh trên DMS (Master Data). Rê chuột lên từng đoạn để xem số tiền, tỷ trọng' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
     + '</div>'
     + '<div class="bc-2 bc-23">'
@@ -1494,16 +1494,16 @@ function veBcDv(d) {
     + '</div>'
     + '<div class="dv-mot">'
     // CVDV, GĐDV đánh giá theo khả năng tự khai thác: trừ nội bộ, bảo hành (người dùng chốt 27/11/2026). Lượt bảo hành để cột riêng
-    + the('Cố vấn dịch vụ: tự khai thác (trừ nội bộ, bảo hành)', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cotKt.map(tenLoai), ['Tự khai thác', 'Bảo hành*', 'Giá trị lệnh 30 ngày', 'DT ' + T, 'DT GTGT ' + T]),
+    + the('Cố vấn dịch vụ: doanh thu khai thác', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cotKt.map(tenLoai), ['Tự khai thác', 'Bảo hành*', 'Giá trị lệnh 30 ngày', 'DT khai thác ' + T, 'DT GTGT ' + T]),
       (d.cvdv || []).map((c, i) => [i + 1, '<span style="white-space:nowrap" title="' + esc(c[1]) + '">' + tagX(c[0]) + esc(String(c[1]).split('@')[0]) + '</span>'].concat(cotKt.map(k => tien(c[2][k] || 0)),
         [tien(cotKt.reduce((s, k) => s + (c[2][k] || 0), 0)), '<span class="mo">' + tien(c[2]['Bảo hành'] || 0) + '</span>', trD(c[3]), trD(c[4] || 0), trD(c[5] || 0)]))
         .concat([['', '<b>Tổng</b>'].concat(cotKt.map(k => '<b>' + tien(Object.values(luotLoai[k] || {}).reduce((s, v) => s + v, 0)) + '</b>'),
           ['<b>' + tien(cotKt.reduce((s, k) => s + Object.values(luotLoai[k] || {}).reduce((a, v) => a + v, 0), 0)) + '</b>', '<span class="mo">' + tien(Object.values(luotLoai['Bảo hành'] || {}).reduce((s, v) => s + v, 0)) + '</span>',
             '<b>' + trD((d.cvdv || []).reduce((s, c) => s + c[3], 0)) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[4] || 0), 0)) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[5] || 0), 0)) + '</b>'])]),
       [0].concat(cotKt.map((_, i) => i + 2), [cotKt.length + 2, cotKt.length + 3, cotKt.length + 4, cotKt.length + 5, cotKt.length + 6]), 0, 'Không có.')
-      + '<div class="bc-chu">Lượt, giá trị lệnh: 30 ngày; doanh thu (DT): tháng ' + +thang.slice(5) + ', chưa VAT, triệu; *lượt bảo hành không tính.</div>',
+      + '<div class="bc-chu">Lượt, giá trị lệnh: 30 ngày; DT: tháng ' + +thang.slice(5) + ', chưa VAT, triệu, không tính nội bộ, bảo hành, PDI; *lượt bảo hành không tính.</div>',
       'Lượt xe, giá trị lệnh: 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + den + '), theo người lập lệnh trên DMS; giá trị lệnh có VAT, kể cả lệnh chưa sửa, trừ bảo hành. '
-      + 'DT: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, trừ nội bộ, bảo hành (cộng các CVDV bằng doanh thu tính chỉ tiêu). DT GTGT: tiền công các mã trong quy ước GTGT của trang tra cứu (chưa gồm phụ gia).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : ''))
+      + 'DT: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, không tính nội bộ, bảo hành, PDI (cộng các CVDV bằng doanh thu khai thác). DT GTGT: tiền công các mã trong quy ước GTGT của trang tra cứu (chưa gồm phụ gia).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : ''))
     + '</div>'
     + '</div>';
   veBh();
