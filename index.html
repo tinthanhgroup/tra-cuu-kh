@@ -230,6 +230,17 @@
   @media (min-width: 641px) { .bc-3 .bang th, .bc-3 .bang td { padding-left: 8px; padding-right: 8px; } }
   @media (max-width: 1100px) { .bc-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 760px) { .bc-3 { grid-template-columns: minmax(0, 1fr); } }
+  /* Nhắc bảo dưỡng (project 26): khối trong kết quả tra xe + mục trong Tổng hợp */
+  .nb-viec { margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--head); font-size: var(--fs-3); }
+  .nb-viec.gui { background: var(--accent-soft); color: var(--accent); }
+  .nb-viec.goi, .nb-viec.khac { background: var(--amber-bg); color: var(--amber); }
+  .nb-viec.bo { background: var(--red-bg); color: var(--red); }
+  .nb-viec.xong { background: var(--green-bg); color: var(--green); }
+  .nb-kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin-top: 12px; font-size: var(--fs-2); }
+  .nb-kv > span:nth-child(odd) { color: var(--muted); }
+  .nb-tin { margin-top: 12px; font-size: var(--fs-2); }
+  .nb-tin div { padding: 4px 0; border-top: 1px solid var(--line); }
+  a[data-nb] { cursor: pointer; }
   .bc-thanh { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); opacity: .35; vertical-align: middle; margin-right: 6px; }
   /* Thanh 30 ngày: nền nhạt = khách khác, phần đậm bên trái = khách hẹn (chú thích .bc-chu-thanh) */
   .bc-thanh2 { display: inline-block; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 25%, transparent); vertical-align: middle; margin-right: 6px; overflow: hidden; }
@@ -495,7 +506,8 @@ function goi(ham, ...thamSo) {
     .finally(() => clearTimeout(hen));
 }
 
-function luuPhien(p) { PHIEN = p; try { sessionStorage.setItem('gtgt', JSON.stringify(p)); } catch (e) {} }
+// Ghi nhớ đăng nhập trên máy này tới hạn máy chủ cấp (ADMIN 24 giờ, tài khoản khác 8 giờ; người dùng chốt 27/11/2026)
+function luuPhien(p) { PHIEN = p; try { localStorage.setItem('gtgt', JSON.stringify(p)); } catch (e) {} }
 function hien(man) {
   if (man === 'tra' && META.vai === 'letan') man = 'lt';
   if (man === 'tra' && META.vai === 'baocao') man = 'bc';
@@ -518,7 +530,7 @@ function hien(man) {
     $('cn').textContent = META.chi_nhanh;
     DM = undefined;
     $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>'
-      + ((META.xemBc || []).length || (META.xemLs || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp</a>' : '');
+      + ((META.xemBc || []).length || (META.xemLs || []).length || (META.xemNb || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp</a>' : '');
     if ($('xem-bc')) $('xem-bc').onclick = e => { e.preventDefault(); hien('bc'); };
     // Danh mục GTGT thay chỗ kết quả tra, chữ đổi thành "Quay lại"; bấm lần nữa vẽ lại xe đang xem (hoặc trang trống)
     $('xem-dm').onclick = e => {
@@ -534,12 +546,12 @@ async function dangNhap() {
   $('loi-dn').textContent = ''; $('nut-dn').disabled = true;
   try {
     const r = await goi('dangNhap', $('ma').value, $('mk').value);
-    META = r.meta; luuPhien({ token: r.token, ma: r.ma }); $('mk').value = ''; hien('tra');
+    META = r.meta; luuPhien({ token: r.token, ma: r.ma, het: r.het }); $('mk').value = ''; hien('tra');
   } catch (e) { $('loi-dn').textContent = e.message; }
   $('nut-dn').disabled = false;
 }
 
-function thoat() { PHIEN = null; try { sessionStorage.removeItem('gtgt'); } catch (e) {} $('ket-qua').innerHTML = ''; hien('dn'); }
+function thoat() { PHIEN = null; try { localStorage.removeItem('gtgt'); sessionStorage.removeItem('gtgt'); } catch (e) {} $('ket-qua').innerHTML = ''; hien('dn'); }
 
 async function traCuu(bien) {
   bien = bien || $('bien').value;
@@ -552,6 +564,11 @@ async function traCuu(bien) {
         ? '<div class="card goi-y"><h2 class="card-title">Có nhiều xe khớp, chọn biển số</h2>' + x.goiY.map(b => '<button class="btn" data-b="' + esc(b) + '">' + esc(b) + '</button>').join('') + '</div>'
         : '<div class="card"><h2 class="card-title">Khách mới</h2><div class="dong-phu">Biển số ' + esc(bien) + ' không có lịch sử từ 01/2025. ' + NHOM.moi[2] + '</div></div>';
       document.querySelectorAll('.goi-y button').forEach(b => b.onclick = () => { $('bien').value = b.dataset.b; traCuu(b.dataset.b); });
+    } else if (x.nbChi) {
+      XE = null;
+      $('ket-qua').innerHTML = '<div class="ket-qua"><div class="card"><div class="xe"><span class="bien">' + esc(x.nbChi.b) + '</span><span class="mo">' + esc(x.nbChi.model) + '</span></div>'
+        + '<div class="khach">' + esc(x.nbChi.ten) + '</div><div class="dong-phu">Xe không vào xưởng từ 01/2025 nên trang tư vấn không có lịch sử; dưới đây là phần nhắc bảo dưỡng.</div></div>'
+        + veNb(x.nbChi) + '</div>';
     } else $('ket-qua').innerHTML = veXe(x, Number($('km').value) || 0);
   } catch (e) {
     $('ket-qua').innerHTML = '';
@@ -797,7 +814,7 @@ function veXe(x, kmNhap) {
   const tuVan = '<div class="card noi-bat"><h2 class="card-title">Tư vấn hôm nay</h2><div class="hai-muc">' + veCap(capBD(x, d.km, kmNhap), d, g) + gtgt + '</div>' + lamSom + '</div>';
 
   XE = x;
-  return '<div class="ket-qua ba-cot"><div>' + veKhach(x, d, g, phu) + '</div><div>' + tuVan + veHanhTrinh(x, d)
+  return '<div class="ket-qua ba-cot"><div>' + veKhach(x, d, g, phu) + (x.nb ? veNb(x.nb) : '') + '</div><div>' + tuVan + veHanhTrinh(x, d)
     + '<div class="card" id="lich-su">' + veLs(x, false) + '</div></div><div>' + veCongCu(x, d) + '</div></div>';
 }
 
@@ -1054,8 +1071,87 @@ document.addEventListener('change', async e => {
   if (ds) { LT.ds = ds; veLt(); } else s.disabled = false;
 });
 // ---------- Tổng hợp: Lễ tân DV | Công việc cần làm sớm ----------
-const BC = { cn: null, muc: null };   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm
+const BC = { cn: null, muc: null };   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm, 'nb' Nhắc bảo dưỡng
 const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc' };
+
+// ---------- Nhắc bảo dưỡng (project 26. Nhac bao duong: dữ liệu nhacbd_*.json do danh_sach_tuan.py ghi mỗi thứ Tư) ----------
+// Tên nhóm theo 26. Nhac bao duong/README.md mục 1
+const NB_NHOM = { A1: 'A1 – tới mốc 5.000 km trước', A2: 'A2 – đi ít, tới mốc 6 tháng trước', B: 'B – lâu không vào (8–15 tháng)',
+  C1: 'C1 – 15 tháng đến 3 năm chưa vào', C2: 'C2 – trên 3 năm chưa vào', D1: 'D1 – mua tại chi nhánh, giao trên 8 tháng, chưa BD',
+  D2: 'D2 – chỉ vào sửa chữa, bảo hành, bảo hiểm' };
+const kmVN = v => v ? tien(v) + ' km' : '–';
+
+/** Mốc kế tiếp theo README mục 2 (26. Nhac bao duong): tin 1 ở tới hạn − 15, tin 2 ở tới hạn, gọi ở tới hạn + 15 và ≥ 15 ngày sau tin cuối. */
+function mocKeTiep(n) {
+  if (n.viec[0] === 'xong' || !/^A/.test(n.nhom) || n.goi) return '';
+  const tin = (n.tin || []).filter(t => t[1] !== 'Đại lý tự gửi trước đây');
+  const cong = (s, so) => { const d = new Date(s); d.setUTCDate(d.getUTCDate() + so); return d.toISOString().slice(0, 10); };
+  if (!tin.length) return n.nhan ? 'Tin 1: tuần có ngày ' + ngayVN(n.nhan) : '';
+  if (tin.length === 1 && tin[0][1] === 'Nhắc trước kỳ' && n.han) return 'Tin 2: tuần có ngày tới hạn ' + ngayVN(n.han);
+  const cuoi = tin[tin.length - 1][0], moc = n.han && n.han > cuoi ? n.han : cuoi;
+  return 'Gọi: từ ' + ngayVN(cong(moc, 15)) + ' nếu khách chưa quay lại';
+}
+
+/** Khối "Nhắc bảo dưỡng" của 1 xe: việc tuần này và lý do, mốc kỳ này, tin đã gửi, kết quả Zalo, phản hồi, gọi. */
+function veNb(n) {
+  const kv = (k, v) => '<span>' + k + '</span><span>' + v + '</span>';
+  const tin = (n.tin || []).map(t => '<div>' + ngayVN(t[0]) + ' · ' + esc(t[1]) + '</div>')
+    .concat(n.kq ? ['<div class="t-do">Zalo lỗi ' + ngayVN(n.kq[1]) + ': ' + esc(n.kq[0]) + (n.kq[2] ? ' (' + esc(n.kq[2]) + ')' : '') + '</div>'] : [])
+    .concat(n.sms ? ['<div>Chuyển SMS tuần ' + ngayVN(n.sms) + '</div>'] : [])
+    .concat(n.goi ? ['<div>Vào danh sách gọi tuần ' + ngayVN(n.goi) + '</div>'] : [])
+    .concat((n.ph || []).map(p => '<div>Phản hồi (tuần ' + ngayVN(p[0]) + '): ' + esc(p[1]) + '</div>'));
+  return '<div class="card"><h2 class="card-title">Nhắc bảo dưỡng</h2>'
+    + '<div class="nb-viec ' + n.viec[0] + '">' + esc(n.viec[1]) + '</div>'
+    + '<div class="nb-kv so-lieu">'
+    + kv('Nhóm', esc(NB_NHOM[n.nhom] || n.nhom))
+    + kv('BD gần nhất', n.bd ? ngayVN(n.bd) + ' · ' + kmVN(n.km) : '–')
+    + kv('Tới hạn', n.han ? ngayVN(n.han) + (n.km_moc ? ' hoặc ' + kmVN(n.km_moc) : '') : '–')
+    + kv('Ngày nhắn lần 1', n.nhan ? ngayVN(n.nhan) + ' (tới hạn − 15 ngày)' : '–')
+    + (mocKeTiep(n) ? kv('Mốc kế tiếp', mocKeTiep(n)) : '')
+    + (n.hoan ? kv('Hoãn nhắn', esc(n.hoan)) : '')
+    + kv('SĐT di động', n.sdt ? 'có' : '<span class="t-do">không có / sai định dạng</span>')
+    + '</div>'
+    + '<div class="nb-tin"><div class="nhan-muc">Tin đã gửi trong kỳ</div>' + (tin.length ? tin.join('') : '<div class="mo">Chưa có</div>') + '</div>'
+    + '<div class="chu-thich">Kỳ = từ lần bảo dưỡng gần nhất. Tới hạn: 6 tháng hoặc 5.000 km sau lần BD gần nhất, mốc nào tới trước.</div></div>';
+}
+
+/** Mục "Nhắc bảo dưỡng" trong Tổng hợp: tuần này, kết quả từng tuần, danh sách gửi / gọi tuần này (bấm biển số để tra). */
+function veBcNb(d) {
+  veCnBc(d);
+  NB = d;
+  const t = d.tuan_nay || {}, o = (nhan, so, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div></div>';
+  let stt = 0;
+  const the = (tieuDe, noiDung, kieu) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
+  const bang = (dau, hang, phai, gioi, trong) => bangBc(dau, hang, phai, gioi, trong || 'Không có.');
+  const cong = (x, tien) => Object.keys(x).filter(k => k.startsWith(tien)).reduce((s, k) => s + x[k], 0);
+  const khac = Object.values(t.khac || {}).reduce((s, v) => s + v, 0);
+  const bien = b => '<a href="#" data-nb="' + esc(b) + '">' + esc(b) + '</a>';
+  const nhieuNhat = Object.entries(t.bo || {}).sort((a, b) => b[1] - a[1]);
+  const tuan = (d.tuan || []).slice().reverse();
+  $('bc-nd').innerHTML = '<div class="bc-so">' + o('Tuần ' + t.tuan + ': xe gửi tin', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
+    + o('Gửi lại ZNS / SMS', tien(khac)) + o('Cần CVDV kiểm tra DMS', tien(t.can_kt || 0), t.can_kt ? 'do' : '')
+    + o('Không đưa vào danh sách', tien(nhieuNhat.reduce((s, x) => s + x[1], 0))) + o('Xe nhóm A', tien(((d.xe || {}).A1 || 0) + ((d.xe || {}).A2 || 0))) + '</div>'
+    + '<div class="bc-chu">Tuần ' + t.tuan + ' (từ thứ Hai ' + ngayVN(t.thu2) + '), dữ liệu cập nhật ' + esc(d.cap_nhat) + '. Bấm biển số để xem phân tích của xe.</div>'
+    + '<div class="bc-2">'
+    + the('Danh sách gửi tuần này', '<div class="bc-chu" style="margin:0 0 8px">Kiểm tra trước khi gửi: <a href="#" data-ngau-nhien>chọn ngẫu nhiên 5 xe</a></div><div id="nb-nn"></div>'
+      + bang(['STT', 'Biển số', 'Loại tin', 'Tới hạn'], (d.ds || []).map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10))
+    + the('Không đưa vào danh sách', bang(['Lý do', 'Số xe'], nhieuNhat.map(([k, v]) => [esc(k), tien(v)]), [1], 8))
+    + '</div>'
+    + the('Kết quả theo tuần', bang(['Tuần', 'Gửi', 'Thành công', 'Lỗi', 'Không có Zalo', 'Phản hồi', 'Gọi', 'Đã quay lại BD', 'Trong 30 ngày'],
+      tuan.map(x => ['Tuần ' + x.tuan + ' <span class="mo">(' + ngayVN(x.thu2).slice(0, 5) + ')</span>', tien(x.gui || 0), tien(x.thanh_cong || 0),
+        cong(x, 'loi_') ? '<span class="t-do">' + tien(cong(x, 'loi_')) + '</span>' : '0', tien(x.loi_2 || 0), tien(cong(x, 'ph_')), tien(x.goi || 0),
+        tien(x.quay_lai || 0), tien(x.quay_lai_30 || 0)]), [1, 2, 3, 4, 5, 6, 7, 8], 12, 'Chưa có tuần nào gửi.')
+      + '<div class="bc-chu">Gửi: theo ngày gửi thật (sheet 4) hoặc ngày trong kết quả Zalo. Thành công, lỗi: file kết quả Zalo CSKH bỏ vào "Ket qua" (tin gửi lại tính lần sau cùng). '
+      + 'Đã quay lại BD: xe có lần bảo dưỡng trên DMS sau ngày nhận tin.</div>', 'margin-top:16px')
+    + ((d.goi_ds || []).length ? the('Danh sách gọi tuần này', bang(['STT', 'Biển số', 'Lý do', 'Tin cuối'],
+      d.goi_ds.map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10), 'margin-top:16px') : '');
+}
+let NB = null;
+function veNgauNhien() {
+  const ds = ((NB || {}).ds || []).slice();
+  for (let i = ds.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ds[i], ds[j]] = [ds[j], ds[i]]; }
+  $('nb-nn').innerHTML = '<div class="bc-chu" style="margin:0 0 8px">Xe ngẫu nhiên: ' + ds.slice(0, 5).map(x => '<a href="#" data-nb="' + esc(x[0]) + '">' + esc(x[0]) + '</a>').join(' · ') + '</div>';
+}
 
 /** Bảng Tổng hợp; quá `gioi` dòng thì ẩn phần sau, có nút "Xem thêm". */
 function bangBc(dau, hang, phai, gioi, trong) {
@@ -1077,13 +1173,18 @@ function veCnBc(d) {
 const anThanhBc = () => { $('man-bc').querySelector('.thanh-tra').hidden = !$('bc-muc').innerHTML && !$('bc-cn').innerHTML && $('bc-ngay').hidden && $('bc-ve').hidden && !$('bc-loi').textContent; };
 
 async function bcTai() {
-  const coLt = (META.xemBc || []).length, coLs = (META.xemLs || []).length;
-  if (!BC.muc) BC.muc = coLt ? 'lt' : 'ls';
-  $('bc-muc').innerHTML = coLt && coLs ? [['lt', 'Lễ tân DV'], ['ls', 'Công việc cần làm sớm']]
+  const muc = [['lt', 'Lễ tân DV', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs], ['nb', 'Nhắc bảo dưỡng', META.xemNb]]
+    .filter(m => (m[2] || []).length);
+  if (!muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
+  $('bc-muc').innerHTML = muc.length > 1 ? muc
     .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
-  $('bc-ngay').hidden = BC.muc === 'ls';
+  $('bc-ngay').hidden = BC.muc !== 'lt';
   $('bc-loi').textContent = ''; $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';
-  try { if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn)); else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn)); }
+  try {
+    if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn));
+    else if (BC.muc === 'nb') veBcNb(await goi('bcNhacBd', PHIEN.token, BC.cn));
+    else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn));
+  }
   catch (e) {
     $('bc-nd').innerHTML = '';
     if (e.message.includes('HET_PHIEN')) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; }
@@ -1165,7 +1266,14 @@ $('bc-muc').onclick = e => { const b = e.target.closest('[data-muc]'); if (b) { 
 $('bc-ngay').onchange = bcTai;
 $('bc-ve').onclick = e => { e.preventDefault(); hien('tra'); };
 $('bc-cn').onclick = e => { const b = e.target.closest('[data-cn]'); if (b) { BC.cn = b.dataset.cn; bcTai(); } };
-$('bc-nd').onclick = e => { const b = e.target.closest('[data-xem-them]'); if (b) { b.previousElementSibling.classList.add('mo-het'); b.remove(); } };
+$('bc-nd').onclick = e => {
+  const b = e.target.closest('[data-xem-them]');
+  if (b) { b.previousElementSibling.classList.add('mo-het'); b.remove(); }
+  // Biển số trong mục Nhắc bảo dưỡng: mở tra cứu xe đó (CSKH kiểm tra ngẫu nhiên trước khi gửi)
+  const a = e.target.closest('[data-nb]');
+  if (a) { e.preventDefault(); hien('tra'); $('bien').value = a.dataset.nb; traCuu(a.dataset.nb); }
+  if (e.target.closest('[data-ngau-nhien]')) { e.preventDefault(); veNgauNhien(); }
+};
 
 $('lt-them').onclick = () => ltThem();
 $('lt-bien').onkeydown = e => { if (e.key === 'Enter') ltThem(); };
@@ -1182,7 +1290,8 @@ $('bien').onkeydown = $('km').onkeydown = e => { if (e.key === 'Enter') traCuu()
 $('thoat').onclick = thoat;
 
 (async () => {
-  try { PHIEN = JSON.parse(sessionStorage.getItem('gtgt')); } catch (e) {}
+  try { PHIEN = JSON.parse(localStorage.getItem('gtgt')) || JSON.parse(sessionStorage.getItem('gtgt')); } catch (e) {}
+  if (PHIEN && PHIEN.het && PHIEN.het < Date.now()) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; return; }
   if (PHIEN) {
     try { META = await goi('layMeta', PHIEN.token); return hien('tra'); } catch (e) { PHIEN = null; }
   }
