@@ -1283,6 +1283,7 @@ function veBcDv(d) {
   const loaiKhac = Object.keys(luotLoai).filter(k => LOAI.indexOf(k) < 0);
   const cot = LOAI.concat(loaiKhac);
   const tenLoai = k => k === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : k;
+  const cotKt = cot.filter(k => k !== 'Bảo hành');   // cột lượt tự khai thác
   const tagX = x => xLuot.length > 1 ? '<span class="dv-x" style="background:' + DV_MAU[x] + '"></span>' : '';
 
   $('bc-nd').innerHTML = '<div class="bc-so">'
@@ -1314,11 +1315,16 @@ function veBcDv(d) {
       + (thangNc.length ? bdNhom(thangNc.map(th => ({ nhan: 'T' + +th.slice(5) + '/' + th.slice(2, 4) + (th === thang ? ' (đến ' + ngayVN(chot).slice(0, 5) + ')' : ''), gt: DV_TO.map(t => ncTo(th, t[0])) })), DV_TO) : '<p class="mo">Chưa có dữ liệu.</p>')
       + (xNc.length > 1 && thangNc.length ? bangBc(['Tháng ' + +thang.slice(5), 'Xưởng'].concat(DV_TO.map(t => t[1])), xNc.map(x => ['', tagX(x) + DV_TEN_X[x]].concat(DV_TO.map(t => trD(ncTo(thang, t[0], x))))), [2, 3, 4], 0, '') : '')
       + '<div class="bc-chu">Tiền công các công việc theo tổ nhân công trên lệnh (chi tiết RO dùng tính lương), theo tháng thanh toán, mọi đối tượng thanh toán (khách, bảo hiểm, bảo hành, nội bộ).</div>', 'margin-top:16px')
-    + the('Lượt xe theo loại và cố vấn (30 ngày)', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cot.map(tenLoai), ['Tổng', 'Giá trị lệnh (tr)']),
-      (d.cvdv || []).map((c, i) => [i + 1, tagX(c[0]) + esc(c[1])].concat(cot.map(k => tien(c[2][k] || 0)), ['<b>' + tien(Object.values(c[2]).reduce((s, v) => s + v, 0)) + '</b>', trD(c[3])]))
-        .concat([['', '<b>Tổng</b>'].concat(cot.map(k => '<b>' + tien(Object.values(luotLoai[k] || {}).reduce((s, v) => s + v, 0)) + '</b>'), ['<b>' + tien(tongLuot) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + c[3], 0)) + '</b>'])]),
-      [0].concat(cot.map((_, i) => i + 2), [cot.length + 2, cot.length + 3]), 0, 'Không có.')
-      + '<div class="bc-chu">Cố vấn theo người lập lệnh trên DMS (quy đổi qua sheet CVDV của Master Data). Giá trị lệnh có VAT, kể cả lệnh chưa sửa.' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : '') + '</div>', 'margin-top:16px')
+    // CVDV, GĐDV đánh giá theo khả năng tự khai thác: trừ nội bộ, bảo hành (người dùng chốt 27/11/2026). Lượt bảo hành để cột riêng
+    + the('Cố vấn dịch vụ: tự khai thác (trừ nội bộ, bảo hành)', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cotKt.map(tenLoai), ['Lượt tự khai thác', 'Bảo hành (không tính)', 'Giá trị lệnh 30 ngày (tr)', 'Doanh thu T' + +thang.slice(5) + ' (tr)']),
+      (d.cvdv || []).map((c, i) => [i + 1, tagX(c[0]) + esc(c[1])].concat(cotKt.map(k => tien(c[2][k] || 0)),
+        ['<b>' + tien(cotKt.reduce((s, k) => s + (c[2][k] || 0), 0)) + '</b>', '<span class="mo">' + tien(c[2]['Bảo hành'] || 0) + '</span>', trD(c[3]), '<b>' + trD(c[4] || 0) + '</b>']))
+        .concat([['', '<b>Tổng</b>'].concat(cotKt.map(k => '<b>' + tien(Object.values(luotLoai[k] || {}).reduce((s, v) => s + v, 0)) + '</b>'),
+          ['<b>' + tien(cotKt.reduce((s, k) => s + Object.values(luotLoai[k] || {}).reduce((a, v) => a + v, 0), 0)) + '</b>', '<span class="mo">' + tien(Object.values(luotLoai['Bảo hành'] || {}).reduce((s, v) => s + v, 0)) + '</span>',
+            '<b>' + trD((d.cvdv || []).reduce((s, c) => s + c[3], 0)) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[4] || 0), 0)) + '</b>'])]),
+      [0].concat(cotKt.map((_, i) => i + 2), [cotKt.length + 2, cotKt.length + 3, cotKt.length + 4, cotKt.length + 5]), 0, 'Không có.')
+      + '<div class="bc-chu">Lượt xe, giá trị lệnh: 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + ngayVN(chot).slice(0, 5) + '), theo người lập lệnh trên DMS; giá trị lệnh có VAT, kể cả lệnh chưa sửa, trừ bảo hành. '
+      + 'Doanh thu: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, trừ nội bộ, bảo hành (cộng các CVDV bằng doanh thu tính chỉ tiêu).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : '') + '</div>', 'margin-top:16px')
     + the('Top báo giá 30 ngày', bangBc(['STT', 'Ngày', 'Biển số', 'Loại', 'CVDV', 'Nội dung', 'Giá trị (tr)', 'Trạng thái'],
       (d.top_bg || []).map((b, i) => [i + 1, ngayVN(b.ngay).slice(0, 5), tagX(b.x) + (META.vai === 'baocao' ? esc(b.b) : '<a href="#" data-nb="' + esc(b.b) + '">' + esc(b.b) + '</a>'), esc(tenLoai(b.loai)), esc(b.cv),
         '<span class="mo">' + esc(b.nd) + '</span>', trD(b.tien), esc(b.tt)]), [0, 6], 0, 'Không có.')
