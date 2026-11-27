@@ -1512,15 +1512,15 @@ function veBcDv(d) {
       'Chưa VAT, theo tháng thanh toán; gồm BD, SCC, Bảo hiểm, Đồng sơn tiền mặt (không tính nội bộ, bảo hành, PDI và lệnh xe mới không có trong Master Data). Rê chuột lên cột để xem % đạt chỉ tiêu.')
     + '</div>'
     + '<div class="bc-2">'
-    + the('Doanh thu khai thác theo loại lệnh, 6 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
-      + bdThang((d.loai_12 || []).filter(([th]) => th !== thang).slice(-6).map(([th, ob]) => {
+    + the('Doanh thu khai thác theo loại lệnh, 7 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
+      + bdThang((d.loai_12 || []).slice(-7).map(([th, ob]) => {
         const g = DV_LOAI_12.map(([l]) => Object.values(ob).reduce((s, c) => s + (c[l] || 0), 0)), tg = g.reduce((s, v) => s + v, 0) || 1;
         const ten = 'Tháng ' + +th.slice(5) + '/' + th.slice(0, 4) + (th === thang ? ' (đến ' + den + ')' : '');
-        return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th.slice(5) === '01' || th === ((d.loai_12 || []).filter(([m]) => m !== thang).slice(-6)[0] || [])[0] ? '/' + th.slice(2, 4) : ''), gt: g,
+        return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th.slice(5) === '01' || th === ((d.loai_12 || []).slice(-7)[0] || [])[0] ? '/' + th.slice(2, 4) : ''), gt: g,
           tips: DV_LOAI_12.map(([l], k) => ten + ' · ' + tenLoai(l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%'
             + (Object.keys(ob).length > 1 ? ' (' + Object.keys(ob).map(x => DV_TEN_X[x] + ' ' + trD(ob[x][l] || 0)).join(', ') + ')' : '')) };
       }), DV_LOAI_12.map(([, m]) => m), {}, false, 720, 270)
-      + '<div class="bc-chu">6 tháng đủ gần nhất, không gồm tháng ' + +thang.slice(5) + ' đang chạy.</div>',
+      + '<div class="bc-chu">6 tháng gần nhất và ' + T + '* (đến ' + den + ').</div>',
       'Chưa VAT, theo tháng thanh toán; loại theo phân loại lệnh trên DMS (Master Data). Rê chuột lên từng đoạn để xem số tiền, tỷ trọng' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
     + the('Thị phần doanh thu bảo hiểm 6 tháng gần nhất', '<div class="loc dv-loc" id="dv-bh-loc"></div><div id="dv-bh"></div>',
       'Lệnh loại Bảo hiểm, doanh thu chưa VAT theo ngày thanh toán, theo công ty bảo hiểm ghi trên lệnh (Master Data, cột "Chi tiết BH"); 5 công ty lớn nhất, còn lại gộp "Khác". Rê chuột lên ô để xem số tiền' + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc.' : '.'))
