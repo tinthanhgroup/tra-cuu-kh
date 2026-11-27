@@ -1415,10 +1415,10 @@ function veBcDv(d) {
     // top 5 (như Power BI DV): lệnh vào xưởng, có VAT, mọi loại lệnh, kể cả chưa sửa; rê chuột xem ngày, loại, nội dung
     + '<div class="dv-phai">'
     + the('Top 5 báo giá ngày ' + (d.bg_ngay_d ? ngayVN(d.bg_ngay_d).slice(0, 5) : ''), bdNgang((d.bg_ngay || []).slice(0, 5), bienSo, tipLenh))
-    + the('Top 5 xe sửa chữa nặng T' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : ''), bdNgang((d.nang_thang || []).slice(0, 5), bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
-    + the('Top 5 báo giá T' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : ''), bdNgang((d.bg_thang || []).slice(0, 5), bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
+    + the('Top 5 báo giá T' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : ''), bdNgang((d.bg_thang || []).slice(0, 5), bienSo, b => 'Vào xưởng ' + ngayVN(b.ngay) + ' · ' + tipLenh(b)))
+    + the('Top 5 xe thanh toán xong T' + +thang.slice(5), bdNgang((d.xe_tt || []).slice(0, 5), bienSo, tipLenh))
     + '</div></div>'
-    + '<div class="bc-chu">Top 5 (triệu, có VAT): lệnh vào xưởng mọi loại, kể cả lệnh chưa sửa, như Power BI DV. Báo giá ngày: ngày vào xưởng mới nhất có dữ liệu; xe sửa nặng: lệnh lớn nhất của mỗi xe trong tháng; báo giá tháng: từng lệnh. '
+    + '<div class="bc-chu">Top 5 (triệu, có VAT). Báo giá: lệnh vào xưởng mọi loại, kể cả lệnh chưa sửa, như Power BI DV. Báo giá ngày: ngày vào xưởng mới nhất có dữ liệu; báo giá tháng: từng lệnh vào xưởng trong tháng; xe thanh toán xong: lệnh thanh toán trong tháng (tổng tiền có VAT, không tính nội bộ). '
     + 'Rê chuột lên thanh để xem ngày, loại, nội dung' + (META.vai === 'baocao' ? '' : ', bấm biển số để tra xe') + '.</div>'
     + '<div class="bc-2">'
     + the('Doanh thu theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
