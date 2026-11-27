@@ -222,9 +222,10 @@
   .bc-so .nhan:first-child { flex: 1; }
   .bc-so .so { font-size: var(--fs-6); font-weight: 500; margin-top: 2px; }
   .bc-so.dv-so { gap: 16px; }
-  .bc-so > div[data-muc] { cursor: pointer; transition: border-color .15s; }
+  .bc-so > div[data-muc] { cursor: pointer; transition: border-color .15s; background: var(--accent-soft); border-color: var(--accent-line); }
   .bc-so > div[data-muc]:hover { border-color: var(--accent); }
-  .bc-so > div[data-muc] .nhan:first-child::after { content: ' ›'; }
+  .bc-so .o-xem { font-size: var(--fs-1); color: var(--accent); text-align: right; margin-top: 4px; font-weight: 500; line-height: 1.4; }
+  .bc-so:has(> div[data-muc]) > div:not([data-muc])::after { content: ''; display: block; margin-top: 4px; height: 1.4em; font-size: var(--fs-1); }   /* chừa dòng "Xem danh sách" để số các ô thẳng hàng */
   .nb-ve { display: inline-block; margin: 0 0 10px; font-size: var(--fs-2); }
   .bc-so.dv-so .nhan:first-child { flex: 0 0 auto; min-height: 2.8em; }
   .bc-so.dv-so .so { flex: 1; display: flex; align-items: center; margin: 6px 0; }
@@ -1802,7 +1803,7 @@ function oNhacBd(nb) {
   if (!tuan) return '';
   const phu = (kq ? tien(tc) + ' thành công' : 'chưa có kết quả Zalo') + (goiX ? ' · ' + tien(goiX) + ' cần gọi' : '');
   return '<div data-muc="nb" title="Bấm để xem chi tiết nhắc bảo dưỡng"><div class="nhan">Nhắc bảo dưỡng tuần ' + tuan + '</div><div class="so">'
-    + tien(gui) + ' tin</div><div class="nhan">' + phu + '</div></div>';
+    + tien(gui) + ' tin</div><div class="nhan">' + phu + '</div><div class="o-xem">Xem danh sách ›</div></div>';
 }
 
 let BC_LUOT = 0;
