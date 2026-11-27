@@ -261,6 +261,7 @@
   .dv-trang .bc-3 { margin-top: 16px; align-items: stretch; }
   .dv-trang .bc-3 > .card { display: flex; flex-direction: column; margin-bottom: 0; }
   .dv-trang #dv-nc .bang th, .dv-trang #dv-nc .bang td { padding-left: 4px; padding-right: 4px; }
+  #bc-muc:not(:empty) + #bc-cn:not(:empty) { border-left: 1px solid var(--border); padding-left: 12px; margin-left: 4px; }
   .dv-gach { display: inline-block; width: 1px; height: 18px; background: var(--border); margin: 0 4px; vertical-align: middle; }
   .dv-loc { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .dv-phai { display: flex; flex-direction: column; gap: 12px; }
@@ -1411,6 +1412,14 @@ function bdLuyKe(ngay, thucTe, chiTieu) {
   return s + '</svg>';
 }
 
+/** "dd/mm/yyyy HH:MM" → "x phút / giờ / ngày trước". */
+function luc(s) {
+  const m = /(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/.exec(s || '');
+  if (!m) return '';
+  const phut = Math.max(0, Math.round((Date.now() - new Date(+m[3], m[2] - 1, +m[1], +m[4], +m[5])) / 60000));
+  return phut < 60 ? phut + ' phút trước' : phut < 1440 ? Math.round(phut / 60) + ' giờ trước' : Math.round(phut / 1440) + ' ngày trước';
+}
+
 function veBcDv(d) {
   veCnBc(d);
   DV_BH.d = d; DV_BH.x = 'all'; DV_NC_X = 'all';
@@ -1478,8 +1487,8 @@ function veBcDv(d) {
     + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
     + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
-    + o('Cần mỗi ngày còn lại', canNgay != null ? trD(canNgay) + ' tr' : '–', lvCon + ' ngày làm việc')
-    + o('Lượt xe 30 ngày', tien(tongLuot)) + '</div>'
+    + o('Lượt xe từ đầu tháng', tien((d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0)), 'đến ' + den)
+    + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, theo ngày thanh toán, không tính nội bộ, bảo hành, PDI; lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + ', cập nhật ' + esc(d.cap_nhat) + '.</div>'
     + '<div class="dv-tren">'
     + the('Doanh thu khai thác lũy kế so với chỉ tiêu', '<div class="dv-cu"><span><i style="background:var(--dv-chinh)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
@@ -1636,8 +1645,9 @@ function veCnBc(d) {
 const anThanhBc = () => { $('man-bc').querySelector('.thanh-tra').hidden = !$('bc-muc').innerHTML && !$('bc-cn').innerHTML && $('bc-ngay').hidden && $('bc-ve').hidden && !$('bc-loi').textContent; };
 
 async function bcTai() {
-  const muc = [['dv', 'Dịch vụ', META.xemDv], ['lt', 'Lễ tân DV', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs], ['nb', 'Nhắc bảo dưỡng', META.xemNb]]
-    .filter(m => (m[2] || []).length);
+  // nhóm mục (đánh số theo thứ tự hiện) tách khỏi nhóm chi nhánh (người dùng chốt 27/11/2026)
+  const muc = [['dv', 'Tổng hợp', META.xemDv], ['nb', 'Nhắc bảo dưỡng', META.xemNb], ['lt', 'Tiếp nhận', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs]]
+    .filter(m => (m[2] || []).length).map((m, i) => [m[0], (i + 1) + '. ' + m[1], m[2]]);
   if (!muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
   $('bc-muc').innerHTML = muc.length > 1 ? muc
     .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
