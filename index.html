@@ -241,6 +241,14 @@
   .nb-tin { margin-top: 12px; font-size: var(--fs-2); }
   .nb-tin div { padding: 4px 0; border-top: 1px solid var(--line); }
   a[data-nb] { cursor: pointer; }
+  /* Mục Dịch vụ: biểu đồ SVG (đường lũy kế, cột ngày), chú thích xưởng */
+  .dv-bd { width: 100%; height: auto; display: block; margin-top: 8px; }
+  .dv-bd text { font: 400 11px Inter, system-ui, sans-serif; fill: var(--muted); }
+  .dv-bd .luoi { stroke: var(--line); }
+  .dv-cu { display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--fs-1); color: var(--muted); margin-top: 6px; }
+  .dv-cu i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .dv-cu i.net { height: 0; border-top: 2px dashed var(--hint); border-radius: 0; vertical-align: 3px; }
+  .dv-x { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
   .bc-thanh { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); opacity: .35; vertical-align: middle; margin-right: 6px; }
   /* Thanh 30 ngày: nền nhạt = khách khác, phần đậm bên trái = khách hẹn (chú thích .bc-chu-thanh) */
   .bc-thanh2 { display: inline-block; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 25%, transparent); vertical-align: middle; margin-right: 6px; overflow: hidden; }
@@ -530,7 +538,7 @@ function hien(man) {
     $('cn').textContent = META.chi_nhanh;
     DM = undefined;
     $('cap-nhat').innerHTML = 'Dữ liệu lệnh đến ' + META.du_lieu_den + ' · <a href="#" id="xem-dm">Danh mục GTGT</a>'
-      + ((META.xemBc || []).length || (META.xemLs || []).length || (META.xemNb || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp</a>' : '');
+      + ((META.xemBc || []).length || (META.xemLs || []).length || (META.xemNb || []).length || (META.xemDv || []).length ? ' · <a href="#" id="xem-bc">Tổng hợp</a>' : '');
     if ($('xem-bc')) $('xem-bc').onclick = e => { e.preventDefault(); hien('bc'); };
     // Danh mục GTGT thay chỗ kết quả tra, chữ đổi thành "Quay lại"; bấm lần nữa vẽ lại xe đang xem (hoặc trang trống)
     $('xem-dm').onclick = e => {
@@ -1161,6 +1169,122 @@ function veBcNb(d) {
 }
 let NB = null;
 
+// ---------- Mục "Dịch vụ": một trang bao quát từng chi nhánh (người dùng chốt 27/11/2026) ----------
+// Doanh thu theo ngày thanh toán (chưa VAT) so chỉ tiêu nội bộ tháng chia đều ngày làm việc (thứ Hai – thứ Bảy), lũy kế;
+// lượt xe, theo CVDV, top báo giá 30 ngày. Đà Lạt và Bảo Lộc chung một trang, phân biệt bằng màu + chú thích.
+const DV_MAU = { NT: 'var(--accent)', PY: 'var(--accent)', 'ĐL': 'var(--accent)', BL: '#d9480f', LD: '#9aa1ad' };
+const DV_TEN_X = { NT: 'Nha Trang', PY: 'Phú Yên', 'ĐL': 'Đà Lạt', BL: 'Bảo Lộc', LD: 'Lâm Đồng (chưa rõ xưởng)' };
+const trD = v => (Math.round(v / 1e5) / 10).toLocaleString('vi-VN');   // triệu, 1 số lẻ
+
+/** Biểu đồ cột (xếp chồng theo xưởng) + đường ngang tham chiếu; mỗi cột có tooltip. hang: [{nhan, gt: [..theo xưởng], tip}] */
+function bdCot(hang, xs, ref, refTen) {
+  const W = 720, H = 200, l = 44, r = 8, t = 10, b = 26, n = hang.length || 1;
+  const max = Math.max(1, ref || 0, ...hang.map(h => h.gt.reduce((s, v) => s + v, 0))) * 1.08;
+  const y = v => t + (H - t - b) * (1 - v / max), bw = Math.max(2, (W - l - r) / n - 3);
+  const nac = [0, .25, .5, .75, 1].map(k => max / 1.08 * k);
+  let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+  nac.forEach(v => { s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + (v >= 1e6 ? trD(v) : Math.round(v)) + '</text>'; });
+  hang.forEach((h, i) => {
+    const x = l + i * (W - l - r) / n + 1.5;
+    let dinh = H - b;
+    h.gt.forEach((v, k) => {
+      if (!v) return;
+      const cao = (H - t - b) * v / max;
+      s += '<rect x="' + x + '" y="' + (dinh - cao + (k ? 1 : 0)) + '" width="' + bw + '" height="' + Math.max(0, cao - (k ? 1 : 0)) + '" rx="2" fill="' + (DV_MAU[xs[k]] || 'var(--accent)') + '"><title>' + h.tip + '</title></rect>';
+      dinh -= cao;
+    });
+    if (n <= 31 || i % 3 === 0) s += '<text x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + h.nhan + '</text>';
+  });
+  if (ref) s += '<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(ref) + '" y2="' + y(ref) + '" stroke="var(--hint)" stroke-width="1.5" stroke-dasharray="5 4"><title>' + refTen + '</title></line>';
+  return s + '</svg>';
+}
+
+/** Đường lũy kế thực tế (đến ngày chốt) và chỉ tiêu (cả tháng, nét đứt), một trục. */
+function bdLuyKe(ngay, thucTe, chiTieu) {
+  const W = 1100, H = 240, l = 52, r = 12, t = 12, b = 26, n = ngay.length;   // khung rộng cả trang: chữ trục giữ cỡ 11px
+  const max = Math.max(1, ...chiTieu, ...thucTe.filter(v => v != null)) * 1.05;
+  const x = i => l + (W - l - r) * (n > 1 ? i / (n - 1) : 0), y = v => t + (H - t - b) * (1 - v / max);
+  const duong = (ds, net, mau) => '<polyline fill="none" stroke="' + mau + '" stroke-width="2"' + (net ? ' stroke-dasharray="6 4"' : '') + ' stroke-linejoin="round" points="'
+    + ds.map((v, i) => v == null ? '' : x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ') + '"/>';
+  let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.05 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + trD(v) + '</text>'; });
+  ngay.forEach((d, i) => { if (i % 3 === 0 || i === n - 1) s += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + d.slice(8, 10) + '</text>'; });
+  s += duong(chiTieu, true, 'var(--hint)') + duong(thucTe, false, 'var(--accent)');
+  // điểm hover mỗi ngày đã có số
+  ngay.forEach((d, i) => { if (thucTe[i] != null) s += '<circle cx="' + x(i) + '" cy="' + y(thucTe[i]) + '" r="4" fill="var(--accent)" stroke="#fff" stroke-width="2"><title>' + ngayVN(d) + ': thực tế ' + trD(thucTe[i]) + ' tr, chỉ tiêu ' + trD(chiTieu[i]) + ' tr</title></circle>'; });
+  return s + '</svg>';
+}
+
+function veBcDv(d) {
+  veCnBc(d);
+  const o = (nhan, so, phu, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div>' + (phu ? '<div class="nhan">' + phu + '</div>' : '') + '</div>';
+  let stt = 0;
+  const the = (tieuDe, noiDung, kieu) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
+  const xs = d.dt_cot || [], chot = d.chot, thang = chot.slice(0, 7);
+  const coLD = xs.indexOf('LD') >= 0 && (d.dt || []).some(r => r[1 + xs.indexOf('LD')]);
+  const xsHien = xs.filter(x => x !== 'LD' || coLD);
+  const chuThich = xsHien.length > 1 ? '<div class="dv-cu">' + xsHien.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') + '</div>' : '';
+  // Doanh thu tháng, chỉ tiêu lũy kế theo ngày làm việc
+  const dtNgay = {}; (d.dt || []).forEach(r => { dtNgay[r[0]] = r.slice(1); });
+  const cuoi = new Date(Date.UTC(+thang.slice(0, 4), +thang.slice(5, 7), 0)).getUTCDate();
+  const ngayThang = Array.from({ length: cuoi }, (_, i) => thang + '-' + String(i + 1).padStart(2, '0'));
+  const lv = new Set(d.ngay_lv || []), soLv = (d.ngay_lv || []).length || 1, ctNgay = (d.chi_tieu || 0) / soLv;
+  let ct = 0, tt = 0;
+  const ctLk = [], ttLk = [];
+  ngayThang.forEach(n => {
+    if (lv.has(n)) ct += ctNgay;
+    ctLk.push(ct);
+    if (n <= chot) { tt += (dtNgay[n] || []).reduce((s, v) => s + v, 0); ttLk.push(tt); } else ttLk.push(null);
+  });
+  const ctDen = ctLk[ngayThang.indexOf(chot)] || 0, lvCon = (d.ngay_lv || []).filter(n => n > chot).length;
+  const canNgay = d.chi_tieu && lvCon ? Math.max(0, d.chi_tieu - tt) / lvCon : null;
+  // Lượt xe 30 ngày theo ngày, xưởng, loại
+  const luotNgay = {}, luotLoai = {}, luotX = {};
+  (d.luot || []).forEach(([n, x, c]) => {
+    const tong = Object.values(c).reduce((s, v) => s + v, 0);
+    (luotNgay[n] = luotNgay[n] || {})[x] = tong; luotX[x] = (luotX[x] || 0) + tong;
+    Object.entries(c).forEach(([k, v]) => { luotLoai[k] = luotLoai[k] || {}; luotLoai[k][x] = (luotLoai[k][x] || 0) + v; });
+  });
+  const ngay30 = Object.keys(luotNgay).sort(), tongLuot = Object.values(luotX).reduce((s, v) => s + v, 0);
+  const xLuot = d.xuong || [];
+  const LOAI = ['BD', 'SCC', 'Đồng sơn tiền mặt', 'Bảo hành', 'Bảo hiểm'];
+  const loaiKhac = Object.keys(luotLoai).filter(k => LOAI.indexOf(k) < 0);
+  const cot = LOAI.concat(loaiKhac);
+  const tenLoai = k => k === 'Đồng sơn tiền mặt' ? 'Đồng sơn' : k;
+  const tagX = x => xLuot.length > 1 ? '<span class="dv-x" style="background:' + DV_MAU[x] + '"></span>' : '';
+
+  $('bc-nd').innerHTML = '<div class="bc-so">'
+    + o('Doanh thu tháng ' + thang.slice(5) + ' (đến ' + ngayVN(chot).slice(0, 5) + ')', trD(tt) + ' tr')
+    + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
+    + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
+    + o('So chỉ tiêu lũy kế tới ' + ngayVN(chot).slice(0, 5), d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
+    + o('Cần mỗi ngày còn lại', canNgay != null ? trD(canNgay) + ' tr' : '–', lvCon + ' ngày làm việc')
+    + o('Lượt xe 30 ngày', tien(tongLuot)) + '</div>'
+    + '<div class="bc-chu">Doanh thu theo ngày thanh toán, chưa VAT; chỉ tiêu nội bộ tháng (trước thuế) chia đều ' + soLv + ' ngày làm việc (thứ Hai – thứ Bảy). '
+    + 'Lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + ', cập nhật ' + esc(d.cap_nhat) + '.</div>'
+    + the('Doanh thu lũy kế so với chỉ tiêu', '<div class="dv-cu"><span><i style="background:var(--accent)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
+      + (d.chi_tieu ? bdLuyKe(ngayThang, ttLk, ctLk) : '<p class="mo">Chưa có chỉ tiêu tháng ' + thang.slice(5) + '.</p>'), 'margin-top:16px')
+    + '<div class="bc-2">'
+    + the('Doanh thu từng ngày (triệu)', chuThich.replace('</div>', '<span><i class="net"></i>Chỉ tiêu bình quân 1 ngày làm việc</span></div>')
+      + bdCot(ngayThang.filter(n => n <= chot).map(n => {
+        const g = xsHien.map(x => (dtNgay[n] || [])[xs.indexOf(x)] || 0);
+        return { nhan: n.slice(8, 10), gt: g, tip: ngayVN(n) + ': ' + xsHien.map((x, k) => (xsHien.length > 1 ? DV_TEN_X[x] + ' ' : '') + trD(g[k]) + ' tr').join(', ') };
+      }), xsHien, ctNgay, 'Chỉ tiêu bình quân ' + trD(ctNgay) + ' tr/ngày làm việc'))
+    + the('Lượt xe 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + ngayVN(chot).slice(0, 5) + ')', (xLuot.length > 1 ? '<div class="dv-cu">' + xLuot.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + ' ' + tien(luotX[x] || 0) + '</span>').join('') + '</div>' : '')
+      + bdCot(ngay30.map(n => ({ nhan: n.slice(8, 10), gt: xLuot.map(x => (luotNgay[n] || {})[x] || 0),
+        tip: ngayVN(n) + ': ' + xLuot.map(x => (xLuot.length > 1 ? DV_TEN_X[x] + ' ' : '') + ((luotNgay[n] || {})[x] || 0) + ' xe').join(', ') })), xLuot))
+    + '</div>'
+    + the('Lượt xe theo loại và cố vấn (30 ngày)', bangBc(['STT', 'Cố vấn dịch vụ'].concat(cot.map(tenLoai), ['Tổng', 'Giá trị lệnh (tr)']),
+      (d.cvdv || []).map((c, i) => [i + 1, tagX(c[0]) + esc(c[1])].concat(cot.map(k => tien(c[2][k] || 0)), ['<b>' + tien(Object.values(c[2]).reduce((s, v) => s + v, 0)) + '</b>', trD(c[3])]))
+        .concat([['', '<b>Tổng</b>'].concat(cot.map(k => '<b>' + tien(Object.values(luotLoai[k] || {}).reduce((s, v) => s + v, 0)) + '</b>'), ['<b>' + tien(tongLuot) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + c[3], 0)) + '</b>'])]),
+      [0].concat(cot.map((_, i) => i + 2), [cot.length + 2, cot.length + 3]), 0, 'Không có.')
+      + '<div class="bc-chu">Cố vấn theo người lập lệnh trên DMS (quy đổi qua sheet CVDV của Master Data). Giá trị lệnh có VAT, kể cả lệnh chưa sửa.' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : '') + '</div>', 'margin-top:16px')
+    + the('Top báo giá 30 ngày', bangBc(['STT', 'Ngày', 'Biển số', 'Loại', 'CVDV', 'Nội dung', 'Giá trị (tr)', 'Trạng thái'],
+      (d.top_bg || []).map((b, i) => [i + 1, ngayVN(b.ngay).slice(0, 5), tagX(b.x) + (META.vai === 'baocao' ? esc(b.b) : '<a href="#" data-nb="' + esc(b.b) + '">' + esc(b.b) + '</a>'), esc(tenLoai(b.loai)), esc(b.cv),
+        '<span class="mo">' + esc(b.nd) + '</span>', trD(b.tien), esc(b.tt)]), [0, 6], 0, 'Không có.')
+      + '<div class="bc-chu">Lệnh vào xưởng có giá trị lớn nhất trong 30 ngày (có VAT, kể cả lệnh chưa sửa), cùng cách tính "báo giá lớn" của bản tin sáng.</div>', 'margin-top:16px');
+}
+
 /** Trang tổng thể cho BGĐ (người dùng chốt 27/11/2026): 4 chỉ số theo dõi hằng tuần (26. Nhac bao duong/README.md mục 2),
  *  các đại lý đặt cạnh nhau theo thứ tự cố định, không xếp hạng, không tô màu tốt/kém. Chưa đủ dữ liệu thì ghi rõ. */
 function veBcNbTong(d) {
@@ -1251,7 +1375,7 @@ function veCnBc(d) {
 const anThanhBc = () => { $('man-bc').querySelector('.thanh-tra').hidden = !$('bc-muc').innerHTML && !$('bc-cn').innerHTML && $('bc-ngay').hidden && $('bc-ve').hidden && !$('bc-loi').textContent; };
 
 async function bcTai() {
-  const muc = [['lt', 'Lễ tân DV', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs], ['nb', 'Nhắc bảo dưỡng', META.xemNb]]
+  const muc = [['dv', 'Dịch vụ', META.xemDv], ['lt', 'Lễ tân DV', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs], ['nb', 'Nhắc bảo dưỡng', META.xemNb]]
     .filter(m => (m[2] || []).length);
   if (!muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
   $('bc-muc').innerHTML = muc.length > 1 ? muc
@@ -1261,6 +1385,7 @@ async function bcTai() {
   try {
     if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn));
     else if (BC.muc === 'nb') await bcNb();
+    else if (BC.muc === 'dv') veBcDv(await goi('bcDichVu', PHIEN.token, BC.cn));
     else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn));
   }
   catch (e) {
