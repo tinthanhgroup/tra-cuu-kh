@@ -219,6 +219,9 @@
   .bc-so .nhan { font-size: var(--fs-1); color: var(--muted); }
   .bc-so .nhan:first-child { flex: 1; }
   .bc-so .so { font-size: var(--fs-6); font-weight: 500; margin-top: 2px; }
+  .bc-so.dv-so .nhan:first-child { flex: 0 0 auto; min-height: 2.8em; }
+  .bc-so.dv-so .so { flex: 1; display: flex; align-items: center; justify-content: center; margin: 6px 0; }
+  .bc-so.dv-so .nhan:not(:first-child) { text-align: center; min-height: 1.4em; }
   .bc-chu { font-size: var(--fs-1); color: var(--muted); margin-top: 6px; }
   #man-bc .thanh-tra[hidden] + #bc-nd { padding-top: 16px; }
   .bang:not(.mo-het) tr.them { display: none; }
@@ -1312,7 +1315,7 @@ function bdLuyKe(ngay, thucTe, chiTieu) {
 function veBcDv(d) {
   veCnBc(d);
   DV_BH.d = d;
-  const o = (nhan, so, phu, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div>' + (phu ? '<div class="nhan">' + phu + '</div>' : '') + '</div>';
+  const o = (nhan, so, phu, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div>' + '<div class="nhan">' + (phu || '') + '</div>' + '</div>';
   let stt = 0;
   const the = (tieuDe, noiDung, kieu) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
   const xs = d.dt_cot || [], chot = d.chot, thang = chot.slice(0, 7);
@@ -1364,8 +1367,8 @@ function veBcDv(d) {
   const bienSo = b => tagX(b.x) + (META.vai === 'baocao' ? esc(b.b) : '<a href="#" data-nb="' + esc(b.b) + '">' + esc(b.b) + '</a>');
   const tipLenh = b => (xLuot.length > 1 ? DV_TEN_X[b.x] + ' · ' : '') + tenLoai(b.loai) + ' · ' + trD(b.tien) + ' tr' + (b.tt ? ' · ' + b.tt : '') + (b.nd ? '\n' + b.nd : '');
 
-  $('bc-nd').innerHTML = '<div class="bc-so">'
-    + o('Doanh thu tính chỉ tiêu T' + +thang.slice(5) + ' (đến ' + ngayVN(chot).slice(0, 5) + ')', trD(tt) + ' tr', 'tổng ' + trD(tongThang) + ' tr gồm nội bộ, bảo hành')
+  $('bc-nd').innerHTML = '<div class="bc-so dv-so">'
+    + o('Doanh thu tính chỉ tiêu T' + +thang.slice(5) + ' (đến ' + ngayVN(chot).slice(0, 5) + ')', trD(tt) + ' tr')
     + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
     + o('So chỉ tiêu lũy kế tới ' + ngayVN(chot).slice(0, 5), d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
