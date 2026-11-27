@@ -1197,6 +1197,7 @@ const DV_TEN_X = { NT: 'Nha Trang', PY: 'Phú Yên', 'ĐL': 'Đà Lạt', BL: 'B
 const trD = v => (Math.round(v / 1e5) / 10).toLocaleString('vi-VN');   // triệu, 1 số lẻ
 const DV_TO = [['1', 'Tổ SCC', '#3b5bdb'], ['2', 'Tổ Đồng', '#d9480f'], ['3', 'Tổ Sơn', '#1aa39a']];   // màu đã kiểm tra phân biệt (kể cả mù màu)
 const DV_LOAI_DT = ['BD', 'SCC', 'Bảo hiểm', 'Bảo hành', 'Đồng sơn tiền mặt', 'Khác'];
+const DV_LOAI_12 = [['BD', '#2a78d6'], ['SCC', '#eb6834'], ['Bảo hiểm', '#1baf7a'], ['Đồng sơn tiền mặt', '#eda100']];   // 4 màu đầu bảng màu đã kiểm tra
 // Thị phần bảo hiểm: 8 màu phân loại theo thứ tự cố định (bảng màu đã kiểm tra), gán theo công ty (xếp theo doanh thu "Tất cả")
 // để bật/tắt xe ngập không đổi màu; từ công ty thứ 9 trở đi màu xám
 const DV_BH_MAU = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
@@ -1269,6 +1270,30 @@ function bdNgang(ds, bien, tip) {
     + Math.round(b.tien / 1e6).toLocaleString('vi-VN') + '</span></div>').join('') + '</div>';
 }
 
+/** Doanh thu theo tháng: cột xếp chồng theo xưởng, số tổng trên đầu cột (triệu), vạch ngang chỉ tiêu tháng; tooltip từng cột. */
+function bdThang(hang, mau, ct) {
+  const W = 720, H = 220, l = 44, r = 8, t = 22, b = 26, n = hang.length || 1;
+  const tong = h => h.gt.reduce((s, v) => s + v, 0);
+  const max = Math.max(1, ...hang.map(tong), ...hang.map(h => ct[h.th] || 0)) * 1.06;
+  const y = v => t + (H - t - b) * (1 - v / max), rong = (W - l - r) / n, bw = Math.min(40, rong - 12);
+  let s = '<svg class="dv-bd" viewBox="0 0 ' + W + ' ' + H + '" role="img">';
+  [0, .25, .5, .75, 1].forEach(k => { const v = max / 1.06 * k; s += '<line class="luoi" x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + Math.round(v / 1e6).toLocaleString('vi-VN') + '</text>'; });
+  hang.forEach((h, i) => {
+    const cx = l + i * rong + rong / 2, c = ct[h.th];
+    let dinh = H - b;
+    h.gt.forEach((v, k) => {
+      if (!v) return;
+      const cao = (H - t - b) * v / max;
+      s += '<rect x="' + (cx - bw / 2) + '" y="' + (dinh - cao + (k ? 1 : 0)) + '" width="' + bw + '" height="' + Math.max(0, cao - (k ? 1 : 0)) + '" rx="2" fill="' + (mau[k] || 'var(--accent)') + '"><title>' + (h.tips ? h.tips[k] : h.tip) + '</title></rect>';
+      dinh -= cao;
+    });
+    if (c) s += '<line x1="' + (cx - bw / 2 - 5) + '" x2="' + (cx + bw / 2 + 5) + '" y1="' + y(c) + '" y2="' + y(c) + '" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 2"><title>Chỉ tiêu ' + trD(c) + ' tr</title></line>';
+    s += '<text class="so" x="' + cx + '" y="' + (Math.min(y(tong(h)), c ? y(c) : 1e9) - 6) + '" text-anchor="middle">' + Math.round(tong(h) / 1e6).toLocaleString('vi-VN') + '</text>'
+      + '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + h.nhan + '</text>';
+  });
+  return s + '</svg>';
+}
+
 /** Biểu đồ cột (xếp chồng theo xưởng) + đường ngang tham chiếu; mỗi cột có tooltip. hang: [{nhan, gt: [..theo xưởng], tip}] */
 function bdCot(hang, xs, ref, refTen) {
   const W = 720, H = 200, l = 44, r = 8, t = 10, b = 26, n = hang.length || 1;
@@ -1321,6 +1346,7 @@ function veBcDv(d) {
   const xs = d.dt_cot || [], chot = d.chot, thang = chot.slice(0, 7);
   const coLD = xs.indexOf('LD') >= 0 && (d.dt || []).some(r => r[1 + xs.indexOf('LD')]);
   const xsHien = xs.filter(x => x !== 'LD' || coLD);
+  const xsT = xs.filter(x => (d.dt_thang || []).some(r => r[1 + xs.indexOf(x)]));   // xưởng có doanh thu theo tháng
   const chuThich = xsHien.length > 1 ? '<div class="dv-cu">' + xsHien.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') + '</div>' : '';
   // Doanh thu tháng, chỉ tiêu lũy kế theo ngày làm việc
   const dtNgay = {}; (d.dt || []).forEach(r => { dtNgay[r[0]] = r.slice(1); });
@@ -1379,20 +1405,30 @@ function veBcDv(d) {
     + the('Doanh thu lũy kế so với chỉ tiêu (trừ nội bộ, bảo hành)', '<div class="dv-cu"><span><i style="background:var(--accent)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
       + (d.chi_tieu ? bdLuyKe(ngayThang, ttLk, ctLk) : '<p class="mo">Chưa có chỉ tiêu tháng ' + thang.slice(5) + '.</p>'), 'margin-top:16px')
     + '<div class="bc-2">'
-    + the('Doanh thu từng ngày, trừ nội bộ, bảo hành (triệu)', chuThich.replace('</div>', '<span><i class="net"></i>Chỉ tiêu bình quân 1 ngày làm việc</span></div>')
-      + bdCot(ngayThang.filter(n => n <= chot).map(n => {
-        const g = xsHien.map(x => (dtNgay[n] || [])[xs.indexOf(x)] || 0);
-        return { nhan: n.slice(8, 10), gt: g, tip: ngayVN(n) + ': ' + xsHien.map((x, k) => (xsHien.length > 1 ? DV_TEN_X[x] + ' ' : '') + trD(g[k]) + ' tr').join(', ') };
-      }), xsHien, ctNgay, 'Chỉ tiêu bình quân ' + trD(ctNgay) + ' tr/ngày làm việc'))
+    + the('Doanh thu theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
+        + '<span><i class="net"></i>Chỉ tiêu tháng</span></div>'
+      + bdThang((d.dt_thang || []).map(r => {
+        const g = xsT.map(x => r[1 + xs.indexOf(x)] || 0), tg = g.reduce((s, v) => s + v, 0), c = (d.ct_thang || {})[r[0]];
+        return { th: r[0], nhan: 'T' + +r[0].slice(5) + (r[0] === thang ? '*' : ''), gt: g,
+          tip: 'Tháng ' + +r[0].slice(5) + (r[0] === thang ? ' (đến ' + ngayVN(chot).slice(0, 5) + ')' : '') + ': ' + trD(tg) + ' tr' + (xsT.length > 1 ? ' (' + xsT.map((x, k) => DV_TEN_X[x] + ' ' + trD(g[k])).join(', ') + ')' : '')
+            + (c ? ', chỉ tiêu ' + trD(c) + ' tr, đạt ' + Math.round(tg / c * 100) + '%' : '') };
+      }), xsT.map(x => DV_MAU[x]), d.ct_thang || {})
+      + '<div class="bc-chu">Chưa VAT, theo tháng thanh toán; gồm BD, SCC, Bảo hiểm, Đồng sơn tiền mặt (không tính nội bộ, bảo hành, PDI và lệnh xe mới không có trong Master Data). T' + +thang.slice(5) + '*: đến ' + ngayVN(chot).slice(0, 5) + '.</div>')
     + the('Lượt xe 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + ngayVN(chot).slice(0, 5) + ')', (xLuot.length > 1 ? '<div class="dv-cu">' + xLuot.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + ' ' + tien(luotX[x] || 0) + '</span>').join('') + '</div>' : '')
       + bdCot(ngay30.map(n => ({ nhan: n.slice(8, 10), gt: xLuot.map(x => (luotNgay[n] || {})[x] || 0),
         tip: ngayVN(n) + ': ' + xLuot.map(x => (xLuot.length > 1 ? DV_TEN_X[x] + ' ' : '') + ((luotNgay[n] || {})[x] || 0) + ' xe').join(', ') })), xLuot))
     + '</div>'
     + '<div class="bc-2">'
-    + the('Tỷ trọng doanh thu tháng ' + +thang.slice(5) + ' theo loại lệnh (chưa VAT)', bangBc(['STT', 'Loại'].concat(xL.length > 1 ? xL.map(x => tagX(x) + DV_TEN_X[x]) : [], ['Doanh thu (tr)', 'Tỷ trọng']),
-      hangTt.concat([['', '<b>Tổng (không gồm nội bộ)</b>'].concat(xL.length > 1 ? xL.map(x => '<b>' + trD(Object.entries(dl[x]).filter(([l]) => l !== 'Nội bộ').reduce((s, [, v]) => s + v, 0)) + '</b>') : [], ['<b>' + trD(mauSo) + '</b>', '100%'])]),
-      Array.from({ length: (xL.length > 1 ? xL.length : 0) + 2 }, (_, i) => i + 2).concat([0]), 0, 'Chưa có doanh thu.')
-      + '<div class="bc-chu">Loại theo phân loại lệnh trên DMS (Master Data); "Khác": lệnh không có trong Master Data (thường là PDI, phụ kiện xe mới). Nội bộ (lệnh chỉ có đối tượng thanh toán LOCAL) để riêng: ' + trD(noiBo) + ' tr.</div>')
+    + the('Doanh thu theo loại lệnh, 12 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + tenLoai(l) + '</span>').join('') + '</div>'
+      + bdThang((d.loai_12 || []).map(([th, o]) => {
+        const g = DV_LOAI_12.map(([l]) => Object.values(o).reduce((s, c) => s + (c[l] || 0), 0)), tg = g.reduce((s, v) => s + v, 0) || 1;
+        const ten = 'Tháng ' + +th.slice(5) + '/' + th.slice(0, 4) + (th === thang ? ' (đến ' + ngayVN(chot).slice(0, 5) + ')' : '');
+        return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th.slice(5) === '01' || th === (d.loai_12[0] || [])[0] ? '/' + th.slice(2, 4) : ''), gt: g,
+          tips: DV_LOAI_12.map(([l], k) => ten + ' · ' + tenLoai(l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%'
+            + (Object.keys(o).length > 1 ? ' (' + Object.keys(o).map(x => DV_TEN_X[x] + ' ' + trD(o[x][l] || 0)).join(', ') + ')' : '')) };
+      }), DV_LOAI_12.map(([, m]) => m), {})
+      + '<div class="bc-chu">Chưa VAT, theo tháng thanh toán; loại theo phân loại lệnh trên DMS (Master Data); không tính nội bộ, bảo hành, PDI và lệnh xe mới. Rê chuột lên từng đoạn để xem số tiền, tỷ trọng'
+      + (xs.length > 1 ? ', tách Đà Lạt / Bảo Lộc' : '') + '. T' + +thang.slice(5) + '*: đến ' + ngayVN(chot).slice(0, 5) + '.</div>')
     + the('Thị phần doanh thu bảo hiểm 6 tháng gần nhất', '<div class="loc dv-loc" id="dv-bh-loc"></div><div id="dv-bh"></div>')
     + '</div>'
     + '<div class="bc-2 bc-23">'
