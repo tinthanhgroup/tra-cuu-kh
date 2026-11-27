@@ -255,6 +255,13 @@
   .dv-ngang .bs { white-space: nowrap; }
   .dv-ngang .stt { color: var(--muted); text-align: right; min-width: 14px; }
   .bc-23 { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+  .dv-tren { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: stretch; }
+  .dv-tren .card { margin-bottom: 0; }
+  .dv-phai { display: flex; flex-direction: column; gap: 12px; }
+  .dv-phai .card { flex: 1; padding: 12px 16px; }
+  .dv-phai .card-title { font-size: var(--fs-3); }
+  .dv-phai .dv-ngang { gap: 4px 8px; margin-top: 8px; }
+  .dv-phai .dv-ngang .cot i { height: 12px; }
   .dv-ngang .cot { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .dv-ngang .cot i { display: block; height: 16px; min-width: 2px; border-radius: 0 4px 4px 0; background: var(--accent); }
   .dv-ngang .cot span { color: var(--muted); white-space: nowrap; }
@@ -278,7 +285,7 @@
   .bc-chu-thanh .o-khac { margin-left: 12px; }
   .bc-chu-thanh .o-hen { background: var(--accent); opacity: .75; }
   .bc-chu-thanh .o-khac { background: color-mix(in srgb, var(--accent) 25%, transparent); }
-  @media (max-width: 760px) { .bc-so { grid-template-columns: repeat(3, minmax(0, 1fr)); } .bc-2, .bc-3, .bc-23 { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 760px) { .bc-so { grid-template-columns: repeat(3, minmax(0, 1fr)); } .bc-2, .bc-3, .bc-23, .dv-tren { grid-template-columns: minmax(0, 1fr); } }
   .bang { width: 100%; border-collapse: collapse; margin-top: 12px; font-variant-numeric: tabular-nums; }
   .bang th { background: var(--head); font-size: var(--fs-2); font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
   .bang td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -1319,7 +1326,7 @@ function bdCot(hang, xs, ref, refTen) {
 
 /** Đường lũy kế thực tế (đến ngày chốt) và chỉ tiêu (cả tháng, nét đứt), một trục. */
 function bdLuyKe(ngay, thucTe, chiTieu) {
-  const W = 1100, H = 260, l = 52, r = 12, t = 28, b = 26, n = ngay.length;   // khung rộng cả trang: chữ trục giữ cỡ 11px
+  const W = 880, H = 450, l = 44, r = 12, t = 28, b = 26, n = ngay.length;   // khung 2/3 trang, cao bằng cột top 5 bên phải: chữ trục giữ cỡ ~11px
   const max = Math.max(1, ...chiTieu, ...thucTe.filter(v => v != null)) * 1.05;
   const x = i => l + (W - l - r) * (n > 1 ? i / (n - 1) : 0), y = v => t + (H - t - b) * (1 - v / max);
   const duong = (ds, net, mau) => '<polyline fill="none" stroke="' + mau + '" stroke-width="2"' + (net ? ' stroke-dasharray="6 4"' : '') + ' stroke-linejoin="round" points="'
@@ -1402,8 +1409,17 @@ function veBcDv(d) {
     + o('Lượt xe 30 ngày', tien(tongLuot)) + '</div>'
     + '<div class="bc-chu">Doanh thu theo ngày thanh toán, chưa VAT. So chỉ tiêu: trừ lệnh nội bộ và bảo hành; chỉ tiêu nội bộ tháng (trước thuế) chia đều ' + soLv + ' ngày làm việc (thứ Hai – thứ Bảy). '
     + 'Lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + ', cập nhật ' + esc(d.cap_nhat) + '.</div>'
+    + '<div class="dv-tren">'
     + the('Doanh thu lũy kế so với chỉ tiêu (trừ nội bộ, bảo hành)', '<div class="dv-cu"><span><i style="background:var(--accent)"></i>Thực tế lũy kế</span><span><i class="net"></i>Chỉ tiêu lũy kế</span></div>'
-      + (d.chi_tieu ? bdLuyKe(ngayThang, ttLk, ctLk) : '<p class="mo">Chưa có chỉ tiêu tháng ' + thang.slice(5) + '.</p>'), 'margin-top:16px')
+      + (d.chi_tieu ? bdLuyKe(ngayThang, ttLk, ctLk) : '<p class="mo">Chưa có chỉ tiêu tháng ' + thang.slice(5) + '.</p>'))
+    // top 5 (như Power BI DV): lệnh vào xưởng, có VAT, mọi loại lệnh, kể cả chưa sửa; rê chuột xem ngày, loại, nội dung
+    + '<div class="dv-phai">'
+    + the('Top 5 báo giá ngày ' + (d.bg_ngay_d ? ngayVN(d.bg_ngay_d).slice(0, 5) : ''), bdNgang((d.bg_ngay || []).slice(0, 5), bienSo, tipLenh))
+    + the('Top 5 xe sửa chữa nặng T' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : ''), bdNgang((d.nang_thang || []).slice(0, 5), bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
+    + the('Top 5 báo giá T' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : ''), bdNgang((d.bg_thang || []).slice(0, 5), bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
+    + '</div></div>'
+    + '<div class="bc-chu">Top 5 (triệu, có VAT): lệnh vào xưởng mọi loại, kể cả lệnh chưa sửa, như Power BI DV. Báo giá ngày: ngày vào xưởng mới nhất có dữ liệu; xe sửa nặng: lệnh lớn nhất của mỗi xe trong tháng; báo giá tháng: từng lệnh. '
+    + 'Rê chuột lên thanh để xem ngày, loại, nội dung' + (META.vai === 'baocao' ? '' : ', bấm biển số để tra xe') + '.</div>'
     + '<div class="bc-2">'
     + the('Doanh thu theo tháng từ tháng 1 (triệu)', (xsT.length > 1 ? '<div class="dv-cu">' + xsT.map(x => '<span><i style="background:' + DV_MAU[x] + '"></i>' + DV_TEN_X[x] + '</span>').join('') : '<div class="dv-cu">')
         + '<span><i class="net"></i>Chỉ tiêu tháng</span></div>'
@@ -1451,12 +1467,7 @@ function veBcDv(d) {
       + '<div class="bc-chu">Lượt xe, giá trị lệnh: 30 ngày (' + ngayVN(d.tu).slice(0, 5) + ' – ' + ngayVN(chot).slice(0, 5) + '), theo người lập lệnh trên DMS; giá trị lệnh có VAT, kể cả lệnh chưa sửa, trừ bảo hành. '
       + 'Doanh thu: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, trừ nội bộ, bảo hành (cộng các CVDV bằng doanh thu tính chỉ tiêu). Doanh thu GTGT: tiền công các mã trong quy ước GTGT của trang tra cứu (chưa VAT, chưa gồm phụ gia).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : '') + '</div>')
     + '</div>'
-    + '<div class="bc-3" style="margin-top:16px">'
-    + the('Top 10 báo giá trong ngày ' + (d.bg_ngay_d ? ngayVN(d.bg_ngay_d).slice(0, 5) : '') + ' (triệu)', bdNgang(d.bg_ngay || [], bienSo, tipLenh))
-    + the('Các xe sửa chữa nặng trong tháng ' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : '') + ' (triệu)', bdNgang(d.nang_thang || [], bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
-    + the('Top 10 báo giá trong tháng ' + (d.bg_ngay_d ? +d.bg_ngay_d.slice(5, 7) : '') + ' (triệu)', bdNgang(d.bg_thang || [], bienSo, b => ngayVN(b.ngay) + ' · ' + tipLenh(b)))
-    + '</div><div class="bc-chu">Lệnh vào xưởng, giá trị có VAT, mọi loại lệnh, kể cả lệnh chưa sửa (như Power BI DV). Báo giá trong ngày: ngày vào xưởng mới nhất có dữ liệu. '
-    + 'Xe sửa nặng: lệnh lớn nhất của mỗi xe trong tháng; báo giá trong tháng: từng lệnh (một xe có thể có nhiều lệnh). Rê chuột lên thanh để xem ngày, loại, nội dung' + (META.vai === 'baocao' ? '' : ', bấm biển số để tra xe') + '.</div>';
+;
   veBh();
 }
 
