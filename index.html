@@ -222,6 +222,10 @@
   .bc-so .nhan:first-child { flex: 1; }
   .bc-so .so { font-size: var(--fs-6); font-weight: 500; margin-top: 2px; }
   .bc-so.dv-so { gap: 16px; }
+  .bc-so > div[data-muc] { cursor: pointer; transition: border-color .15s; }
+  .bc-so > div[data-muc]:hover { border-color: var(--accent); }
+  .bc-so > div[data-muc] .nhan:first-child::after { content: ' ›'; }
+  .nb-ve { display: inline-block; margin: 0 0 10px; font-size: var(--fs-2); }
   .bc-so.dv-so .nhan:first-child { flex: 0 0 auto; min-height: 2.8em; }
   .bc-so.dv-so .so { flex: 1; display: flex; align-items: center; margin: 6px 0; }
   .bc-so.dv-so .nhan:not(:first-child) { min-height: 1.4em; }
@@ -1229,7 +1233,7 @@ function veBcNb(d) {
   const bien = b => '<a href="#" data-nb="' + esc(b) + '">' + esc(b) + '</a>';
   const nhieuNhat = Object.entries(t.bo || {}).sort((a, b) => b[1] - a[1]);
   const tuan = (d.tuan || []).slice().reverse();
-  $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-so">' + o('Tuần ' + t.tuan + ': danh sách gửi', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
+  $('bc-nd').innerHTML = '<div class="dv-trang">' + '<a href="#" class="lien nb-ve" data-muc="dv">← 1. Tổng hợp</a>' + '<div class="bc-so">' + o('Tuần ' + t.tuan + ': danh sách gửi', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
     + o('Gửi lại ZNS / SMS', tien(khac)) + o('Cần CVDV kiểm tra DMS', tien(t.can_kt || 0), t.can_kt ? 'cam' : '')
     + o('Không đưa vào danh sách', tien(nhieuNhat.reduce((s, x) => s + x[1], 0))) + o('Xe nhóm A', tien(((d.xe || {}).A1 || 0) + ((d.xe || {}).A2 || 0))) + '</div>'
     + '<div class="bc-chu">Tuần ' + t.tuan + ' (từ ' + ngayVN(t.thu2).slice(0, 5) + '), cập nhật ' + esc(d.cap_nhat) + '; bấm biển số để xem phân tích của xe.</div>'
@@ -1513,11 +1517,11 @@ function veBcDvTong(d) {
       tips: DV_LOAI_12.map(([l], k) => 'Tháng ' + +th.slice(5) + ' · ' + (l === 'Đồng sơn tiền mặt' ? 'Đồng sơn TM' : l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%') }; });
 
   $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-so dv-so">'
-    + o('Doanh thu khai thác', trD(tt) + ' tr', 'toàn hệ thống')
+    + o('Doanh thu khai thác', trD(tt) + ' tr', 'toàn hệ thống, ' + tien(luot) + ' lượt xe')
     + o('Chỉ tiêu tháng', trD(ct) + ' tr')
     + o('Hoàn thành chỉ tiêu tháng', pt(tt, ct))
     + o('So chỉ tiêu lũy kế tới ' + den, lech(tt, ctDen) + ' tr', pt(tt, ctDen) + ' lũy kế', tt < ctDen ? 'do' : '')
-    + o('Lượt xe từ đầu tháng', tien(luot), 'đến ' + den)
+    + (d.nbO || o('Lượt xe từ đầu tháng', tien(luot), 'đến ' + den))
     + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, không tính nội bộ, bảo hành, PDI; các chi nhánh đặt cạnh nhau, không xếp hạng. Chọn từng chi nhánh ở trên để xem chi tiết.</div>'
     + '<div class="dv-mot">' + the('Theo chi nhánh, tháng ' + +thang.slice(5) + ' (triệu)', bangBc(['STT', 'Chi nhánh', 'DT khai thác', 'Chỉ tiêu', 'Hoàn thành', 'So lũy kế', 'Cần mỗi ngày còn lại', 'Lượt xe', 'DT GTGT'],
@@ -1606,13 +1610,14 @@ function veBcDv(d) {
   const tt5 = (b, tip) => '<span title="' + esc(tip(b)) + '">' + bienSo(b) + '</span>';
   const bg5 = (d.bg_thang || []).slice(0, 5), tt5x = (d.xe_tt || []).slice(0, 5);
   const T = 'T' + +thang.slice(5), den = ngayVN(chot).slice(0, 5);
+  const luotTh = (d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0);
 
   $('bc-nd').innerHTML = '<div class="dv-trang" style="--dv-chinh:' + (DV_MAU[(d.xuong || [])[0]] || 'var(--accent)') + '"><div class="bc-so dv-so">'
-    + o('Doanh thu khai thác', trD(tt) + ' tr')
+    + o('Doanh thu khai thác', trD(tt) + ' tr', tien(luotTh) + ' lượt xe đến ' + den)
     + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
     + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
-    + o('Lượt xe từ đầu tháng', tien((d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0)), 'đến ' + den)
+    + (d.nbO || o('Lượt xe từ đầu tháng', tien(luotTh), 'đến ' + den))
     + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, theo ngày thanh toán, không tính nội bộ, bảo hành, PDI; lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + '.</div>'
     + '<div class="dv-tren">'
@@ -1732,7 +1737,7 @@ function veBcNbTong(d) {
     return [ten(c), tien(kq), kq ? pt(tc, kq) : '–', tien(tu.reduce((s, w) => s + (w.loi_2 || 0), 0)), tien(kq - tc - tu.reduce((s, w) => s + (w.loi_2 || 0), 0)),
       tien(ll.thieu_sdt_a || 0) + ' <span class="mo">(' + pt(ll.thieu_sdt_a || 0, a) + ')</span>', tien(ll.can_kt || 0)];
   });
-  $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
+  $('bc-nd').innerHTML = '<div class="dv-trang"><a href="#" class="lien nb-ve" data-muc="dv">← 1. Tổng hợp</a><div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
     + '; các đại lý đặt cạnh nhau, không xếp hạng.</div>'
     + the('Tóm tắt', 'Nhóm A (khách đang bảo dưỡng đều) được nhắn trước.', tomTat,
       'Các nhóm khác khởi động sau. "Danh sách gửi": số xe trong danh sách tuần này; "Đã gửi (cộng dồn)": theo nhật ký gửi hoặc kết quả Zalo CSKH gửi về. Chọn từng đại lý ở trên để xem danh sách xe.')
@@ -1778,15 +1783,33 @@ function veCnBc(d) {
 }
 const anThanhBc = () => { $('man-bc').querySelector('.thanh-tra').hidden = !$('bc-muc').innerHTML && !$('bc-cn').innerHTML && $('bc-ngay').hidden && $('bc-ve').hidden && !$('bc-loi').textContent; };
 
+/** Ô KPI "Nhắc bảo dưỡng tuần NN" trong 1. Tổng hợp: số tin gửi tuần này (theo danh sách hoặc kết quả Zalo nếu nhiều hơn),
+ *  thành công / cần gọi; bấm vào mở phần chi tiết nhắc bảo dưỡng. nb: kết quả bcNhacBd (1 chi nhánh) hoặc bcNhacBdTong. */
+function oNhacBd(nb) {
+  const ds = nb.dl ? Object.values(nb.dl) : [nb];
+  const loi = w => Object.keys(w).filter(k => k.startsWith('loi_')).reduce((s, k) => s + w[k], 0);
+  let tuan = null, gui = 0, tc = 0, kq = 0, goiX = 0;
+  ds.forEach(x => {
+    const n = x.tuan_nay || {}, w = (x.tuan || []).find(q => q.tuan === n.tuan && (!n.thu2 || q.thu2 === n.thu2)) || {};
+    tuan = tuan || n.tuan; gui += Math.max(n.gui || 0, (w.thanh_cong || 0) + loi(w)); tc += w.thanh_cong || 0; kq += (w.thanh_cong || 0) + loi(w); goiX += n.goi || 0;
+  });
+  if (!tuan) return '';
+  const phu = (kq ? tien(tc) + ' thành công' : 'chưa có kết quả Zalo') + (goiX ? ' · ' + tien(goiX) + ' cần gọi' : '');
+  return '<div data-muc="nb" title="Bấm để xem chi tiết nhắc bảo dưỡng"><div class="nhan">Nhắc bảo dưỡng tuần ' + tuan + '</div><div class="so">'
+    + tien(gui) + ' tin</div><div class="nhan">' + phu + '</div></div>';
+}
+
 let BC_LUOT = 0;
 async function bcTai() {
   const luot = ++BC_LUOT;
   // nhóm mục (đánh số theo thứ tự hiện) tách khỏi nhóm chi nhánh (người dùng chốt 27/11/2026)
-  const muc = [['dv', 'Tổng hợp', META.xemDv], ['nb', 'Nhắc bảo dưỡng', META.xemNb], ['lt', 'Tiếp nhận', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs]]
+  // Nhắc bảo dưỡng nằm trong 1. Tổng hợp: vào bằng ô KPI "Nhắc bảo dưỡng tuần" (người dùng chốt 28/11/2026)
+  const muc = [['dv', 'Tổng hợp', META.xemDv], ['lt', 'Tiếp nhận', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs]]
     .filter(m => (m[2] || []).length).map((m, i) => [m[0], (i + 1) + '. ' + m[1], m[2]]);
-  if (!muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
+  if (!(BC.muc === 'nb' && (META.xemNb || []).length) && !muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
+  const mucSang = BC.muc === 'nb' ? 'dv' : BC.muc;
   $('bc-muc').innerHTML = muc.length > 1 ? muc
-    .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
+    .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === mucSang ? 'on' : '') + '">' + t + '</button>').join('') : '';
   $('bc-ngay').hidden = BC.muc !== 'lt';
   $('bc-loi').textContent = '';
   // đang xem mục này: làm mờ trang cũ trong lúc tải (không xóa → không nháy, không nhảy vị trí); mục khác thì "Đang tải…"
@@ -1799,10 +1822,14 @@ async function bcTai() {
     else if (BC.muc === 'dv') {
       const cacDv = (META.xemDv || []).concat(META.xemNbTong ? ['ALL'] : []);   // "Toàn hệ thống" cuối (ADMIN, CSKH, GĐDV, quản lý)
       if (!BC.cn || cacDv.indexOf(BC.cn) < 0) BC.cn = cacDv.indexOf(cnMacDinh()) >= 0 ? cnMacDinh() : cacDv[0];
-      const d = Object.assign({}, await goiNho(BC.cn === 'ALL' ? 'bcDichVuTong' : 'bcDichVu', BC.cn), { cacCn: cacDv });
+      const laNb = (META.xemNb || []).indexOf(BC.cn) >= 0 || (BC.cn === 'ALL' && META.xemNbTong);
+      const [dv, nb] = await Promise.all([goiNho(BC.cn === 'ALL' ? 'bcDichVuTong' : 'bcDichVu', BC.cn),
+        laNb ? goiNho(BC.cn === 'ALL' ? 'bcNhacBdTong' : 'bcNhacBd', BC.cn).catch(() => null) : null]);
+      const d = Object.assign({}, dv, { cacCn: cacDv, nbO: nb ? oNhacBd(nb) : '' });
       if (luot !== BC_LUOT) return;   // đã bấm chi nhánh khác: bỏ kết quả cũ
       if (BC.cn === 'ALL') veBcDvTong(d); else veBcDv(d);
       (META.xemDv || []).forEach(c => goiNho('bcDichVu', c));   // tải sẵn các chi nhánh khác trong nền
+      (META.xemNb || []).forEach(c => goiNho('bcNhacBd', c).catch(() => {}));
       if (META.xemNbTong) goiNho('bcDichVuTong', 'ALL');
     }
     else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn));
@@ -1891,6 +1918,8 @@ $('bc-ngay').onchange = bcTai;
 $('bc-ve').onclick = e => { e.preventDefault(); hien('tra'); };
 $('bc-cn').onclick = e => { const b = e.target.closest('[data-cn]'); if (b) { BC.cn = b.dataset.cn; bcTai(); } };
 $('bc-nd').onclick = e => {
+  const m = e.target.closest('[data-muc]');
+  if (m) { e.preventDefault(); BC.muc = m.dataset.muc; bcTai(); return; }
   const b = e.target.closest('[data-xem-them]');
   if (b) { b.previousElementSibling.classList.add('mo-het'); b.remove(); }
   // Biển số trong mục Nhắc bảo dưỡng: mở tra cứu xe đó (CSKH kiểm tra ngẫu nhiên trước khi gửi)
