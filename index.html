@@ -611,7 +611,7 @@ async function dangNhap() {
   $('nut-dn').disabled = false;
 }
 
-function thoat() { PHIEN = null; try { localStorage.removeItem('gtgt'); sessionStorage.removeItem('gtgt'); } catch (e) {} $('ket-qua').innerHTML = ''; hien('dn'); }
+function thoat() { PHIEN = null; BC_NHO.clear(); BC.cn = null; BC.muc = null; try { localStorage.removeItem('gtgt'); sessionStorage.removeItem('gtgt'); } catch (e) {} $('ket-qua').innerHTML = ''; hien('dn'); }
 
 async function traCuu(bien) {
   bien = bien || $('bien').value;
@@ -1131,7 +1131,19 @@ document.addEventListener('change', async e => {
   if (ds) { LT.ds = ds; veLt(); } else s.disabled = false;
 });
 // ---------- Tổng hợp: Lễ tân DV | Công việc cần làm sớm ----------
-const BC = { cn: null, muc: null };   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm, 'nb' Nhắc bảo dưỡng
+const BC = { cn: null, muc: null };
+/** Nhớ kết quả báo cáo theo (chức năng, chi nhánh) 10 phút: bấm lại chi nhánh đã xem hiện ngay, không gọi lại máy chủ. */
+const BC_NHO = new Map();
+function goiNho(ham, cn) {
+  const k = ham + '|' + cn, o = BC_NHO.get(k);
+  if (o && Date.now() - o.luc < 600000) return o.p;
+  const p = goi(ham, PHIEN.token, cn);
+  BC_NHO.set(k, { luc: Date.now(), p: p });
+  p.catch(() => BC_NHO.delete(k));
+  return p;
+}
+/** Chi nhánh mặc định của người đăng nhập (trang Tổng hợp): theo chi nhánh của tài khoản, Bảo Lộc xem trang Đà Lạt, không rõ thì NT. */
+const cnMacDinh = () => ({ BL: 'ĐL' })[META.chi_nhanh] || META.chi_nhanh || 'NT';   // muc: 'lt' Lễ tân, 'ls' Công việc cần làm sớm, 'nb' Nhắc bảo dưỡng
 const TEN_CN = { NT: 'Nha Trang', 'ĐL': 'Đà Lạt', PY: 'Phú Yên', BL: 'Bảo Lộc', ALL: 'Toàn hệ thống' };
 
 // ---------- Nhắc bảo dưỡng (project 26. Nhac bao duong: dữ liệu nhacbd_*.json do danh_sach_tuan.py ghi mỗi thứ Tư) ----------
@@ -1181,8 +1193,8 @@ function veNb(n) {
 async function bcNb() {
   const ds = META.xemNb || [], cac = ds.length > 1 ? ['ALL'].concat(ds) : ds;
   if (!BC.cn || cac.indexOf(BC.cn) < 0) BC.cn = cac[0];
-  if (BC.cn !== 'ALL') { const d = await goi('bcNhacBd', PHIEN.token, BC.cn); d.cacCn = cac; return veBcNb(d); }
-  const r = await Promise.all(ds.map(c => goi('bcNhacBd', PHIEN.token, c)));
+  if (BC.cn !== 'ALL') { const d = await goiNho('bcNhacBd', BC.cn); d.cacCn = cac; return veBcNb(d); }
+  const r = await Promise.all(ds.map(c => goiNho('bcNhacBd', c)));
   const t = c => r[ds.indexOf(c)].tong_cn || {}, theo = k => ds.reduce((o, c) => { o[c] = t(c)[k]; return o; }, {});
   veBcNbTong({ cn: 'ALL', cacCn: cac, cap_nhat: r[0].cap_nhat, tuan: (r[0].tuan_nay || {}).tuan, ngay_dl: t(ds[0]).ngay_dl,
     co_cau: theo('co_cau'), chuyen: theo('chuyen'), hieu_qua: theo('hieu_qua'),
@@ -1656,7 +1668,12 @@ async function bcTai() {
   try {
     if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn));
     else if (BC.muc === 'nb') await bcNb();
-    else if (BC.muc === 'dv') veBcDv(await goi('bcDichVu', PHIEN.token, BC.cn));
+    else if (BC.muc === 'dv') {
+      if (!BC.cn) BC.cn = (META.xemDv || []).indexOf(cnMacDinh()) >= 0 ? cnMacDinh() : (META.xemDv || [])[0];
+      const d = await goiNho('bcDichVu', BC.cn);
+      veBcDv(d);
+      (d.cacCn || []).forEach(c => goiNho('bcDichVu', c));   // tải sẵn các chi nhánh khác trong nền
+    }
     else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn));
   }
   catch (e) {
