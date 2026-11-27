@@ -230,6 +230,9 @@
   .bang:not(.mo-het) tr.them { display: none; }
   .xem-them { background: none; border: 0; padding: 8px 0 0; font: inherit; font-size: var(--fs-2); color: var(--accent); cursor: pointer; }
   .bc-so .so.do, .t-do { color: var(--red); }
+  .dv-trang p.mo { font-size: var(--fs-2); margin: 8px 0 0; }
+  .bc-so .so.cam { color: #a35f00; }   /* việc cần làm (không phải lỗi) */
+  .nhan-do { display: inline-block; padding: 0 6px; border-radius: 4px; background: var(--red-bg); color: var(--red); }
   .bc-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; align-items: start; }
   .bc-2 .card { margin-bottom: 0; }
   .bc-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }   /* 5 xe chờ lâu nhất | Theo CVDV | Khung giờ trên một hàng */
@@ -1214,30 +1217,33 @@ function veBcNb(d) {
   NB = d;
   const t = d.tuan_nay || {}, o = (nhan, so, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div></div>';
   let stt = 0;
-  const the = (tieuDe, noiDung, kieu) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
-  const bang = (dau, hang, phai, gioi, trong) => bangBc(dau, hang, phai, gioi, trong || 'Không có.');
+  const the = (tieuDe, noiDung, kieu, goi) => '<div class="card"' + (kieu ? ' style="' + kieu + '"' : '') + '><h2 class="card-title"' + (goi ? ' title="' + esc(goi) + '"' : '') + '>' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
+  const bang = (dau, hang, phai, gioi, trong, rong) => bangBc(dau, hang, phai, gioi, trong || 'Không có.', rong);
+  // tên lý do dễ đọc trên trang (file Excel giữ nguyên): "Nhóm lỗi 2 (Không có tài khoản Zalo) → gửi SMS" → "Không có tài khoản Zalo, chuyển SMS"
+  const lyDo = k => String(k).replace(/^Nhóm lỗi \d+ \((.+)\) → (.+)$/, (_, a, b) => a + ', ' + ({ 'gửi SMS': 'chuyển SMS', 'gọi': 'chuyển gọi', 'ngừng ZNS': 'ngừng gửi ZNS' }[b] || b));
   const cong = (x, tien) => Object.keys(x).filter(k => k.startsWith(tien)).reduce((s, k) => s + x[k], 0);
   const khac = Object.values(t.khac || {}).reduce((s, v) => s + v, 0);
   const bien = b => '<a href="#" data-nb="' + esc(b) + '">' + esc(b) + '</a>';
   const nhieuNhat = Object.entries(t.bo || {}).sort((a, b) => b[1] - a[1]);
   const tuan = (d.tuan || []).slice().reverse();
-  $('bc-nd').innerHTML = '<div class="bc-so">' + o('Tuần ' + t.tuan + ': xe gửi tin', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
-    + o('Gửi lại ZNS / SMS', tien(khac)) + o('Cần CVDV kiểm tra DMS', tien(t.can_kt || 0), t.can_kt ? 'do' : '')
+  $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-so">' + o('Tuần ' + t.tuan + ': danh sách gửi', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
+    + o('Gửi lại ZNS / SMS', tien(khac)) + o('Cần CVDV kiểm tra DMS', tien(t.can_kt || 0), t.can_kt ? 'cam' : '')
     + o('Không đưa vào danh sách', tien(nhieuNhat.reduce((s, x) => s + x[1], 0))) + o('Xe nhóm A', tien(((d.xe || {}).A1 || 0) + ((d.xe || {}).A2 || 0))) + '</div>'
-    + '<div class="bc-chu">Tuần ' + t.tuan + ' (từ thứ Hai ' + ngayVN(t.thu2) + '), dữ liệu cập nhật ' + esc(d.cap_nhat) + '. Bấm biển số để xem phân tích của xe.</div>'
+    + '<div class="bc-chu">Tuần ' + t.tuan + ' (từ ' + ngayVN(t.thu2).slice(0, 5) + '), cập nhật ' + esc(d.cap_nhat) + '; bấm biển số để xem phân tích của xe.</div>'
     + '<div class="bc-2">'
     + the('Danh sách gửi tuần này', '<div class="bc-chu" style="margin:0 0 8px">Kiểm tra trước khi gửi: <a href="#" data-ngau-nhien>chọn ngẫu nhiên 5 xe</a></div><div id="nb-nn"></div>'
-      + bang(['STT', 'Biển số', 'Loại tin', 'Tới hạn'], (d.ds || []).map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10))
-    + the('Không đưa vào danh sách', bang(['Lý do', 'Số xe'], nhieuNhat.map(([k, v]) => [esc(k), tien(v)]), [1], 8))
+      + bang(['STT', 'Biển số', 'Loại tin', 'Tới hạn'], (d.ds || []).map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10, '', [48, 120, null, 110]))
+    + the('Không đưa vào danh sách', bang(['STT', 'Lý do', 'Số xe'], nhieuNhat.map(([k, v], i) => [i + 1, esc(lyDo(k)), tien(v)]), [0, 2], 8, '', [48, null, 80]))
     + '</div>'
-    + the('Kết quả theo tuần', bang(['Tuần', 'Gửi', 'Thành công', 'Lỗi', 'Không có Zalo', 'Phản hồi', 'Gọi', 'Đã quay lại BD', 'Trong 30 ngày'],
-      tuan.map(x => ['Tuần ' + x.tuan + ' <span class="mo">(' + ngayVN(x.thu2).slice(0, 5) + ')</span>', tien(x.gui || 0), tien(x.thanh_cong || 0),
-        cong(x, 'loi_') ? '<span class="t-do">' + tien(cong(x, 'loi_')) + '</span>' : '0', tien(x.loi_2 || 0), tien(cong(x, 'ph_')), tien(x.goi || 0),
-        tien(x.quay_lai || 0), tien(x.quay_lai_30 || 0)]), [1, 2, 3, 4, 5, 6, 7, 8], 12, 'Chưa có tuần nào gửi.')
-      + '<div class="bc-chu">Gửi: theo ngày gửi thật (sheet 4) hoặc ngày trong kết quả Zalo. Thành công, lỗi: file kết quả Zalo CSKH bỏ vào "Ket qua" (tin gửi lại tính lần sau cùng). '
-      + 'Đã quay lại BD: xe có lần bảo dưỡng trên DMS sau ngày nhận tin.</div>', 'margin-top:16px')
+    // Gửi: số lớn hơn giữa nhật ký gửi và số tin có kết quả Zalo (tuần đang chạy chưa vào lịch sử nhưng đã có kết quả), như bảng Tóm tắt
+    + the('Kết quả theo tuần', bang(['Tuần', 'Gửi theo nhật ký', 'Thành công', 'Lỗi', 'Không có Zalo', 'Phản hồi', 'Gọi', 'Đã quay lại BD', 'Trong 30 ngày'],
+      tuan.map(x => ['Tuần ' + x.tuan + ' <span class="mo">(' + ngayVN(x.thu2).slice(0, 5) + ')</span>', tien(Math.max(x.gui || 0, (x.thanh_cong || 0) + cong(x, 'loi_'))), tien(x.thanh_cong || 0),
+        cong(x, 'loi_') ? '<span class="nhan-do">' + tien(cong(x, 'loi_')) + '</span>' : '0', tien(x.loi_2 || 0), tien(cong(x, 'ph_')), tien(x.goi || 0),
+        tien(x.quay_lai || 0), tien(x.quay_lai_30 || 0)]), [1, 2, 3, 4, 5, 6, 7, 8], 12, 'Chưa có tuần nào gửi.', [120])
+      + (tuan.length ? '<div class="bc-chu">Đã quay lại BD: xe có lần bảo dưỡng trên DMS sau ngày nhận tin.</div>' : ''), 'margin-top:16px',
+      'Gửi theo nhật ký: ngày gửi thật CSKH ghi trong file tuần, hoặc ngày trong file kết quả Zalo (lấy số lớn hơn giữa hai nguồn). Thành công, lỗi: file kết quả Zalo CSKH gửi về (tin gửi lại tính lần sau cùng).')
     + ((d.goi_ds || []).length ? the('Danh sách gọi tuần này', bang(['STT', 'Biển số', 'Lý do', 'Tin cuối'],
-      d.goi_ds.map((x, i) => [i + 1, bien(x[0]), esc(x[1]), ngayVN(x[2])]), [0], 10), 'margin-top:16px') : '');
+      d.goi_ds.map((x, i) => [i + 1, bien(x[0]), esc(lyDo(x[1])), ngayVN(x[2])]), [0], 10, '', [48, 120, null, 110]), 'margin-top:16px') : '') + '</div>';
 }
 let NB = null;
 
@@ -1254,10 +1260,10 @@ const DV_TEN_X = { NT: 'Nha Trang', PY: 'Phú Yên', 'ĐL': 'Đà Lạt', BL: 'B
 const trD = v => (Math.round(v / 1e5) / 10).toLocaleString('vi-VN');   // triệu, 1 số lẻ
 const DV_TO = [['1', 'Tổ SCC', 'var(--dv-chinh)'], ['2', 'Tổ Đồng', 'var(--dv-chinh)'], ['3', 'Tổ Sơn', 'var(--dv-chinh)']];   // mỗi tổ một biểu đồ riêng: chung màu chi nhánh
 const DV_LOAI_DT = ['BD', 'SCC', 'Bảo hiểm', 'Bảo hành', 'Đồng sơn tiền mặt', 'Khác'];
-const DV_LOAI_12 = [['BD', '#3b5bdb'], ['SCC', '#6f86e6'], ['Bảo hiểm', '#a3b3f0'], ['Đồng sơn tiền mặt', '#d3dbf8']];   // 4 sắc cách đều của màu nhấn
+const DV_LOAI_12 = [['BD', DV_BAN_HANG[0]], ['SCC', DV_BAN_HANG[1]], ['Bảo hiểm', DV_BAN_HANG[2]], ['Đồng sơn tiền mặt', DV_BAN_HANG[3]]];   // màu báo cáo Bán hàng (người dùng chốt 27/11/2026)
 // Thị phần bảo hiểm: 8 màu phân loại theo thứ tự cố định (bảng màu đã kiểm tra), gán theo công ty (xếp theo doanh thu "Tất cả")
 // để bật/tắt xe ngập không đổi màu; từ công ty thứ 9 trở đi màu xám
-const DV_BH_MAU = DV_DON;   // 5 công ty lớn nhất: đậm → nhạt; còn lại gộp "Khác" (xám)
+const DV_BH_MAU = DV_BAN_HANG.slice(0, 5);   // 5 công ty lớn nhất theo thứ tự màu báo cáo Bán hàng; còn lại gộp "Khác" (xám)
 let DV_BH = { boNgap: false, x: 'all', d: null };   // thị phần BH: mặc định gồm cả xe ngập; x: xưởng (trang Đà Lạt)
 let DV_NC_X = 'all';                                  // nhân công tổ: lọc xưởng (trang Đà Lạt)
 
@@ -1584,12 +1590,13 @@ function veBcDv(d) {
 function veBcNbTong(d) {
   veCnBc(d);
   const cn = Object.keys(d.dl), ten = c => TEN_CN[c] || c;
-  const pt = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString('vi-VN') + '%' : '–';
+  const pt = (a, b) => b ? (Math.round(a / b * 1000) / 10).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%' : '–';
   const cong = (o, tien) => Object.keys(o || {}).filter(k => k.startsWith(tien)).reduce((s, k) => s + o[k], 0);
   let stt = 0;
-  const the = (tieuDe, phu, noiDung) => '<div class="card" style="margin-top:16px"><h2 class="card-title">' + (++stt) + '. ' + tieuDe + '</h2>'
+  // chú thích 1 câu dưới tiêu đề; giải thích chi tiết hiện khi rê chuột lên tiêu đề
+  const the = (tieuDe, phu, noiDung, goi) => '<div class="card" style="margin-top:16px"><h2 class="card-title"' + (goi ? ' title="' + esc(goi) + '"' : '') + '>' + (++stt) + '. ' + tieuDe + '</h2>'
     + (phu ? '<div class="bc-chu" style="margin:2px 0 8px">' + phu + '</div>' : '') + noiDung + '</div>';
-  const bang = (dau, hang, phai, trong) => bangBc(dau, hang, phai, 0, trong || 'Chưa đủ dữ liệu.');
+  const bang = (dau, hang, phai, trong) => bangBc(dau, hang, phai, 0, trong || 'Chưa đủ dữ liệu.', [120]);
   // 1. Tóm tắt: cộng dồn mọi tuần đã gửi (gửi = theo nhật ký hoặc theo kết quả Zalo nếu nhiều hơn)
   const tt = cn.map(c => {
     const x = d.dl[c], tu = x.tuan || [], a = ((x.xe || {}).A1 || 0) + ((x.xe || {}).A2 || 0);
@@ -1600,7 +1607,7 @@ function veBcNbTong(d) {
   });
   const sum = k => tt.reduce((s, r) => s + r[k], 0);
   const dongTt = r => [ten(r.c), tien(r.a), tien(r.nay), tien(r.goiNay), tien(r.gui), r.kq ? pt(r.tc, r.kq) : '–', tien(r.goi), tien(r.ve)];
-  const tomTat = bang(['Đại lý', 'Xe nhóm A', 'Tuần ' + d.tuan + ': gửi', 'Tuần ' + d.tuan + ': gọi', 'Đã gửi (cộng dồn)', 'Gửi thành công', 'Đã gọi', 'Đã quay lại BD'],
+  const tomTat = bang(['Đại lý', 'Xe nhóm A', 'Tuần ' + d.tuan + ': danh sách gửi', 'Tuần ' + d.tuan + ': gọi', 'Đã gửi (cộng dồn)', 'Gửi thành công', 'Đã gọi', 'Đã quay lại BD'],
     tt.map(dongTt).concat(tt.length > 1 ? [['<b>Tổng</b>', tien(sum('a')), tien(sum('nay')), tien(sum('goiNay')), tien(sum('gui')), sum('kq') ? pt(sum('tc'), sum('kq')) : '–', tien(sum('goi')), tien(sum('ve'))]] : []),
     [1, 2, 3, 4, 5, 6, 7]);
   // 2. Cơ cấu: mẫu số A1+A2+B+C1 (C2 trên 3 năm, D để ngoài mẫu số)
@@ -1629,24 +1636,29 @@ function veBcNbTong(d) {
     return [ten(c), tien(kq), kq ? pt(tc, kq) : '–', tien(tu.reduce((s, w) => s + (w.loi_2 || 0), 0)), tien(kq - tc - tu.reduce((s, w) => s + (w.loi_2 || 0), 0)),
       tien(ll.thieu_sdt_a || 0) + ' <span class="mo">(' + pt(ll.thieu_sdt_a || 0, a) + ')</span>', tien(ll.can_kt || 0)];
   });
-  $('bc-nd').innerHTML = '<div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
-    + '. Các đại lý đặt cạnh nhau để theo dõi, không xếp hạng. Chọn từng đại lý ở trên để xem danh sách xe.</div>'
-    + the('Tóm tắt', 'Nhóm A (khách đang bảo dưỡng đều) được nhắn trước; các nhóm khác khởi động sau.', tomTat)
-    + the('Cơ cấu khách', 'Tỷ lệ trên mẫu số A + B + C1 (C2 trên 3 năm và D để ngoài mẫu số). Mục tiêu: A tăng, B và C giảm.'
-      + (soTuanCc > 1 ? ' Số trong ngoặc: thay đổi so với tuần ' + cc(cn[0])[0].tuan + ' (điểm %).' : ' Mới có mốc tuần ' + ((cc(cn[0])[0] || {}).tuan || '') + '; xu hướng hiện từ tuần sau, rõ sau 4–8 tuần.'),
-      bang(['Đại lý', 'Mẫu số', 'Nhóm A', 'Nhóm B', 'Nhóm C1', 'C2 (ngoài)', 'D (ngoài)'], cn.map(dongCc), [1, 2, 3, 4, 5, 6]))
-    + the('Dòng chuyển nhóm trong tuần', 'Kéo về: khách nhóm B, C quay lại thành nhóm A. Rơi ra: khách nhóm A quá 8 tháng chưa quay lại thành nhóm B. Mục tiêu: kéo về nhiều hơn rơi ra.',
-      hangCh.length ? bang(['Đại lý', 'Kéo về B → A', 'Kéo về C → A', 'Rơi ra A → B', 'Chênh lệch'], hangCh, [1, 2, 3, 4]) : '<p class="mo">Chưa đủ dữ liệu: cần số liệu 2 tuần liền nhau (có từ tuần 49).</p>')
-    + the('Hiệu quả nhắn (nhóm A)', 'Khách vào bảo dưỡng trong 30 ngày sau tin đầu tiên. Chỉ tính xe đã nhận tin đủ 30 ngày; xe mới nhận tin để riêng.',
+  $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
+    + '; các đại lý đặt cạnh nhau, không xếp hạng.</div>'
+    + the('Tóm tắt', 'Nhóm A (khách đang bảo dưỡng đều) được nhắn trước.', tomTat,
+      'Các nhóm khác khởi động sau. "Danh sách gửi": số xe trong danh sách tuần này; "Đã gửi (cộng dồn)": theo nhật ký gửi hoặc kết quả Zalo CSKH gửi về. Chọn từng đại lý ở trên để xem danh sách xe.')
+    + the('Cơ cấu khách', 'Mục tiêu: nhóm A tăng, nhóm B và C giảm.',
+      bang(['Đại lý', 'Mẫu số', 'Nhóm A', 'Nhóm B', 'Nhóm C1', 'C2 (ngoài)', 'D (ngoài)'], cn.map(dongCc), [1, 2, 3, 4, 5, 6]),
+      'Tỷ lệ trên mẫu số A + B + C1 (C2 trên 3 năm và D để ngoài mẫu số). '
+      + (soTuanCc > 1 ? 'Số trong ngoặc: thay đổi so với tuần ' + cc(cn[0])[0].tuan + ' (điểm %).' : 'Mới có mốc tuần ' + ((cc(cn[0])[0] || {}).tuan || '') + '; xu hướng hiện từ tuần sau, rõ sau 4–8 tuần.'))
+    + the('Dòng chuyển nhóm trong tuần', 'Mục tiêu: kéo về nhiều hơn rơi ra.',
+      hangCh.length ? bang(['Đại lý', 'Kéo về B → A', 'Kéo về C → A', 'Rơi ra A → B', 'Chênh lệch'], hangCh, [1, 2, 3, 4]) : '<p class="mo">Chưa đủ dữ liệu: cần 2 tuần liền nhau (có từ tuần 49).</p>',
+      'Kéo về: khách nhóm B, C quay lại thành nhóm A. Rơi ra: khách nhóm A quá 8 tháng chưa quay lại thành nhóm B.')
+    + the('Hiệu quả nhắn (nhóm A)', 'Khách vào bảo dưỡng trong 30 ngày sau tin đầu tiên.',
       coHq ? bang(['Đại lý', 'Xe nhận tin đủ 30 ngày', 'Vào xưởng trong 30 ngày', 'Tỷ lệ', 'Xe nhận tin chưa đủ 30 ngày', 'Đã quay lại'], hangHq, [1, 2, 3, 4, 5])
-        : '<p class="mo">Chưa đủ dữ liệu: tin đầu tiên gửi 25–27/11/2026, tỷ lệ 30 ngày có từ cuối tháng 12/2026.</p>')
-    + the('Chất lượng liên lạc', 'Thiếu/sai SĐT: xe nhóm A không có số di động hợp lệ trên DMS (không nhắn được); cần phòng dịch vụ bổ sung khi khách vào xưởng.',
-      bang(['Đại lý', 'Tin có kết quả', 'Gửi thành công', 'Không có Zalo', 'Lỗi khác', 'Nhóm A thiếu/sai SĐT', 'Cần CVDV sửa DMS'], hangLl, [1, 2, 3, 4, 5, 6]));
+        : '<p class="mo">Chưa đủ dữ liệu: tin đầu tiên gửi 25–27/11/2026, tỷ lệ 30 ngày có từ cuối tháng 12/2026.</p>',
+      'Chỉ tính xe đã nhận tin đủ 30 ngày; xe mới nhận tin để riêng.')
+    + the('Chất lượng liên lạc', 'Thiếu/sai SĐT: xe nhóm A không có số di động hợp lệ trên DMS.',
+      bang(['Đại lý', 'Tin có kết quả', 'Gửi thành công', 'Không có Zalo', 'Lỗi khác', 'Nhóm A thiếu/sai SĐT', 'Cần CVDV sửa DMS'], hangLl, [1, 2, 3, 4, 5, 6]),
+      'Không nhắn được các xe này; cần phòng dịch vụ bổ sung số khi khách vào xưởng.') + '</div>';
 }
 function veNgauNhien() {
   const ds = ((NB || {}).ds || []).slice();
   for (let i = ds.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ds[i], ds[j]] = [ds[j], ds[i]]; }
-  $('nb-nn').innerHTML = '<div class="bc-chu" style="margin:0 0 8px">Xe ngẫu nhiên: ' + ds.slice(0, 5).map(x => '<a href="#" data-nb="' + esc(x[0]) + '">' + esc(x[0]) + '</a>').join(' · ') + '</div>';
+  $('nb-nn').innerHTML = '<div class="bc-chu" style="margin:0 0 8px">Xe ngẫu nhiên: ' + ds.slice(0, 5).map(x => '<a href="#" data-nb="' + esc(x[0]) + '">' + esc(x[0]) + '</a>').join(', ') + '</div>';
 }
 
 /** Bảng Tổng hợp; quá `gioi` dòng thì ẩn phần sau, có nút "Xem thêm". */
