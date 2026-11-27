@@ -209,7 +209,8 @@
   .goi-y button { margin: 12px 8px 0 0; }
   a { color: var(--accent); text-decoration: none; }
   /* Tổng hợp Lễ tân (tài khoản NT, DL, ADMIN): ô số chính, 2 cột bảng, 30 ngày gần nhất */
-  html { scrollbar-gutter: stable; }   /* giữ chỗ thanh cuộn: đổi chi nhánh không xô ngang */
+  html { scrollbar-gutter: stable; }
+  #bc-nd.dang-tai { opacity: .55; transition: opacity .15s; pointer-events: none; }   /* giữ chỗ thanh cuộn: đổi chi nhánh không xô ngang */
   .hang-bc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: 100%; }   /* nhóm Hạng mục | Chi nhánh | Quay lại (lề phải) */
   .hang-bc input { width: 160px; height: 32px; font: inherit; font-size: var(--fs-2); padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
   .hang-bc .loc { margin-left: 0; }
@@ -252,7 +253,7 @@
   .dv-cu { display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--fs-1); color: var(--muted); margin-top: 6px; }
   .dv-cu i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
   .dv-cu i.net { height: 0; border-top: 2px dashed var(--hint); border-radius: 0; vertical-align: 3px; }
-  .dv-ngang { display: grid; grid-template-columns: max-content max-content minmax(0, 1fr); gap: 6px 10px; align-items: center; margin-top: 10px; font-size: var(--fs-2); }
+  .dv-ngang { display: grid; grid-template-columns: 16px 104px minmax(0, 1fr); gap: 6px 10px; align-items: center; margin-top: 10px; font-size: var(--fs-2); }
   .dv-ngang .bs { white-space: nowrap; }
   .dv-ngang .stt { color: var(--muted); text-align: right; min-width: 14px; }
   .bc-23 { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
@@ -292,6 +293,8 @@
   .dv-trang .bang th { font-size: var(--fs-1); padding: 8px; }
   .dv-trang .bang td { padding: 7px 8px; }
   .dv-trang .bang b { font-weight: 500; }
+  .bang.co-dinh { table-layout: fixed; }
+  .bang.co-dinh td, .bang.co-dinh th { overflow: hidden; text-overflow: ellipsis; }
   .dv-trang .bc-2, .dv-trang .dv-tren { align-items: stretch; }
   .dv-trang .bc-2 > .card, .dv-trang .dv-tren > .card, .dv-trang .dv-phai > .card { display: flex; flex-direction: column; }
   .dv-trang .card > .bc-chu:last-child { margin-top: auto; padding-top: 10px; }
@@ -1329,7 +1332,7 @@ function veNc() {
   const tongG = thangNc.map((_, i) => dong.reduce((s, r) => s + r.g[i], 0)), tongTb = dong.reduce((s, r) => s + r.tb, 0);
   el.innerHTML = loc + bangBc(['STT', 'Tổ'].concat(thangNc.map(th => 'T' + +th.slice(5) + (th === thang ? '*' : '')), ['TB']),
     dong.map(r => r.o).concat([['', '<b>Cộng</b>'].concat(tongG.map(v => '<b>' + tr0(v) + '</b>'), ['<b>' + tr0(tongTb) + '</b>'])]),
-    [0].concat(thangNc.map((_, i) => i + 2), [thangNc.length + 2]), 0, '');
+    [0].concat(thangNc.map((_, i) => i + 2), [thangNc.length + 2]), 0, '', [36, 56]);
 }
 
 /** Cột một chuỗi theo tháng, có số trên đầu cột: mỗi tổ một biểu đồ, trục riêng (so với các tháng trước của tổ). */
@@ -1514,7 +1517,7 @@ function veBcDv(d) {
     + the('Top 5 báo giá và xe thanh toán xong ' + T + ' (triệu)', '<div class="dv-khongke">' + bangBc(['STT', 'Báo giá', 'Giá trị', 'Thanh toán xong', 'Giá trị'],
         Array.from({ length: Math.max(bg5.length, tt5x.length) }, (_, i) => [i + 1,
           bg5[i] ? tt5(bg5[i], b => 'Vào xưởng ' + ngayVN(b.ngay) + ' · ' + tipLenh(b)) : '', bg5[i] ? Math.round(bg5[i].tien / 1e6).toLocaleString('vi-VN') : '',
-          tt5x[i] ? tt5(tt5x[i], tipLenh) : '', tt5x[i] ? Math.round(tt5x[i].tien / 1e6).toLocaleString('vi-VN') : '']), [0, 2, 4], 0, 'Không có.') + '</div>'
+          tt5x[i] ? tt5(tt5x[i], tipLenh) : '', tt5x[i] ? Math.round(tt5x[i].tien / 1e6).toLocaleString('vi-VN') : '']), [0, 2, 4], 0, 'Không có.', [36, null, 56, null, 56]) + '</div>'
       ,
       'Báo giá: từng lệnh vào xưởng trong tháng, giá trị có VAT, mọi loại lệnh kể cả chưa sửa. Thanh toán xong: lệnh có ngày thanh toán trong tháng, tổng tiền có VAT (như "xe thanh toán lớn" của bản tin sáng), không tính lệnh nội bộ. Rê chuột lên biển số để xem ngày, loại, nội dung.')
     + '</div></div>'
@@ -1560,7 +1563,7 @@ function veBcDv(d) {
         .concat([['', '<b>Tổng</b>'].concat(cotKt.map(k => '<b>' + tien((d.cvdv || []).reduce((s, c) => s + (c[2][k] || 0), 0)) + '</b>'),
           ['<b>' + tien((d.cvdv || []).reduce((s, c) => s + (c[2]['Bảo hành'] || 0), 0)) + '</b>', '<b>' + tien((d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0)) + '</b>',
             '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[4] || 0), 0)) + '</b>', '<b>' + trD((d.cvdv || []).reduce((s, c) => s + (c[5] || 0), 0)) + '</b>'])]),
-      [0].concat(cotKt.map((_, i) => i + 2), [cotKt.length + 2, cotKt.length + 3, cotKt.length + 4, cotKt.length + 5]), 0, 'Không có.')
+      [0].concat(cotKt.map((_, i) => i + 2), [cotKt.length + 2, cotKt.length + 3, cotKt.length + 4, cotKt.length + 5]), 0, 'Không có.', [36, 140])
       + '<div class="bc-chu">Từ đầu tháng ' + +thang.slice(5) + ' đến ' + den + '; DT chưa VAT, triệu, không tính nội bộ, bảo hành, PDI.</div>',
       'Lượt xe: lệnh vào xưởng từ đầu tháng ' + +thang.slice(5) + ' đến ' + den + ', theo người lập lệnh trên DMS; Tổng gồm cả lượt bảo hành. '
       + 'DT: tháng ' + +thang.slice(5) + ' theo ngày thanh toán, chưa VAT, không tính nội bộ, bảo hành, PDI (cộng các CVDV bằng doanh thu khai thác). DT GTGT: tiền công các mã trong quy ước GTGT của trang tra cứu (chưa gồm phụ gia).' + (xLuot.length > 1 ? ' Ô màu đầu tên: xưởng.' : ''))
@@ -1641,11 +1644,13 @@ function veNgauNhien() {
 }
 
 /** Bảng Tổng hợp; quá `gioi` dòng thì ẩn phần sau, có nút "Xem thêm". */
-function bangBc(dau, hang, phai, gioi, trong) {
+function bangBc(dau, hang, phai, gioi, trong, rong) {
   if (!hang.length) return '<p class="mo">' + trong + '</p>';
+  // rong: độ rộng cột cố định (px, null = chia đều phần còn lại) → bảng không co giãn cột theo dữ liệu khi đổi chi nhánh
+  const cg = rong ? '<colgroup>' + dau.map((_, i) => '<col' + (rong[i] ? ' style="width:' + rong[i] + 'px"' : '') + '>').join('') + '</colgroup>' : '';
   const td = (v, i, the) => '<' + the + (phai.includes(i) ? ' class="r"' : '') + '>' + v + '</' + the + '>';
   const them = gioi && hang.length > gioi ? hang.length - gioi : 0;
-  return '<table class="bang"><thead><tr>' + dau.map((h, i) => td(h, i, 'th')).join('') + '</tr></thead><tbody>'
+  return '<table class="bang' + (rong ? ' co-dinh' : '') + '">' + cg + '<thead><tr>' + dau.map((h, i) => td(h, i, 'th')).join('') + '</tr></thead><tbody>'
     + hang.map((h, j) => '<tr' + (them && j >= gioi ? ' class="them"' : '') + '>' + h.map((v, i) => td(v, i, 'td')).join('') + '</tr>').join('') + '</tbody></table>'
     + (them ? '<button class="xem-them" data-xem-them>Xem thêm ' + them + ' dòng</button>' : '');
 }
@@ -1659,7 +1664,9 @@ function veCnBc(d) {
 }
 const anThanhBc = () => { $('man-bc').querySelector('.thanh-tra').hidden = !$('bc-muc').innerHTML && !$('bc-cn').innerHTML && $('bc-ngay').hidden && $('bc-ve').hidden && !$('bc-loi').textContent; };
 
+let BC_LUOT = 0;
 async function bcTai() {
+  const luot = ++BC_LUOT;
   // nhóm mục (đánh số theo thứ tự hiện) tách khỏi nhóm chi nhánh (người dùng chốt 27/11/2026)
   const muc = [['dv', 'Tổng hợp', META.xemDv], ['nb', 'Nhắc bảo dưỡng', META.xemNb], ['lt', 'Tiếp nhận', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs]]
     .filter(m => (m[2] || []).length).map((m, i) => [m[0], (i + 1) + '. ' + m[1], m[2]]);
@@ -1668,24 +1675,30 @@ async function bcTai() {
     .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === BC.muc ? 'on' : '') + '">' + t + '</button>').join('') : '';
   $('bc-ngay').hidden = BC.muc !== 'lt';
   $('bc-loi').textContent = '';
-  if (!(BC.muc === 'dv' && BC_NHO.has('bcDichVu|' + BC.cn))) $('bc-nd').innerHTML = '<p class="mo">Đang tải…</p>';   // đã có dữ liệu: thay thẳng, không nháy trang
+  // đang xem mục này: làm mờ trang cũ trong lúc tải (không xóa → không nháy, không nhảy vị trí); mục khác thì "Đang tải…"
+  const nd = $('bc-nd'), cungMuc = nd.dataset.muc === BC.muc;
+  if (cungMuc) { nd.style.minHeight = nd.offsetHeight + 'px'; nd.classList.add('dang-tai'); } else nd.innerHTML = '<p class="mo">Đang tải…</p>';
+  nd.dataset.muc = BC.muc;
   try {
     if (BC.muc === 'ls') veBcLs(await goi('bcLamSom', PHIEN.token, BC.cn));
     else if (BC.muc === 'nb') await bcNb();
     else if (BC.muc === 'dv') {
       if (!BC.cn) BC.cn = (META.xemDv || []).indexOf(cnMacDinh()) >= 0 ? cnMacDinh() : (META.xemDv || [])[0];
       const d = await goiNho('bcDichVu', BC.cn);
+      if (luot !== BC_LUOT) return;   // đã bấm chi nhánh khác: bỏ kết quả cũ
       veBcDv(d);
       (d.cacCn || []).forEach(c => goiNho('bcDichVu', c));   // tải sẵn các chi nhánh khác trong nền
     }
     else veBc(await goi('bcLeTan', PHIEN.token, $('bc-ngay').value, BC.cn));
   }
   catch (e) {
+    if (luot !== BC_LUOT) return;
     $('bc-nd').innerHTML = '';
     if (e.message.includes('HET_PHIEN')) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; }
     else $('bc-loi').textContent = e.message;
     anThanhBc();
   }
+  if (luot === BC_LUOT) { nd.classList.remove('dang-tai'); requestAnimationFrame(() => { nd.style.minHeight = ''; }); }
 }
 
 function veBc(d) {
