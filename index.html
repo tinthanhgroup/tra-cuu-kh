@@ -1220,7 +1220,7 @@ function veNb(n) {
 async function bcNb() {
   // "Toàn hệ thống" (ADMIN, CSKH, GĐDV, quản lý) đặt cuối: nút chi nhánh giữ vị trí như các mục khác; số tổng hợp lấy từ bcNhacBdTong (không có danh sách xe)
   const ds = META.xemNb || [], cac = META.xemNbTong ? ds.concat(['ALL']) : ds;
-  if (!BC.cn || cac.indexOf(BC.cn) < 0) BC.cn = cac[0];
+  if (!BC.cn || cac.indexOf(BC.cn) < 0) BC.cn = cac.indexOf('ALL') >= 0 ? 'ALL' : cac[0];
   if (BC.cn !== 'ALL') { const d = await goiNho('bcNhacBd', BC.cn); d.cacCn = cac; return veBcNb(d); }
   const tg = await goiNho('bcNhacBdTong', 'ALL'), cs = Object.keys(tg.dl);
   const t = c => tg.dl[c].tong_cn || {}, theo = k => cs.reduce((o, c) => { o[c] = t(c)[k]; return o; }, {});
@@ -1517,12 +1517,12 @@ function veBcDvTong(d) {
   const o = (nhan, so, phu, lop) => '<div><div class="nhan">' + nhan + '</div><div class="so' + (lop ? ' ' + lop : '') + '">' + so + '</div><div class="nhan">' + (phu || '') + '</div></div>';
   let stt = 0;
   const the = (tieuDe, noiDung, goi) => '<div class="card"><h2 class="card-title"' + (goi ? ' title="' + esc(goi) + '"' : '') + '>' + (++stt) + '. ' + tieuDe + '</h2>' + noiDung + '</div>';
-  const lech = (a, b) => (a >= b ? '+' : '−') + trD(Math.abs(a - b));
+  const lech = (a, b) => (a >= b ? '+' : '−') + tr10(Math.abs(a - b));
   // 1. bảng theo chi nhánh
   // bỏ cột So lũy kế, Cần mỗi ngày còn lại; Lượt xe trước doanh thu; bảng đặt cạnh biểu đồ tiến độ (người dùng chốt 28/11/2026)
-  const hang = cs.map((c, i) => [i + 1, '<span class="dv-x" style="background:' + DV_MAU[c] + '"></span>' + (TEN_CN[c] || c), tien(d.dl[c].luot_thang || 0), tr0(lk[c].tt),
-    lk[c].ct ? tr0(lk[c].ct) : '–', pt(lk[c].tt, lk[c].ct), tr0(d.dl[c].gtgt || 0)]);
-  hang.push(['', '<b>Toàn hệ thống</b>', '<b>' + tien(luot) + '</b>', '<b>' + tr0(tt) + '</b>', '<b>' + tr0(ct) + '</b>', '<b>' + pt(tt, ct) + '</b>', '<b>' + tr0(cong(c => d.dl[c].gtgt || 0)) + '</b>']);
+  const hang = cs.map((c, i) => [i + 1, '<span class="dv-x" style="background:' + DV_MAU[c] + '"></span>' + (TEN_CN[c] || c), tien(d.dl[c].luot_thang || 0), tr10(lk[c].tt),
+    lk[c].ct ? tr10(lk[c].ct) : '–', pt(lk[c].tt, lk[c].ct), tr0(d.dl[c].gtgt || 0)]);
+  hang.push(['', '<b>Toàn hệ thống</b>', '<b>' + tien(luot) + '</b>', '<b>' + tr10(tt) + '</b>', '<b>' + tr10(ct) + '</b>', '<b>' + pt(tt, ct) + '</b>', '<b>' + tr0(cong(c => d.dl[c].gtgt || 0)) + '</b>']);
   // 2. tiến độ % chỉ tiêu tháng theo ngày
   const ngay = lk[cs[0]].ngay, ref = lk[cs[0]].ctLk.map(v => v / (lk[cs[0]].ct || 1) * 100);
   const duong = cs.filter(c => lk[c].ct).map(c => ({ ten: TEN_CN[c] || c, mau: DV_MAU[c], v: lk[c].ttLk.map(v => v == null ? null : v / lk[c].ct * 100) }));
@@ -1540,8 +1540,9 @@ function veBcDvTong(d) {
       tip: 'Tháng ' + +th.slice(5) + ': ' + trD(tg) + ' tr (' + XW.map((xw, k) => DV_TEN_X[xw] + ' ' + trD(g[k])).join(', ') + ')' + (ctT[th] ? ', chỉ tiêu ' + trD(ctT[th]) + ' tr, đạt ' + Math.round(tg / ctT[th] * 100) + '%' : '') }; });
 
   $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-so dv-so">'
-    + o('Doanh thu khai thác', trD(tt) + ' tr', 'toàn hệ thống, ' + tien(luot) + ' lượt xe')
-    + o('Chỉ tiêu tháng', trD(ct) + ' tr')
+    // ô KPI: doanh thu, chỉ tiêu làm tròn hàng chục triệu (người dùng chốt 28/11/2026)
+    + o('Doanh thu khai thác', tr10(tt) + ' tr', 'toàn hệ thống, ' + tien(luot) + ' lượt xe')
+    + o('Chỉ tiêu tháng', tr10(ct) + ' tr')
     + o('Hoàn thành chỉ tiêu tháng', pt(tt, ct))
     + o('So chỉ tiêu lũy kế tới ' + den, lech(tt, ctDen) + ' tr', pt(tt, ctDen) + ' lũy kế', tt < ctDen ? 'do' : '')
     + (d.nbO || o('Lượt xe từ đầu tháng', tien(luot), 'đến ' + den))
@@ -1557,7 +1558,7 @@ function veBcDvTong(d) {
       + '<span><i class="net"></i>Chỉ tiêu toàn hệ thống</span></div><div id="dv-t3"></div>'
       + '<div class="bc-chu">' + T + '*: đến ' + den + '.' + (thieuSo.length ? ' ' + thieuSo.join('; ') + ' (nguồn doanh thu chưa có), chỉ tiêu các tháng đó không tính chi nhánh này.' : '') + '</div>')
     + '</div></div></div>';
-  DV_TD = { td: (W, H) => bdDuong(ngay, duong, ref, W, H), t3: W => bdThang(hangT, XW.map(xw => DV_MAU[xw]), ctT, true, W, Math.min(380, Math.round(W * 0.58))) };
+  DV_TD = { td: (W, H) => bdDuong(ngay, duong, ref, W, H), t3: W => bdThang(hangT, XW.map(xw => DV_MAU[xw]), ctT, true, W, Math.min(300, Math.round(W * 0.46))) };
   veTienDo();
 }
 
@@ -1580,6 +1581,7 @@ function luc(s) {
   return phut < 60 ? phut + ' phút trước' : phut < 1440 ? Math.round(phut / 60) + ' giờ trước' : Math.round(phut / 1440) + ' ngày trước';
 }
 
+const tr10 = v => (Math.round(v / 1e7) * 10).toLocaleString('vi-VN');   // triệu, làm tròn hàng chục (ô KPI, bảng chi nhánh: dễ nhớ, người dùng chốt 28/11/2026)
 const tr0 = v => Math.round(v / 1e6).toLocaleString('vi-VN');   // triệu, làm tròn đơn vị (bảng 1 Toàn hệ thống, người dùng chốt 28/11/2026)
 const tr1 = v => (Math.round(v / 1e5) / 10).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });   // triệu, luôn 1 số lẻ
 
@@ -1648,10 +1650,10 @@ function veBcDv(d) {
   const luotTh = (d.cvdv || []).reduce((s, c) => s + Object.values(c[2]).reduce((a, v) => a + v, 0), 0);
 
   $('bc-nd').innerHTML = '<div class="dv-trang" style="--dv-chinh:' + (DV_MAU[(d.xuong || [])[0]] || 'var(--accent)') + '"><div class="bc-so dv-so">'
-    + o('Doanh thu khai thác', trD(tt) + ' tr', tien(luotTh) + ' lượt xe đến ' + den)
-    + o('Chỉ tiêu tháng', d.chi_tieu ? trD(d.chi_tieu) + ' tr' : '–')
+    + o('Doanh thu khai thác', tr10(tt) + ' tr', tien(luotTh) + ' lượt xe đến ' + den)
+    + o('Chỉ tiêu tháng', d.chi_tieu ? tr10(d.chi_tieu) + ' tr' : '–')
     + o('Hoàn thành chỉ tiêu tháng', d.chi_tieu ? Math.round(tt / d.chi_tieu * 100) + '%' : '–')
-    + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + trD(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
+    + o('So chỉ tiêu lũy kế tới ' + den, d.chi_tieu ? (tt >= ctDen ? '+' : '−') + tr10(Math.abs(tt - ctDen)) + ' tr' : '–', d.chi_tieu ? Math.round(tt / (ctDen || 1) * 100) + '% lũy kế' : '', d.chi_tieu && tt < ctDen ? 'do' : '')
     + (d.nbO || o('Lượt xe từ đầu tháng', tien(luotTh), 'đến ' + den))
     + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, theo ngày thanh toán, không tính nội bộ, bảo hành, PDI; lệnh đến ' + ngayVN(d.vao_den) + ', thanh toán đến ' + ngayVN(d.tt_den) + '.</div>'
@@ -1856,7 +1858,8 @@ async function bcTai() {
     else if (BC.muc === 'nb') await bcNb();
     else if (BC.muc === 'dv') {
       const cacDv = (META.xemDv || []).concat(META.xemNbTong ? ['ALL'] : []);   // "Toàn hệ thống" cuối (ADMIN, CSKH, GĐDV, quản lý)
-      if (!BC.cn || cacDv.indexOf(BC.cn) < 0) BC.cn = cacDv.indexOf(cnMacDinh()) >= 0 ? cnMacDinh() : cacDv[0];
+      // vào Tổng hợp: mặc định Toàn hệ thống nếu tài khoản được xem (người dùng chốt 28/11/2026)
+      if (!BC.cn || cacDv.indexOf(BC.cn) < 0) BC.cn = cacDv.indexOf('ALL') >= 0 ? 'ALL' : cacDv.indexOf(cnMacDinh()) >= 0 ? cnMacDinh() : cacDv[0];
       const laNb = (META.xemNb || []).indexOf(BC.cn) >= 0 || (BC.cn === 'ALL' && META.xemNbTong);
       const [dv, nb] = await Promise.all([goiNho(BC.cn === 'ALL' ? 'bcDichVuTong' : 'bcDichVu', BC.cn),
         laNb ? goiNho(BC.cn === 'ALL' ? 'bcNhacBdTong' : 'bcNhacBd', BC.cn).catch(() => null) : null]);
