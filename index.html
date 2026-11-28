@@ -269,9 +269,14 @@
   .dv-tren { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: stretch; }
   .dv-tren .card { margin-bottom: 0; }
   .dv-mot { margin-top: 16px; }
-  .dv-hai { grid-template-columns: minmax(0, 3fr) minmax(min-content, 2fr); }   /* bảng không bị cắt khi màn hình hẹp */
-  @media (max-width: 1000px) { .dv-hai { grid-template-columns: minmax(0, 1fr); } }   /* màn hình hẹp: biểu đồ tiến độ đủ to, bảng xuống dưới */
-  .dv-hai .bang th, .dv-hai .bang td { padding-left: 6px; padding-right: 6px; white-space: nowrap; }   /* bảng 1 cạnh biểu đồ tiến độ (Toàn hệ thống) */
+  .dv-lon { display: grid; grid-template-columns: minmax(0, 3fr) minmax(min-content, 2fr); gap: 16px; margin-top: 16px; }
+  .dv-lon > .card { display: flex; flex-direction: column; margin-bottom: 0; }
+  .dv-lon #dv-td { flex: 1; min-height: 0; }
+  .dv-phai2 { display: flex; flex-direction: column; gap: 16px; }
+  .dv-phai2 > .card { margin-bottom: 0; }
+  .dv-trang .dv-lon .bang th, .dv-trang .dv-lon .bang td { padding: 5px 6px; }
+  .dv-trang .dv-lon .bang td { white-space: nowrap; }   /* bảng 2 gọn, nhường chỗ cho biểu đồ 3 */
+  @media (max-width: 1000px) { .dv-lon { grid-template-columns: minmax(0, 1fr); } }
   .dv-trang .bc-3 { margin-top: 16px; align-items: stretch; }
   .dv-trang .bc-3 > .card { display: flex; flex-direction: column; margin-bottom: 0; }
   .dv-trang #dv-nc .bang th, .dv-trang #dv-nc .bang td { padding-left: 4px; padding-right: 4px; }
@@ -1396,7 +1401,7 @@ function bdThang(hang, mau, ct, giua, W = 720, H = 220) {
       if (!v) return;
       const cao = (H - t - b) * v / max;
       s += '<rect x="' + (cx - bw / 2) + '" y="' + (dinh - cao + (k ? 1 : 0)) + '" width="' + bw + '" height="' + Math.max(0, cao - (k ? 1 : 0)) + '" rx="2" fill="' + (mau[k] || 'var(--accent)') + '"><title>' + (h.tips ? h.tips[k] : h.tip) + '</title></rect>';
-      if (giua && cao >= 16) s += '<text class="giua" x="' + cx + '" y="' + (dinh - cao / 2 + 4) + '" style="fill:' + chuTren(mau[k]) + '">' + Math.round(v / 1e6).toLocaleString('vi-VN') + '</text>';
+      if (giua && cao >= 16 && bw >= 30) s += '<text class="giua" x="' + cx + '" y="' + (dinh - cao / 2 + 4) + '" style="fill:' + chuTren(mau[k]) + '">' + Math.round(v / 1e6).toLocaleString('vi-VN') + '</text>';
       dinh -= cao;
     });
     if (c) s += '<line x1="' + (cx - bw / 2 - 5) + '" x2="' + (cx + bw / 2 + 5) + '" y1="' + y(c) + '" y2="' + y(c) + '" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 2"><title>Chỉ tiêu ' + trD(c) + ' tr</title></line>';
@@ -1499,7 +1504,7 @@ function canChanCot() {
     bd.forEach((v, i) => { if (max - tren[i] > 0.5) v.style.marginTop = (max - tren[i]) + 'px'; });
   });
 }
-let _ccHen; window.addEventListener('resize', () => { clearTimeout(_ccHen); _ccHen = setTimeout(canChanCot, 150); });
+let _ccHen; window.addEventListener('resize', () => { clearTimeout(_ccHen); _ccHen = setTimeout(() => { canChanCot(); veTienDo(); }, 150); });
 
 /** Mục 1. Tổng hợp, "Toàn hệ thống": các chi nhánh đặt cạnh nhau theo thứ tự cố định, không xếp hạng (người dùng chốt 27/11/2026). */
 function veBcDvTong(d) {
@@ -1521,8 +1526,8 @@ function veBcDvTong(d) {
   // 2. tiến độ % chỉ tiêu tháng theo ngày
   const ngay = lk[cs[0]].ngay, ref = lk[cs[0]].ctLk.map(v => v / (lk[cs[0]].ct || 1) * 100);
   const duong = cs.filter(c => lk[c].ct).map(c => ({ ten: TEN_CN[c] || c, mau: DV_MAU[c], v: lk[c].ttLk.map(v => v == null ? null : v / lk[c].ct * 100) }));
-  // 3. theo tháng: cột chồng theo xưởng (NT, PY, ĐL, BL), vạch chỉ tiêu cả hệ thống
-  const XW = ['NT', 'PY', 'ĐL', 'BL'], thangs = (d.dl[cs[0]].dt_thang || []).map(r => r[0]);
+  // 3. theo tháng, 6 tháng gần nhất: cột chồng theo xưởng (NT, PY, ĐL, BL), vạch chỉ tiêu cả hệ thống; bỏ biểu đồ theo loại lệnh (người dùng chốt 28/11/2026)
+  const XW = ['NT', 'PY', 'ĐL', 'BL'], thangs = (d.dl[cs[0]].dt_thang || []).map(r => r[0]).slice(-6);
   const giaTri = (th, xw) => cs.reduce((s, c) => { const x = d.dl[c], r = (x.dt_thang || []).find(q => q[0] === th) || [];
     return s + (x.dt_cot || []).reduce((a, k, i) => a + ((k === xw || (xw === 'ĐL' && k === 'LD')) ? (r[1 + i] || 0) : 0), 0); }, 0);
   // Nguồn Doanh thu.xlsx có Đà Lạt từ 11/2026: chỉ tiêu tháng chỉ cộng chi nhánh đã có số tháng đó (người dùng phát hiện 28/11/2026)
@@ -1531,14 +1536,8 @@ function veBcDvTong(d) {
   const thieuSo = cs.map(c => [c, thangs.filter(th => !coSo(c, th))]).filter(([, m]) => m.length)
     .map(([c, m]) => (TEN_CN[c] || c) + ' chưa có số ' + (m.length > 2 ? 'T' + +m[0].slice(5) + '–T' + +m[m.length - 1].slice(5) : m.map(th => 'T' + +th.slice(5)).join(', ')));
   const hangT = thangs.map(th => { const g = XW.map(xw => giaTri(th, xw)), tg = g.reduce((s, v) => s + v, 0);
-    return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : ''), gt: g,
+    return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th === thangs[0] ? '/' + th.slice(2, 4) : ''), gt: g,
       tip: 'Tháng ' + +th.slice(5) + ': ' + trD(tg) + ' tr (' + XW.map((xw, k) => DV_TEN_X[xw] + ' ' + trD(g[k])).join(', ') + ')' + (ctT[th] ? ', chỉ tiêu ' + trD(ctT[th]) + ' tr, đạt ' + Math.round(tg / ctT[th] * 100) + '%' : '') }; });
-  // 4. theo loại lệnh, 7 tháng gần nhất, cộng các chi nhánh
-  const thangL = (d.dl[cs[0]].loai_12 || []).slice(-7).map(r => r[0]);
-  const loaiTh = (th, l) => cs.reduce((s, c) => { const r = (d.dl[c].loai_12 || []).find(q => q[0] === th); return s + (r ? Object.values(r[1]).reduce((a, o2) => a + (o2[l] || 0), 0) : 0); }, 0);
-  const hangL = thangL.map(th => { const g = DV_LOAI_12.map(([l]) => loaiTh(th, l)), tg = g.reduce((s, v) => s + v, 0) || 1;
-    return { th: th, nhan: 'T' + +th.slice(5) + (th === thang ? '*' : '') + (th === thangL[0] ? '/' + th.slice(2, 4) : ''), gt: g,
-      tips: DV_LOAI_12.map(([l], k) => 'Tháng ' + +th.slice(5) + ' · ' + (l === 'Đồng sơn tiền mặt' ? 'Đồng sơn TM' : l) + ': ' + trD(g[k]) + ' tr, ' + Math.round(g[k] / tg * 100) + '%') }; });
 
   $('bc-nd').innerHTML = '<div class="dv-trang"><div class="bc-so dv-so">'
     + o('Doanh thu khai thác', trD(tt) + ' tr', 'toàn hệ thống, ' + tien(luot) + ' lượt xe')
@@ -1548,19 +1547,29 @@ function veBcDvTong(d) {
     + (d.nbO || o('Lượt xe từ đầu tháng', tien(luot), 'đến ' + den))
     + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, không tính nội bộ, bảo hành, PDI; các chi nhánh đặt cạnh nhau, không xếp hạng. Chọn từng chi nhánh ở trên để xem chi tiết.</div>'
-    // biểu đồ tiến độ là trung tâm: bên trái, rộng hơn; bảng chi nhánh bên phải (người dùng chốt 28/11/2026)
-    + '<div class="bc-2 dv-hai">' + the('Tiến độ chỉ tiêu tháng ' + +thang.slice(5) + ' (% chỉ tiêu tháng)', '<div class="dv-cu">' + duong.map(sr => '<span><i style="background:' + sr.mau + '"></i>' + sr.ten + '</span>').join('')
-      + '<span><i class="net"></i>Chỉ tiêu lũy kế</span></div>' + bdDuong(ngay, duong, ref, 860, 300),
+    // biểu đồ tiến độ là trung tâm: cột trái, to hẳn; bảng chi nhánh và biểu đồ 3 xếp chồng cột phải (người dùng chốt 28/11/2026)
+    + '<div class="dv-lon">' + the('Tiến độ chỉ tiêu tháng ' + +thang.slice(5) + ' (% chỉ tiêu tháng)', '<div class="dv-cu">' + duong.map(sr => '<span><i style="background:' + sr.mau + '"></i>' + sr.ten + '</span>').join('')
+      + '<span><i class="net"></i>Chỉ tiêu lũy kế</span></div><div id="dv-td"></div>',
       'Mỗi đường: doanh thu khai thác lũy kế chia chỉ tiêu tháng của chi nhánh đó, để các chi nhánh so được trên cùng một thang. Đường đứt: chỉ tiêu lũy kế theo ngày làm việc.')
-    + the('Theo chi nhánh, tháng ' + +thang.slice(5) + ' (triệu)', bangBc(['STT', 'Chi nhánh', 'Lượt xe', 'DT khai thác', 'Chỉ tiêu', 'Hoàn thành', 'DT GTGT'],
-      hang, [0, 2, 3, 4, 5, 6], 0, 'Không có.'), 'Từ đầu tháng đến ' + den + '. Đà Lạt gồm Bảo Lộc.') + '</div>'
-    + '<div class="bc-2">'
-    + the('Doanh thu khai thác theo tháng từ tháng 1 (triệu)', '<div class="dv-cu">' + XW.map(xw => '<span><i style="background:' + DV_MAU[xw] + '"></i>' + DV_TEN_X[xw] + '</span>').join('')
-      + '<span><i class="net"></i>Chỉ tiêu toàn hệ thống</span></div>' + bdThang(hangT, XW.map(xw => DV_MAU[xw]), ctT, true, 720, 270)
+    + '<div class="dv-phai2">' + the('Theo chi nhánh, tháng ' + +thang.slice(5) + ' (triệu)', bangBc(['STT', 'Chi nhánh', 'Lượt xe', 'DT khai thác', 'Chỉ tiêu', 'Hoàn thành', 'DT GTGT'],
+      hang, [0, 2, 3, 4, 5, 6], 0, 'Không có.'), 'Từ đầu tháng đến ' + den + '. Đà Lạt gồm Bảo Lộc.')
+    + the('Doanh thu khai thác (triệu)', '<div class="dv-cu">' + XW.map(xw => '<span><i style="background:' + DV_MAU[xw] + '"></i>' + DV_TEN_X[xw] + '</span>').join('')
+      + '<span><i class="net"></i>Chỉ tiêu toàn hệ thống</span></div><div id="dv-t3"></div>'
       + '<div class="bc-chu">' + T + '*: đến ' + den + '.' + (thieuSo.length ? ' ' + thieuSo.join('; ') + ' (nguồn doanh thu chưa có), chỉ tiêu các tháng đó không tính chi nhánh này.' : '') + '</div>')
-    + the('Doanh thu khai thác theo loại lệnh, 7 tháng gần nhất (triệu)', '<div class="dv-cu">' + DV_LOAI_12.map(([l, m]) => '<span><i style="background:' + m + '"></i>' + (l === 'Đồng sơn tiền mặt' ? 'Đồng sơn TM' : l) + '</span>').join('') + '</div>'
-      + bdThang(hangL, DV_LOAI_12.map(([, m]) => m), {}, false, 720, 270))
-    + '</div></div>';
+    + '</div></div></div>';
+  DV_TD = { td: (W, H) => bdDuong(ngay, duong, ref, W, H), t3: W => bdThang(hangT, XW.map(xw => DV_MAU[xw]), ctT, true, W, Math.min(380, Math.round(W * 0.58))) };
+  veTienDo();
+}
+
+/** Toàn hệ thống: vẽ biểu đồ theo chiều ngang thật (chữ giữ cỡ chuẩn); biểu đồ tiến độ cao bằng cột phải, màn hình hẹp (một cột) cao 320. */
+let DV_TD = null;
+function veTienDo() {
+  const el = $('dv-td');
+  if (!el || !DV_TD) return;
+  el.innerHTML = '';
+  ['t3'].forEach(k => { const e = $('dv-' + k); if (e) e.innerHTML = DV_TD[k](Math.max(320, Math.round(e.clientWidth))); });
+  const W = Math.max(320, Math.round(el.clientWidth)), cao = el.clientHeight;
+  el.innerHTML = DV_TD.td(W, cao > 200 ? Math.round(cao) : 320);
 }
 
 /** "dd/mm/yyyy HH:MM" → "x phút / giờ / ngày trước". */
