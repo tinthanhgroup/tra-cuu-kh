@@ -269,6 +269,7 @@
   .dv-tren { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: stretch; }
   .dv-tren .card { margin-bottom: 0; }
   .dv-mot { margin-top: 16px; }
+  html.nhung .topbar { display: none; }   /* nhúng trong trang BH: trang BH đã có thanh tiêu đề */
   .dv-lon { display: grid; grid-template-columns: minmax(0, 3fr) minmax(min-content, 2fr); gap: 16px; margin-top: 16px; }
   .dv-lon > .card { display: flex; flex-direction: column; margin-bottom: 0; }
   .dv-lon #dv-td { flex: 1; min-height: 0; }
@@ -603,7 +604,7 @@ function hien(man) {
   document.querySelector('.topbar h1').firstChild.textContent = man === 'lt' ? 'Lễ tân dịch vụ' : man === 'bc' ? 'Tổng hợp' : 'Tra cứu dịch vụ bảo dưỡng';
   clearInterval(LT.hen);
   if (man === 'bc') {
-    $('bc-ve').hidden = META.vai === 'baocao';
+    $('bc-ve').hidden = META.vai === 'baocao' || NHUNG;
     if (!$('bc-ngay').value) $('bc-ngay').value = new Date(Date.now() + 7 * 36e5).toISOString().slice(0, 10);
     bcTai();
   } else if (man === 'lt') {
@@ -633,7 +634,7 @@ async function dangNhap() {
   $('loi-dn').textContent = ''; $('nut-dn').disabled = true;
   try {
     const r = await goi('dangNhap', $('ma').value, $('mk').value);
-    META = r.meta; luuPhien({ token: r.token, ma: r.ma, het: r.het }); $('mk').value = ''; hien('tra');
+    META = r.meta; luuPhien({ token: r.token, ma: r.ma, het: r.het }); $('mk').value = ''; hien(NHUNG ? 'bc' : 'tra');
   } catch (e) { $('loi-dn').textContent = e.message; }
   $('nut-dn').disabled = false;
 }
@@ -1159,6 +1160,9 @@ document.addEventListener('change', async e => {
 });
 // ---------- Tổng hợp: Lễ tân DV | Công việc cần làm sớm ----------
 const BC = { cn: null, muc: null };
+// ?nhung=tonghop: nhúng vào tab 3 trang báo cáo BH (người dùng chốt 28/11/2026) — vào thẳng Tổng hợp, ẩn thanh trên và nút Quay lại
+const NHUNG = new URLSearchParams(location.search).get('nhung') === 'tonghop';
+if (NHUNG) document.documentElement.classList.add('nhung');
 /** Nhớ kết quả báo cáo theo (chức năng, chi nhánh) 10 phút: bấm lại chi nhánh đã xem hiện ngay, không gọi lại máy chủ. */
 const BC_NHO = new Map();
 function goiNho(ham, cn) {
@@ -1991,7 +1995,7 @@ $('thoat').onclick = thoat;
   try { PHIEN = JSON.parse(localStorage.getItem('gtgt')) || JSON.parse(sessionStorage.getItem('gtgt')); } catch (e) {}
   if (PHIEN && PHIEN.het && PHIEN.het < Date.now()) { thoat(); $('loi-dn').textContent = 'Hết phiên làm việc, đăng nhập lại.'; return; }
   if (PHIEN) {
-    try { META = await goi('layMeta', PHIEN.token); return hien('tra'); } catch (e) { PHIEN = null; }
+    try { META = await goi('layMeta', PHIEN.token); return hien(NHUNG ? 'bc' : 'tra'); } catch (e) { PHIEN = null; }
   }
   hien('dn');
 })();
