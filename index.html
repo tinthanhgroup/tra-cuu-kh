@@ -1246,7 +1246,7 @@ function veBcNb(d) {
   const bien = b => '<a href="#" data-nb="' + esc(b) + '">' + esc(b) + '</a>';
   const nhieuNhat = Object.entries(t.bo || {}).sort((a, b) => b[1] - a[1]);
   const tuan = (d.tuan || []).slice().reverse();
-  $('bc-nd').innerHTML = '<div class="dv-trang">' + '<a href="#" class="lien nb-ve" data-muc="dv">← 1. Tổng hợp</a>' + '<div class="bc-so">' + o('Tuần ' + t.tuan + ': danh sách gửi', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
+  $('bc-nd').innerHTML = '<div class="dv-trang">' + '<a href="#" class="lien nb-ve" data-muc="dv">← ' + (NHUNG ? 'Quay lại' : '1. Tổng hợp') + '</a>' + '<div class="bc-so">' + o('Tuần ' + t.tuan + ': danh sách gửi', tien(t.gui || 0)) + o('Gọi', tien(t.goi || 0))
     + o('Gửi lại ZNS / SMS', tien(khac)) + o('Cần CVDV kiểm tra DMS', tien(t.can_kt || 0), t.can_kt ? 'cam' : '')
     + o('Không đưa vào danh sách', tien(nhieuNhat.reduce((s, x) => s + x[1], 0))) + o('Xe nhóm A', tien(((d.xe || {}).A1 || 0) + ((d.xe || {}).A2 || 0))) + '</div>'
     + '<div class="bc-chu">Tuần ' + t.tuan + ' (từ ' + ngayVN(t.thu2).slice(0, 5) + '), cập nhật ' + esc(d.cap_nhat) + '; bấm biển số để xem phân tích của xe.</div>'
@@ -1778,7 +1778,7 @@ function veBcNbTong(d) {
     return [ten(c), tien(kq), kq ? pt(tc, kq) : '–', tien(tu.reduce((s, w) => s + (w.loi_2 || 0), 0)), tien(kq - tc - tu.reduce((s, w) => s + (w.loi_2 || 0), 0)),
       tien(ll.thieu_sdt_a || 0) + ' <span class="mo">(' + pt(ll.thieu_sdt_a || 0, a) + ')</span>', tien(ll.can_kt || 0)];
   });
-  $('bc-nd').innerHTML = '<div class="dv-trang"><a href="#" class="lien nb-ve" data-muc="dv">← 1. Tổng hợp</a><div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
+  $('bc-nd').innerHTML = '<div class="dv-trang"><a href="#" class="lien nb-ve" data-muc="dv">← ' + (NHUNG ? 'Quay lại' : '1. Tổng hợp') + '</a><div class="bc-chu">Tuần ' + d.tuan + ', dữ liệu DMS đến ' + ngayVN(d.ngay_dl) + ', cập nhật ' + esc(d.cap_nhat)
     + '; các đại lý đặt cạnh nhau, không xếp hạng.</div>'
     + the('Tóm tắt', 'Nhóm A (khách đang bảo dưỡng đều) được nhắn trước.', tomTat,
       'Các nhóm khác khởi động sau. "Danh sách gửi": số xe trong danh sách tuần này; "Đã gửi (cộng dồn)": theo nhật ký gửi hoặc kết quả Zalo CSKH gửi về. Chọn từng đại lý ở trên để xem danh sách xe.')
@@ -1818,7 +1818,9 @@ function bangBc(dau, hang, phai, gioi, trong, rong) {
  *  Thanh lọc không còn gì (không nút, không ô ngày, không lỗi) thì ẩn luôn. */
 function veCnBc(d) {
   BC.cn = d.cn;
-  $('bc-cn').innerHTML = d.cacCn.length > 1 ? d.cacCn.map(c => '<button data-cn="' + c + '" class="' + (c === d.cn ? 'on' : '') + '">' + (TEN_CN[c] || c) + '</button>').join('') : '';
+  const THU_TU_NHUNG = ['ALL', 'NT', 'ĐL', 'PY'];   // nhúng BH: Toàn hệ thống đầu, rồi NT, ĐL, PY (người dùng chốt 28/11/2026)
+  const cac = NHUNG ? d.cacCn.slice().sort((a, b) => (THU_TU_NHUNG.indexOf(a) + 99) % 99 - (THU_TU_NHUNG.indexOf(b) + 99) % 99) : d.cacCn;
+  $('bc-cn').innerHTML = cac.length > 1 ? cac.map(c => '<button data-cn="' + c + '" class="' + (c === d.cn ? 'on' : '') + '">' + (TEN_CN[c] || c) + '</button>').join('') : '';
   if (!$('man-bc').hidden) { $('cn').textContent = TEN_CN[d.cn] || d.cn; $('cn').hidden = d.cacCn.length > 1; }
   anThanhBc();
 }
@@ -1846,10 +1848,10 @@ async function bcTai() {
   // nhóm mục (đánh số theo thứ tự hiện) tách khỏi nhóm chi nhánh (người dùng chốt 27/11/2026)
   // Nhắc bảo dưỡng nằm trong 1. Tổng hợp: vào bằng ô KPI "Nhắc bảo dưỡng tuần" (người dùng chốt 28/11/2026)
   const muc = [['dv', 'Tổng hợp', META.xemDv], ['lt', 'Tiếp nhận', META.xemBc], ['ls', 'Công việc cần làm sớm', META.xemLs]]
-    .filter(m => (m[2] || []).length).map((m, i) => [m[0], (i + 1) + '. ' + m[1], m[2]]);
+    .filter(m => (m[2] || []).length && (!NHUNG || m[0] === 'dv')).map((m, i) => [m[0], (i + 1) + '. ' + m[1], m[2]]);   // nhúng BH: chỉ Tổng hợp
   if (!(BC.muc === 'nb' && (META.xemNb || []).length) && !muc.some(m => m[0] === BC.muc)) BC.muc = (muc[0] || ['lt'])[0];
   const mucSang = BC.muc === 'nb' ? 'dv' : BC.muc;
-  $('bc-muc').innerHTML = muc.length > 1 ? muc
+  $('bc-muc').innerHTML = NHUNG ? '' : muc.length > 1 ? muc
     .map(([m, t]) => '<button data-muc="' + m + '" class="' + (m === mucSang ? 'on' : '') + '">' + t + '</button>').join('') : '';
   $('bc-ngay').hidden = BC.muc !== 'lt';
   $('bc-loi').textContent = '';
