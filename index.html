@@ -269,6 +269,8 @@
   .dv-tren { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: stretch; }
   .dv-tren .card { margin-bottom: 0; }
   .dv-mot { margin-top: 16px; }
+  .dv-hai { grid-template-columns: minmax(0, 3fr) minmax(min-content, 2fr); }   /* bảng không bị cắt khi màn hình hẹp */
+  @media (max-width: 1000px) { .dv-hai { grid-template-columns: minmax(0, 1fr); } }   /* màn hình hẹp: biểu đồ tiến độ đủ to, bảng xuống dưới */
   .dv-hai .bang th, .dv-hai .bang td { padding-left: 6px; padding-right: 6px; white-space: nowrap; }   /* bảng 1 cạnh biểu đồ tiến độ (Toàn hệ thống) */
   .dv-trang .bc-3 { margin-top: 16px; align-items: stretch; }
   .dv-trang .bc-3 > .card { display: flex; flex-direction: column; margin-bottom: 0; }
@@ -1546,11 +1548,12 @@ function veBcDvTong(d) {
     + (d.nbO || o('Lượt xe từ đầu tháng', tien(luot), 'đến ' + den))
     + o('Cập nhật', esc(String(d.cap_nhat || '–').replace(/\/\d{4}/, '')), luc(d.cap_nhat)) + '</div>'
     + '<div class="bc-chu">Doanh thu khai thác: chưa VAT, không tính nội bộ, bảo hành, PDI; các chi nhánh đặt cạnh nhau, không xếp hạng. Chọn từng chi nhánh ở trên để xem chi tiết.</div>'
-    + '<div class="bc-2 dv-hai">' + the('Theo chi nhánh, tháng ' + +thang.slice(5) + ' (triệu)', bangBc(['STT', 'Chi nhánh', 'Lượt xe', 'DT khai thác', 'Chỉ tiêu', 'Hoàn thành', 'DT GTGT'],
-      hang, [0, 2, 3, 4, 5, 6], 0, 'Không có.'), 'Từ đầu tháng đến ' + den + '. Đà Lạt gồm Bảo Lộc.')
-    + the('Tiến độ chỉ tiêu tháng ' + +thang.slice(5) + ' (% chỉ tiêu tháng)', '<div class="dv-cu">' + duong.map(sr => '<span><i style="background:' + sr.mau + '"></i>' + sr.ten + '</span>').join('')
-      + '<span><i class="net"></i>Chỉ tiêu lũy kế</span></div>' + bdDuong(ngay, duong, ref, 720, 250),
-      'Mỗi đường: doanh thu khai thác lũy kế chia chỉ tiêu tháng của chi nhánh đó, để các chi nhánh so được trên cùng một thang. Đường đứt: chỉ tiêu lũy kế theo ngày làm việc.') + '</div>'
+    // biểu đồ tiến độ là trung tâm: bên trái, rộng hơn; bảng chi nhánh bên phải (người dùng chốt 28/11/2026)
+    + '<div class="bc-2 dv-hai">' + the('Tiến độ chỉ tiêu tháng ' + +thang.slice(5) + ' (% chỉ tiêu tháng)', '<div class="dv-cu">' + duong.map(sr => '<span><i style="background:' + sr.mau + '"></i>' + sr.ten + '</span>').join('')
+      + '<span><i class="net"></i>Chỉ tiêu lũy kế</span></div>' + bdDuong(ngay, duong, ref, 860, 300),
+      'Mỗi đường: doanh thu khai thác lũy kế chia chỉ tiêu tháng của chi nhánh đó, để các chi nhánh so được trên cùng một thang. Đường đứt: chỉ tiêu lũy kế theo ngày làm việc.')
+    + the('Theo chi nhánh, tháng ' + +thang.slice(5) + ' (triệu)', bangBc(['STT', 'Chi nhánh', 'Lượt xe', 'DT khai thác', 'Chỉ tiêu', 'Hoàn thành', 'DT GTGT'],
+      hang, [0, 2, 3, 4, 5, 6], 0, 'Không có.'), 'Từ đầu tháng đến ' + den + '. Đà Lạt gồm Bảo Lộc.') + '</div>'
     + '<div class="bc-2">'
     + the('Doanh thu khai thác theo tháng từ tháng 1 (triệu)', '<div class="dv-cu">' + XW.map(xw => '<span><i style="background:' + DV_MAU[xw] + '"></i>' + DV_TEN_X[xw] + '</span>').join('')
       + '<span><i class="net"></i>Chỉ tiêu toàn hệ thống</span></div>' + bdThang(hangT, XW.map(xw => DV_MAU[xw]), ctT, true, 720, 270)
